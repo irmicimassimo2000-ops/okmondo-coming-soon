@@ -6,6 +6,17 @@
   <title>OK</title>
   <meta name="description" content="L'universo OK. Presto qui." />
   <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#EDEDE6" />
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <meta property="og:title" content="OK" />
+  <meta property="og:description" content="L'universo OK. Presto qui." />
+  <meta property="og:image" content="/og.png" />
+  <meta property="og:type" content="website" />
+
   <style>
     :root { --rosso:#E20612; --beige:#EDEDE6; --nero:#1A1A1A; --muto:#6b6b66; }
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -19,11 +30,9 @@
     .wrap { display:flex; flex-direction:column; align-items:center; gap:26px;
       animation:rise .9s cubic-bezier(.2,.7,.2,1) both; }
     .mark {
-      width:104px; height:104px; border-radius:26px; background:var(--rosso);
-      display:grid; place-items:center;
-      box-shadow:0 18px 44px -16px rgba(226,6,18,.55);
+      width:116px; height:116px; display:block;
+      filter:drop-shadow(0 18px 44px rgba(226,6,18,.45));
     }
-    .mark span { color:#fff; font-weight:800; font-size:42px; letter-spacing:-1px; }
     h1 { font-size:clamp(28px,6vw,46px); font-weight:800; letter-spacing:-1.5px; line-height:1.04; }
     p { font-size:clamp(15px,3.5vw,18px); color:var(--muto); max-width:32ch; line-height:1.5; }
     .dot { display:inline-block; width:8px; height:8px; border-radius:50%;
@@ -38,7 +47,12 @@
 </head>
 <body>
   <main class="wrap">
-    <div class="mark"><span>OK</span></div>
+    <!-- Marchio OK reale (ometto: O = testa+sorriso, K = corpo) -->
+    <svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" role="img" aria-label="OK">
+      <rect width="500" height="500" rx="112" ry="112" fill="#E20612"/>
+      <path transform="matrix(1,0,0,-1,250.0054,231.36441)" d="M0 0C-31.933 0-58.392 23.904-62.42 54.757-62.986 59.087-59.675 62.951-55.308 62.951H55.308C59.675 62.951 62.986 59.088 62.42 54.757 58.392 23.904 31.933 0 0 0M0 167.719C-57.777 167.719-104.785 120.728-104.785 62.951-104.785 5.174-57.777-41.833 0-41.833 57.76-41.833 104.768 5.175 104.768 62.951 104.768 120.728 57.76 167.719 0 167.719" fill="#EDEDE6"/>
+      <path transform="matrix(1,0,0,-1,367.8686,414.9971)" d="M0 0V-.597C0-12.972-10.774-22.659-23.065-21.215-74.474-15.174-102.676 10.791-117.869 34.173-133.062 10.791-161.263-15.174-212.672-21.215-224.963-22.659-235.737-12.972-235.737-.597V0C-235.737 10.552-227.808 19.353-217.331 20.612-187.688 24.172-165.916 36.76-152.475 58.157-147.534 66.017-144.385 74.025-142.376 80.86-161.125 83.883-190.272 89.344-224.15 98.364-235.413 101.362-241.972 113.079-238.682 124.26L-238.516 124.824C-235.34 135.615-224.141 141.901-213.27 139.012-183.175 131.015-156.875 125.951-139.16 122.997-125.064 120.646-110.679 120.649-96.582 123.003-78.841 125.966-52.509 131.038-22.466 139.015-11.595 141.902-.398 135.617 2.777 124.827L2.944 124.26C6.234 113.079-.324 101.362-11.587 98.364-45.465 89.344-74.612 83.883-93.361 80.86-91.352 74.025-88.203 66.017-83.262 58.158-69.821 36.76-48.049 24.172-18.406 20.612-7.93 19.354 0 10.552 0 0" fill="#EDEDE6"/>
+    </svg>
     <h1>Stiamo arrivando.</h1>
     <p><span class="dot"></span>L'universo OK, presto qui.</p>
   </main>
