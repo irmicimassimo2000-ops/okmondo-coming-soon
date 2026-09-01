@@ -1,0 +1,245 @@
+<!doctype html><html lang="it"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Rendiconto ADV &mdash; CLUBBIN&rsquo;CAVA</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+@font-face{font-family:'Tektur';font-weight:500;font-display:swap;
+           src:url(_a/Tektur-Medium.ttf) format('truetype')}
+@font-face{font-family:'SpaceMono';font-weight:400;font-display:swap;
+           src:url(_a/SpaceMono-Regular.ttf) format('truetype')}
+
+:root{
+  --notte:#0D0D0D; --pece:#141210; --pietra:#1C1917;
+  --sabbia:#EED7B8; --ombra:#9C8460; --bruno:#493328; --segnale:#C4361B;
+  --display:'Tektur','Arial Narrow',system-ui,sans-serif;
+  --corpo:'SpaceMono',ui-monospace,'SFMono-Regular',Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--notte);color:var(--sabbia);font-family:var(--corpo);
+     font-size:15px;line-height:1.72;-webkit-font-smoothing:antialiased}
+.foglio{max-width:800px;margin:0 auto;padding:0 26px 92px}
+
+/* testata: il taglio a 77 gradi come struttura */
+.testata{position:relative;overflow:hidden;border-bottom:1px solid var(--bruno)}
+.testata::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(103deg,transparent 0 43%,var(--bruno) 43% 43.3%,transparent 43.3%);
+  opacity:.5}
+.testata-in{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:66px 26px 42px}
+.occhiello{font-size:.66rem;letter-spacing:.32em;text-transform:uppercase;color:var(--ombra)}
+h1{font-family:var(--display);font-weight:500;font-size:clamp(2.1rem,7.6vw,3.3rem);
+   line-height:1.02;letter-spacing:-.01em;margin:16px 0 0}
+h1 .apo{color:var(--segnale)}
+.sottotitolo{margin-top:14px;font-size:1rem;color:var(--sabbia);max-width:44ch;line-height:1.6}
+.coordinate{margin-top:20px;font-size:.76rem;line-height:1.95;color:var(--ombra)}
+
+section{padding-top:52px}
+h2{font-family:var(--display);font-weight:500;font-size:1.1rem;letter-spacing:.02em;
+   padding-bottom:11px;border-bottom:1px solid var(--bruno);margin-bottom:24px}
+h2 .num{color:var(--segnale);font-family:var(--corpo);font-size:.76rem;
+        margin-right:12px;vertical-align:2px}
+p{margin-bottom:15px;max-width:62ch}
+p:last-child{margin-bottom:0}
+strong{color:var(--sabbia);font-weight:400;
+       box-shadow:inset 0 -1px 0 rgba(238,215,184,.28)}
+em{font-style:normal;color:var(--ombra)}
+
+/* il totale */
+.totale{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 38px}
+.cifra{font-family:var(--display);font-weight:500;font-size:clamp(3rem,12vw,4.9rem);
+       line-height:.92;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.controcifra{font-size:.8rem;color:var(--ombra);line-height:1.85;padding-bottom:8px}
+.controcifra b{color:var(--sabbia);font-weight:400}
+.barra{margin-top:26px;height:3px;background:var(--pietra);position:relative;overflow:hidden}
+.barra i{position:absolute;inset:0 auto 0 0;width:92.52%;background:var(--sabbia)}
+.barra-eti{display:flex;justify-content:space-between;margin-top:9px;
+           font-size:.67rem;color:var(--ombra);gap:14px}
+
+/* quadro dei numeri */
+.quadro{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
+        gap:1px;background:var(--bruno);border:1px solid var(--bruno);margin-top:6px}
+.cella{background:var(--notte);padding:18px 15px 16px}
+.cella .v{font-family:var(--display);font-weight:500;font-size:1.45rem;
+          font-variant-numeric:tabular-nums;line-height:1.1}
+.cella .e{font-size:.64rem;letter-spacing:.05em;color:var(--ombra);
+          margin-top:8px;line-height:1.6}
+
+/* tabella */
+.scorre{overflow-x:auto;margin-bottom:16px;
+        -webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:.82rem;min-width:540px}
+th,td{text-align:right;padding:12px 9px;border-bottom:1px solid var(--pietra)}
+th:first-child,td:first-child{text-align:left;padding-left:0}
+th:last-child,td:last-child{padding-right:0}
+thead th{font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;
+         color:var(--ombra);font-weight:400;border-bottom:1px solid var(--bruno)}
+td{font-variant-numeric:tabular-nums;color:var(--sabbia)}
+td:first-child{line-height:1.45}
+td .luogo{display:block;font-size:.68rem;color:var(--ombra);margin-top:3px}
+tr.somma td{border-bottom:none;border-top:1px solid var(--bruno);padding-top:14px;
+            color:var(--sabbia);box-shadow:inset 0 -1px 0 rgba(238,215,184,.2)}
+tr.somma td:first-child{box-shadow:none}
+.scorre-eti{font-size:.64rem;color:var(--bruno);letter-spacing:.06em}
+
+/* percorso di verifica */
+.percorso{font-size:.78rem;line-height:2;background:var(--pece);
+          border-left:2px solid var(--segnale);padding:15px 17px;margin:18px 0;
+          color:var(--sabbia);overflow-x:auto;white-space:nowrap;
+          -webkit-overflow-scrolling:touch}
+.percorso span{color:var(--ombra)}
+.percorso b{font-weight:400;box-shadow:inset 0 -1px 0 rgba(238,215,184,.28)}
+
+.nota{border-left:1px solid var(--bruno);padding:2px 0 2px 17px;margin:22px 0;
+      font-size:.84rem;color:var(--ombra);max-width:60ch;line-height:1.75}
+.nota strong{color:var(--sabbia);box-shadow:none}
+
+.chiusa{margin-top:60px;padding-top:24px;border-top:1px solid var(--bruno);
+        font-size:.7rem;line-height:2;color:var(--bruno)}
+.chiusa b{color:var(--ombra);font-weight:400}
+
+@media(max-width:560px){
+  body{font-size:14px}
+  .testata-in{padding:46px 20px 34px}
+  .foglio{padding:0 20px 66px}
+  section{padding-top:42px}
+}
+</style></head><body>
+
+<div class="testata"><div class="testata-in">
+  <p class="occhiello">Suoni in Cava &middot; GR Show S.r.l.</p>
+  <h1>CLUBBIN<span class="apo">&rsquo;</span>CAVA</h1>
+  <p class="sottotitolo">Rendiconto della campagna pubblicitaria Meta.</p>
+  <p class="coordinate">
+    Sabato 29 agosto 2026 &middot; Cava dell&rsquo;Erba / Stilmarmo, Apricena (FG)<br>
+    Rilevazione finale del 1&ordm; settembre 2026, a campagna conclusa
+  </p>
+</div></div>
+
+<div class="foglio">
+
+  <section>
+    <h2><span class="num">01</span>Il totale speso</h2>
+    <div class="totale">
+      <div class="cifra">&euro;&#8239;277,55</div>
+      <div class="controcifra">
+        su <b>&euro; 300,00</b> concordati<br>
+        residuo non speso <b>&euro; 22,45</b>
+      </div>
+    </div>
+    <div class="barra"><i></i></div>
+    <div class="barra-eti"><span>92,5% del budget impiegato</span><span>&euro; 300,00</span></div>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span>I risultati</h2>
+    <div class="quadro">
+      <div class="cella"><div class="v">103.856</div>
+        <div class="e">PERSONE RAGGIUNTE<br>persone distinte</div></div>
+      <div class="cella"><div class="v">170.609</div>
+        <div class="e">VOLTE CHE L&rsquo;ANNUNCIO<br>&Egrave; COMPARSO</div></div>
+      <div class="cella"><div class="v">3.650</div>
+        <div class="e">VISITE ALLA PAGINA<br>DI REGISTRAZIONE</div></div>
+      <div class="cella"><div class="v">&euro; 0,076</div>
+        <div class="e">COSTO MEDIO<br>PER VISITA</div></div>
+    </div>
+    <p style="margin-top:22px">
+      <strong>Il costo del traffico &egrave; il dato migliore della campagna.</strong>
+      La forbice attesa per questo tipo di inserzione va da &euro;&nbsp;0,20 a
+      &euro;&nbsp;0,80 per visita: siamo sotto di due volte e mezza il limite basso.
+      Con &euro;&nbsp;277,55 l&rsquo;annuncio &egrave; entrato negli schermi di oltre
+      centomila persone del bacino, e ne ha portate 3.650 sulla pagina di registrazione.
+    </p>
+    <div class="nota">
+      <strong>Le persone raggiunte non si sommano.</strong> Sommando i singoli gruppi si
+      arriverebbe a 116.332, ma molte persone appartengono a pi&ugrave; di un gruppo e sono
+      state contate una volta sola: <strong>103.856</strong> &egrave; il numero delle persone
+      realmente distinte.
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span>Dove &egrave; andato il budget</h2>
+    <p>
+      La campagna era divisa per <strong>bacino geografico</strong>, tutti i gruppi con
+      targeting <strong>+18</strong>. Un gruppo ulteriore &egrave; stato acceso il giorno
+      stesso dell&rsquo;evento con la grafica &laquo;TONIGHT&raquo;.
+    </p>
+    <div class="scorre">
+      <table>
+        <thead>
+          <tr><th>Gruppo</th><th>Speso</th><th>Visite</th><th>Costo<br>visita</th><th>Comparse</th><th>Raggiunte</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Nord barese<span class="luogo">Barletta +30 km &middot; 28&ndash;29 ago</span></td>
+            <td>&euro; 125,40</td><td>1.695</td><td>&euro; 0,07</td><td>65.265</td><td>46.572</td>
+          </tr>
+          <tr>
+            <td>Bacino di casa<span class="luogo">Apricena, Termoli, Vieste +40 km &middot; 28&ndash;29 ago</span></td>
+            <td>&euro; 102,30</td><td>1.370</td><td>&euro; 0,07</td><td>70.170</td><td>43.909</td>
+          </tr>
+          <tr>
+            <td>Il giorno stesso<span class="luogo">grafica TONIGHT &middot; 29 ago, dalle 09:00</span></td>
+            <td>&euro; 44,94</td><td>557</td><td>&euro; 0,08</td><td>32.427</td><td>25.851</td>
+          </tr>
+          <tr>
+            <td>Secondo account<span class="luogo">apertura supplementare &middot; 28 ago</span></td>
+            <td>&euro; 4,91</td><td>28</td><td>&euro; 0,18</td><td>2.747</td><td>2.613</td>
+          </tr>
+          <tr class="somma">
+            <td>Totale</td><td>&euro; 277,55</td><td>3.650</td><td>&euro; 0,076</td><td>170.609</td><td>103.856</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="scorre-eti">&larr; la tabella scorre in orizzontale</p>
+    <p style="margin-top:16px">
+      <strong>I tre bacini principali hanno reso in modo praticamente identico</strong>
+      &mdash; fra &euro;&nbsp;0,07 e &euro;&nbsp;0,08 per visita. Il nord barese ha ricevuto
+      la quota maggiore di budget e ha risposto con il maggior numero di visite.
+    </p>
+    <div class="nota">
+      <strong>Perch&eacute; un secondo account.</strong> Meta impone a ogni account
+      pubblicitario un tetto di spesa giornaliero che nei primi giorni &egrave; molto basso e
+      si alza solo con lo storico dei pagamenti. Il secondo account &egrave; servito a non
+      lasciare il budget fermo nei giorni di punta, ed &egrave; stato spento appena il primo
+      ha alzato il proprio tetto, per non superare i &euro;&nbsp;300 concordati.
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span>Come si verificano gli importi</h2>
+    <p>
+      Meta emette una <strong>fattura IVA per ogni addebito</strong>, numerata nella forma
+      <em>FBADS-454-XXXXXXXXX</em>. &Egrave; il documento contabile della spesa, ed &egrave;
+      scaricabile in PDF, transazione per transazione.
+    </p>
+    <div class="percorso">
+      Gestione inserzioni <span>&rarr;</span> Fatturazione e pagamenti
+      <span>&rarr;</span> Attivit&agrave; di pagamento <span>&rarr;</span>
+      colonna <b>ID della fattura IVA</b> <span>&rarr;</span> Scarica il PDF
+    </div>
+    <p>
+      Ogni PDF riporta emittente (Meta Platforms Ireland), data, importo, trattamento IVA e
+      identificativo della transazione. <strong>Le fatture sono allegate a questo
+      rendiconto.</strong>
+    </p>
+    <div class="nota">
+      <strong>Un dettaglio sui cicli di fatturazione.</strong> Meta addebita al
+      raggiungimento di una soglia di spesa, non a fine campagna: le fatture gi&agrave;
+      emesse coprono <strong>&euro;&nbsp;273,91</strong>, e i restanti
+      <strong>&euro;&nbsp;3,64</strong> ricadono nel ciclo di chiusura. La spesa &egrave;
+      quella indicata; cambia solo il momento in cui viene fatturata.
+    </div>
+  </section>
+
+  <div class="chiusa">
+    Rendiconto a cura di <b>OK</b> per <b>GR Show S.r.l.</b><br>
+    Dati rilevati da Meta Gestione inserzioni, 1&ordm; settembre 2026, a campagna conclusa.<br>
+    Le fatture IVA di Meta Platforms Ireland sono allegate come giustificativo di spesa.
+  </div>
+
+</div>
+</body></html>
