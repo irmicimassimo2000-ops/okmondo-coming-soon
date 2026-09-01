@@ -5,21 +5,20 @@
 <title>Rendiconto ADV &mdash; CLUBBIN&rsquo;CAVA</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>
-@font-face{font-family:'Tektur';font-weight:500;font-display:swap;
-           src:url(_a/Tektur-Medium.ttf) format('truetype')}
 @font-face{font-family:'SpaceMono';font-weight:400;font-display:swap;
            src:url(_a/SpaceMono-Regular.ttf) format('truetype')}
 
 :root{
   --notte:#0D0D0D; --pece:#141210; --pietra:#1C1917;
   --sabbia:#EED7B8; --ombra:#9C8460; --bruno:#493328; --segnale:#C4361B;
-  --display:'Tektur','Arial Narrow',system-ui,sans-serif;
-  --corpo:'SpaceMono',ui-monospace,'SFMono-Regular',Consolas,monospace;
+  --display:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+  --corpo:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+  --dati:'SpaceMono',ui-monospace,'SFMono-Regular',Consolas,monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{background:var(--notte);color:var(--sabbia);font-family:var(--corpo);
-     font-size:15px;line-height:1.72;-webkit-font-smoothing:antialiased}
+     font-size:16.5px;line-height:1.66;-webkit-font-smoothing:antialiased}
 .foglio{max-width:800px;margin:0 auto;padding:0 26px 92px}
 
 /* testata: il taglio a 77 gradi come struttura */
@@ -28,17 +27,17 @@ body{background:var(--notte);color:var(--sabbia);font-family:var(--corpo);
   background:linear-gradient(103deg,transparent 0 43%,var(--bruno) 43% 43.3%,transparent 43.3%);
   opacity:.5}
 .testata-in{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:66px 26px 42px}
-.occhiello{font-size:.66rem;letter-spacing:.32em;text-transform:uppercase;color:var(--ombra)}
-h1{font-family:var(--display);font-weight:500;font-size:clamp(2.1rem,7.6vw,3.3rem);
-   line-height:1.02;letter-spacing:-.01em;margin:16px 0 0}
-h1 .apo{color:var(--segnale)}
+.occhiello{font-family:var(--dati);font-size:.66rem;letter-spacing:.32em;text-transform:uppercase;color:var(--ombra)}
+h1{margin:22px 0 0;line-height:0}
+h1 img{display:block;width:100%;max-width:430px;height:auto}
+h1 .stampa{display:none}
 .sottotitolo{margin-top:14px;font-size:1rem;color:var(--sabbia);max-width:44ch;line-height:1.6}
-.coordinate{margin-top:20px;font-size:.76rem;line-height:1.95;color:var(--ombra)}
+.coordinate{font-family:var(--dati);margin-top:20px;font-size:.76rem;line-height:1.95;color:var(--ombra)}
 
 section{padding-top:52px}
 h2{font-family:var(--display);font-weight:500;font-size:1.1rem;letter-spacing:.02em;
    padding-bottom:11px;border-bottom:1px solid var(--bruno);margin-bottom:24px}
-h2 .num{color:var(--segnale);font-family:var(--corpo);font-size:.76rem;
+h2 .num{color:var(--segnale);font-family:var(--dati);font-size:.8rem;
         margin-right:12px;vertical-align:2px}
 p{margin-bottom:15px;max-width:62ch}
 p:last-child{margin-bottom:0}
@@ -48,32 +47,34 @@ em{font-style:normal;color:var(--ombra)}
 
 /* il totale */
 .totale{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 38px}
-.cifra{font-family:var(--display);font-weight:500;font-size:clamp(3rem,12vw,4.9rem);
+.cifra{font-family:var(--display);font-weight:700;font-size:clamp(2.9rem,11vw,4.5rem);
        line-height:.92;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.controcifra{font-size:.8rem;color:var(--ombra);line-height:1.85;padding-bottom:8px}
+.controcifra{font-family:var(--dati);font-size:.8rem;color:var(--ombra);line-height:1.85;padding-bottom:8px}
 .controcifra b{color:var(--sabbia);font-weight:400}
 .barra{margin-top:26px;height:3px;background:var(--pietra);position:relative;overflow:hidden}
 .barra i{position:absolute;inset:0 auto 0 0;width:92.52%;background:var(--sabbia)}
 .barra-eti{display:flex;justify-content:space-between;margin-top:9px;
-           font-size:.67rem;color:var(--ombra);gap:14px}
+           font-family:var(--dati);font-size:.67rem;color:var(--ombra);gap:14px}
 
 /* quadro dei numeri */
 .quadro{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
         gap:1px;background:var(--bruno);border:1px solid var(--bruno);margin-top:6px}
 .cella{background:var(--notte);padding:18px 15px 16px}
-.cella .v{font-family:var(--display);font-weight:500;font-size:1.45rem;
+.cella .v{font-family:var(--display);font-weight:700;font-size:1.5rem;
           font-variant-numeric:tabular-nums;line-height:1.1}
-.cella .e{font-size:.64rem;letter-spacing:.05em;color:var(--ombra);
+.cella .e{font-family:var(--dati);font-size:.64rem;letter-spacing:.05em;color:var(--ombra);
           margin-top:8px;line-height:1.6}
 
 /* tabella */
 .scorre{overflow-x:auto;margin-bottom:16px;
         -webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;font-size:.82rem;min-width:540px}
+table{width:100%;border-collapse:collapse;font-size:.84rem;min-width:540px}
+td,thead th{font-family:var(--dati)}
+td:first-child{font-family:var(--corpo)}
 th,td{text-align:right;padding:12px 9px;border-bottom:1px solid var(--pietra)}
 th:first-child,td:first-child{text-align:left;padding-left:0}
 th:last-child,td:last-child{padding-right:0}
-thead th{font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;
+thead th{font-family:var(--dati);font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;
          color:var(--ombra);font-weight:400;border-bottom:1px solid var(--bruno)}
 td{font-variant-numeric:tabular-nums;color:var(--sabbia)}
 td:first-child{line-height:1.45}
@@ -84,7 +85,7 @@ tr.somma td:first-child{box-shadow:none}
 .scorre-eti{font-size:.64rem;color:var(--bruno);letter-spacing:.06em}
 
 /* percorso di verifica */
-.percorso{font-size:.78rem;line-height:2;background:var(--pece);
+.percorso{font-family:var(--dati);font-size:.78rem;line-height:2;background:var(--pece);
           border-left:2px solid var(--segnale);padding:15px 17px;margin:18px 0;
           color:var(--sabbia);overflow-x:auto;white-space:nowrap;
           -webkit-overflow-scrolling:touch}
@@ -95,23 +96,23 @@ tr.somma td:first-child{box-shadow:none}
       font-size:.84rem;color:var(--ombra);max-width:60ch;line-height:1.75}
 .nota strong{color:var(--sabbia);box-shadow:none}
 
-.chiusa{margin-top:60px;padding-top:24px;border-top:1px solid var(--bruno);
+.chiusa{font-family:var(--dati);margin-top:60px;padding-top:24px;border-top:1px solid var(--bruno);
         font-size:.7rem;line-height:2;color:var(--bruno)}
 .chiusa b{color:var(--ombra);font-weight:400}
 
 .giorno{margin:22px 0}
-.gt{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+.gt{font-family:var(--dati);display:flex;justify-content:space-between;align-items:baseline;gap:14px;
     padding-bottom:8px;border-bottom:1px solid var(--bruno);margin-bottom:10px;
     font-size:.78rem;color:var(--ombra)}
 .gt b{color:var(--sabbia);font-weight:400;font-variant-numeric:tabular-nums}
 ul.fatt{list-style:none;display:grid;
         grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:1px 18px}
-ul.fatt li{display:flex;justify-content:space-between;gap:10px;
+ul.fatt li{font-family:var(--dati);display:flex;justify-content:space-between;gap:10px;
            font-size:.76rem;padding:3px 0;border-bottom:1px solid rgba(238,215,184,.06)}
 .nf{color:var(--ombra);font-variant-numeric:tabular-nums}
 .ni{color:var(--sabbia);font-variant-numeric:tabular-nums;white-space:nowrap}
 .quadra{margin-top:26px;border:1px solid var(--bruno)}
-.qr{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+.qr{font-family:var(--dati);display:flex;justify-content:space-between;align-items:baseline;gap:14px;
     padding:13px 15px;border-bottom:1px solid var(--pietra);font-size:.82rem}
 .qr:last-child{border-bottom:none}
 .qr span{color:var(--ombra)}
@@ -127,6 +128,10 @@ ul.fatt li{display:flex;justify-content:space-between;gap:10px;
   html,body{background:#EED7B8 !important;
             -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .testata{border-bottom:1px solid var(--bruno)}
+  h1 .schermo{display:none}
+  h1 .stampa{display:block}
+  h1 img{max-width:395px}
+  body{font-size:11.4pt;line-height:1.58}
   .testata::after{opacity:.32}
   section{padding-top:26px}
   section:first-of-type{padding-top:14px}
@@ -155,7 +160,10 @@ ul.fatt li{display:flex;justify-content:space-between;gap:10px;
 
 <div class="testata"><div class="testata-in">
   <p class="occhiello">Suoni in Cava &middot; GR Show S.r.l.</p>
-  <h1>CLUBBIN<span class="apo">&rsquo;</span>CAVA</h1>
+  <h1>
+    <img class="schermo" src="_a/logo-sabbia.svg" alt="CLUBBIN&rsquo;CAVA">
+    <img class="stampa" src="_a/logo-bruno.svg" alt="CLUBBIN&rsquo;CAVA">
+  </h1>
   <p class="sottotitolo">Rendiconto della campagna pubblicitaria Meta.</p>
   <p class="coordinate">
     Sabato 29 agosto 2026 &middot; Cava dell&rsquo;Erba / Stilmarmo, Apricena (FG)<br>
