@@ -99,6 +99,25 @@ tr.somma td:first-child{box-shadow:none}
         font-size:.7rem;line-height:2;color:var(--bruno)}
 .chiusa b{color:var(--ombra);font-weight:400}
 
+.giorno{margin:22px 0}
+.gt{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+    padding-bottom:8px;border-bottom:1px solid var(--bruno);margin-bottom:10px;
+    font-size:.78rem;color:var(--ombra)}
+.gt b{color:var(--sabbia);font-weight:400;font-variant-numeric:tabular-nums}
+ul.fatt{list-style:none;display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:1px 18px}
+ul.fatt li{display:flex;justify-content:space-between;gap:10px;
+           font-size:.76rem;padding:3px 0;border-bottom:1px solid rgba(238,215,184,.06)}
+.nf{color:var(--ombra);font-variant-numeric:tabular-nums}
+.ni{color:var(--sabbia);font-variant-numeric:tabular-nums;white-space:nowrap}
+.quadra{margin-top:26px;border:1px solid var(--bruno)}
+.qr{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+    padding:13px 15px;border-bottom:1px solid var(--pietra);font-size:.82rem}
+.qr:last-child{border-bottom:none}
+.qr span{color:var(--ombra)}
+.qr b{font-weight:400;font-variant-numeric:tabular-nums;white-space:nowrap}
+.qr.res b{color:var(--segnale)}
+
 @media(max-width:560px){
   body{font-size:14px}
   .testata-in{padding:46px 20px 34px}
@@ -223,15 +242,37 @@ tr.somma td:first-child{box-shadow:none}
     </div>
     <p>
       Ogni PDF riporta emittente (Meta Platforms Ireland), data, importo, trattamento IVA e
-      identificativo della transazione. <strong>Le fatture sono allegate a questo
-      rendiconto.</strong>
+      identificativo della transazione. <strong>L&rsquo;elenco completo, con i numeri di
+      ogni singola fattura, &egrave; al punto 05.</strong>
     </p>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span>Il registro delle fatture</h2>
+    <p>
+      Ogni riga &egrave; una <strong>fattura IVA emessa da Meta Platforms Ireland</strong>.
+      Il numero completo si ottiene anteponendo <em>FBADS-454-</em>. Sono
+      <strong>43 fatture</strong>, tutte del 28 e 29 agosto, per un totale di
+      <strong>&euro;&nbsp;276,76</strong>.
+    </p>
+    <p>
+      Il PDF di ognuna &egrave; scaricabile dal pannello con il percorso indicato sopra:
+      <strong>qualunque numero di questo elenco pu&ograve; essere richiesto e verificato
+      singolarmente.</strong>
+    </p>
+    <div class="giorno"><div class="gt"><span>28 agosto 2026</span><b>23 fatture &middot; &euro;&nbsp;141,13</b></div><ul class="fatt"><li><span class="nf">106455765</span><span class="ni">&euro;&nbsp;0,14</span></li><li><span class="nf">106455759</span><span class="ni">&euro;&nbsp;9,28</span></li><li><span class="nf">106455595</span><span class="ni">&euro;&nbsp;0,48</span></li><li><span class="nf">106455587</span><span class="ni">&euro;&nbsp;8,23</span></li><li><span class="nf">106455373</span><span class="ni">&euro;&nbsp;0,39</span></li><li><span class="nf">106455359</span><span class="ni">&euro;&nbsp;14,42</span></li><li><span class="nf">106454183</span><span class="ni">&euro;&nbsp;0,09</span></li><li><span class="nf">106454172</span><span class="ni">&euro;&nbsp;14,41</span></li><li><span class="nf">106453665</span><span class="ni">&euro;&nbsp;0,62</span></li><li><span class="nf">106453657</span><span class="ni">&euro;&nbsp;14,43</span></li><li><span class="nf">106453489</span><span class="ni">&euro;&nbsp;0,34</span></li><li><span class="nf">106453479</span><span class="ni">&euro;&nbsp;13,36</span></li><li><span class="nf">106453278</span><span class="ni">&euro;&nbsp;0,20</span></li><li><span class="nf">106453275</span><span class="ni">&euro;&nbsp;10,31</span></li><li><span class="nf">106453185</span><span class="ni">&euro;&nbsp;0,96</span></li><li><span class="nf">106453179</span><span class="ni">&euro;&nbsp;10,30</span></li><li><span class="nf">106452862</span><span class="ni">&euro;&nbsp;9,27</span></li><li><span class="nf">106452702</span><span class="ni">&euro;&nbsp;9,23</span></li><li><span class="nf">106452474</span><span class="ni">&euro;&nbsp;6,19</span></li><li><span class="nf">106452334</span><span class="ni">&euro;&nbsp;8,09</span></li><li><span class="nf">106452100</span><span class="ni">&euro;&nbsp;0,02</span></li><li><span class="nf">106452064</span><span class="ni">&euro;&nbsp;8,56</span></li><li><span class="nf">106451929</span><span class="ni">&euro;&nbsp;1,81</span></li></ul></div>
+    <div class="giorno"><div class="gt"><span>29 agosto 2026</span><b>20 fatture &middot; &euro;&nbsp;135,63</b></div><ul class="fatt"><li><span class="nf">106458301</span><span class="ni">&euro;&nbsp;12,80</span></li><li><span class="nf">106458172</span><span class="ni">&euro;&nbsp;0,49</span></li><li><span class="nf">106458171</span><span class="ni">&euro;&nbsp;13,40</span></li><li><span class="nf">106458109</span><span class="ni">&euro;&nbsp;0,64</span></li><li><span class="nf">106458108</span><span class="ni">&euro;&nbsp;12,35</span></li><li><span class="nf">106458049</span><span class="ni">&euro;&nbsp;1,05</span></li><li><span class="nf">106458042</span><span class="ni">&euro;&nbsp;12,38</span></li><li><span class="nf">106457874</span><span class="ni">&euro;&nbsp;0,02</span></li><li><span class="nf">106457871</span><span class="ni">&euro;&nbsp;11,33</span></li><li><span class="nf">106457765</span><span class="ni">&euro;&nbsp;15,54</span></li><li><span class="nf">106457099</span><span class="ni">&euro;&nbsp;3,59</span></li><li><span class="nf">106457098</span><span class="ni">&euro;&nbsp;7,71</span></li><li><span class="nf">106456915</span><span class="ni">&euro;&nbsp;0,01</span></li><li><span class="nf">106456911</span><span class="ni">&euro;&nbsp;11,34</span></li><li><span class="nf">106456480</span><span class="ni">&euro;&nbsp;0,34</span></li><li><span class="nf">106456461</span><span class="ni">&euro;&nbsp;11,30</span></li><li><span class="nf">106456040</span><span class="ni">&euro;&nbsp;0,12</span></li><li><span class="nf">106456032</span><span class="ni">&euro;&nbsp;11,31</span></li><li><span class="nf">106455863</span><span class="ni">&euro;&nbsp;0,71</span></li><li><span class="nf">106455860</span><span class="ni">&euro;&nbsp;9,20</span></li></ul></div>
+    <div class="quadra">
+      <div class="qr"><span>Fatturato da Meta &mdash; 43 fatture</span><b>&euro; 276,76</b></div>
+      <div class="qr"><span>Spesa registrata da Gestione inserzioni</span><b>&euro; 277,55</b></div>
+      <div class="qr res"><span>Differenza, ciclo di fatturazione ancora aperto</span><b>&euro; 0,79</b></div>
+    </div>
     <div class="nota">
-      <strong>Un dettaglio sui cicli di fatturazione.</strong> Meta addebita al
-      raggiungimento di una soglia di spesa, non a fine campagna: le fatture gi&agrave;
-      emesse coprono <strong>&euro;&nbsp;273,91</strong>, e i restanti
-      <strong>&euro;&nbsp;3,64</strong> ricadono nel ciclo di chiusura. La spesa &egrave;
-      quella indicata; cambia solo il momento in cui viene fatturata.
+      <strong>Perch&eacute; le due cifre non coincidono al centesimo.</strong> Meta emette
+      fattura al raggiungimento di una soglia di spesa, non a fine campagna: l&rsquo;ultimo
+      tratto di spesa &mdash; <strong>&euro;&nbsp;0,79</strong> &mdash; ricade nel ciclo
+      successivo e sar&agrave; fatturato con quello. La spesa &egrave; quella indicata al
+      punto 01; cambia solo il momento in cui viene emesso il documento.
     </div>
   </section>
 
