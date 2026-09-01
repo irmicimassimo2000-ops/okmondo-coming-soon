@@ -118,6 +118,33 @@ ul.fatt li{display:flex;justify-content:space-between;gap:10px;
 .qr b{font-weight:400;font-variant-numeric:tabular-nums;white-space:nowrap}
 .qr.res b{color:var(--segnale)}
 
+@media print{
+  @page{size:A4;margin:15mm 14mm}
+  :root{
+    --notte:#EED7B8; --pece:#E6CFAC; --pietra:#D9BE9C;
+    --sabbia:#493328; --ombra:#8A7358; --bruno:#B79B7C; --segnale:#A82D16;
+  }
+  html,body{background:#EED7B8 !important;
+            -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .testata{border-bottom:1px solid var(--bruno)}
+  .testata::after{opacity:.32}
+  section{padding-top:26px}
+  section:first-of-type{padding-top:14px}
+  h2{break-after:avoid}
+  .giorno,.quadra,.quadro,.nota,.percorso,ul.fatt,.totale{break-inside:avoid}
+  table td,table th{white-space:nowrap}
+  td:first-child{white-space:normal}
+  td .luogo{white-space:normal}
+  .scorre,.percorso{overflow:visible}
+  table{min-width:0}
+  .percorso{white-space:normal}
+  .scorre-eti{display:none}
+  .barra i{background:var(--sabbia)}
+  strong{box-shadow:none;font-weight:700}
+  ul.fatt li{border-bottom:1px solid rgba(73,51,40,.14)}
+  .chiusa{color:var(--ombra);margin-top:34px;padding-top:16px;break-inside:avoid}
+}
+
 @media(max-width:560px){
   body{font-size:14px}
   .testata-in{padding:46px 20px 34px}
