@@ -1,0 +1,182 @@
+<!doctype html><html lang="it"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>CLUBBIN&rsquo;CAVA</title>
+<meta name="description" content="CC026 &middot; 29 agosto 2026 &middot; Cava dell'Erba / Stilmarmo, Apricena, Puglia.">
+<link rel="icon" href="data:,">
+<meta property="og:title" content="CLUBBIN&rsquo;CAVA">
+<meta property="og:description" content="CC026 &middot; 29.08.26 &middot; Cava dell'Erba / Stilmarmo, Apricena, Puglia">
+<meta property="og:type" content="website">
+
+<style>
+@font-face{font-family:'SpaceMono';font-weight:400;font-display:swap;
+           src:url(_a/SpaceMono-Regular.ttf) format('truetype')}
+
+:root{
+  --notte:#0D0D0D; --sabbia:#EED7B8; --ombra:#9C8460; --bruno:#493328;
+  --segnale:#C4361B;
+  --corpo:'SpaceMono',ui-monospace,'SFMono-Regular',Consolas,monospace;
+
+  /* Le due masse del pittogramma, in % della scatola d'inchiostro
+     (117,565 x 75,963 u). Quote convertite dal vettoriale lockato,
+     non ridisegnate. */
+  --sin:polygon(0% 8.170%, 36.211% 13.072%, 23.572% 97.786%, 3.110% 100%);
+  --des:polygon(49.726% 0%, 96.267% 6.302%, 100% 77.905%, 37.089% 84.714%);
+
+  /* IL BLOCCO CHIUSO — non e' un'invenzione, e' come e' fatto il marchio.
+     Il vettoriale dichiara: kerf 13,250 u perpendicolare al taglio +
+     scorrimento 13,250 u lungo il taglio, a +77 gradi. Riportando la massa
+     destra di -15,891 u in x e +9,929 u in y, il suo spigolo superiore cade
+     su 42,569 / 9,930 — esattamente lo spigolo della sinistra. Il blocco si
+     richiude al centesimo. In percentuale: -13,517% e +13,071%. */
+  --chiuso-x:-13.517%;
+  --chiuso-y:13.071%;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--notte);color:var(--sabbia);font-family:var(--corpo);
+     overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* La cava, la notte del 29. Scatto di LUCA GRIGOLATO — Canon R6 II.
+   La velatura non e' a occhio: e' misurata. Con 15% in cima e 62% in fondo,
+   nell'impronta del marchio a top 54% resta sotto i 3:1 soltanto lo 0,41%
+   dell'area, e il 99o percentile sta a 4,92:1. Il pack chiede 3:1. */
+.fondo{position:fixed;inset:0;z-index:0;background:#070707;
+       opacity:0;animation:respira 2400ms 200ms cubic-bezier(.16,1,.3,1) forwards}
+.fondo i{position:absolute;inset:0;display:block;
+         background:url(_a/cava-29.jpg) center 46%/cover no-repeat;
+         transform:scale(1.06);
+         animation:avvicina 9000ms 200ms cubic-bezier(.22,.6,.3,1) forwards}
+.fondo::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(7,7,7,.15) 0%,rgba(7,7,7,.62) 100%)}
+@keyframes respira{to{opacity:1}}
+@keyframes avvicina{to{transform:scale(1)}}
+
+/* ── il blocco, intero, che viene tagliato ────────────────────────────── */
+/* UNA sola animazione, non due: due dichiarazioni con fill forwards sullo
+   stesso elemento si sovrascrivono e il blocco non compariva mai. */
+.blocco{position:fixed;z-index:2;left:50%;top:50%;
+        width:min(56vw,600px);aspect-ratio:117.565/75.963;
+        transform:translate(-50%,-50%) scale(.962);opacity:0;
+        animation:vita-blocco 4500ms linear forwards}
+@keyframes vita-blocco{
+  0%     {opacity:0;transform:translate(-50%,-50%) scale(.962)}
+  5.33%  {opacity:0;transform:translate(-50%,-50%) scale(.962)}
+  27.56% {opacity:1;transform:translate(-50%,-50%) scale(1)}
+  82.22% {opacity:1;transform:translate(-50%,-50%) scale(1)}
+  100%   {opacity:0;transform:translate(-50%,-50%) scale(1.035)}}
+
+.massa{position:absolute;inset:0;background:var(--sabbia)}
+.massa.sx{clip-path:var(--sin)}
+/* parte CHIUSA contro la sinistra, poi scorre nella sua posizione vera */
+.massa.dx{clip-path:var(--des);
+          transform:translate(var(--chiuso-x),var(--chiuso-y));
+          animation:scorre 1500ms 1900ms cubic-bezier(.33,1.02,.25,1) forwards}
+@keyframes scorre{to{transform:translate(0,0)}}
+
+/* la lama: percorre il taglio, e da li' il blocco si apre */
+.lama{position:absolute;z-index:3;left:29.89%;top:55.43%;
+      width:2px;height:320%;
+      background:linear-gradient(180deg,transparent,var(--sabbia) 14%,#FFF6E8 50%,var(--sabbia) 86%,transparent);
+      transform:translate(-50%,-50%) rotate(13deg) scaleY(0);
+      transform-origin:50% 50%;opacity:0;
+      animation:taglia 1400ms 1520ms cubic-bezier(.4,0,.22,1) forwards}
+@keyframes taglia{
+  0%  {opacity:0;transform:translate(-50%,-50%) rotate(13deg) scaleY(0)}
+  14% {opacity:1}
+  52% {opacity:1;transform:translate(-50%,-50%) rotate(13deg) scaleY(1)}
+  100%{opacity:0;transform:translate(-50%,-50%) rotate(13deg) scaleY(1)}}
+
+/* ── il marchio prende il posto del blocco ────────────────────────────── */
+.centro{position:fixed;z-index:5;left:50%;top:68%;
+        transform:translate(-50%,-50%);text-align:center;
+        display:flex;flex-direction:column;align-items:center;
+        gap:clamp(16px,2.4vh,24px);width:100%;
+        opacity:0;animation:sale 1000ms 3950ms cubic-bezier(.16,1,.3,1) forwards}
+.marchio{width:min(58vw,400px);height:auto;display:block}
+.dati{font-size:clamp(.68rem,1.9vw,.8rem);letter-spacing:.16em;
+      text-transform:uppercase;color:var(--sabbia);line-height:2.1}
+.dati b{font-weight:400;color:var(--ombra)}
+.numero{color:var(--segnale)}
+@keyframes sale{from{opacity:0;transform:translate(-50%,-46%)}
+                to{opacity:1;transform:translate(-50%,-50%)}}
+
+/* ── i bordi ──────────────────────────────────────────────────────────── */
+.foglio{position:relative;z-index:4;height:100%;
+        display:flex;flex-direction:column;justify-content:space-between;
+        padding:clamp(26px,5vw,54px);pointer-events:none}
+.foglio a{pointer-events:auto}
+.alto,.basso{opacity:0;animation:emerge 900ms cubic-bezier(.16,1,.3,1) forwards}
+.alto{animation-delay:4150ms}
+.basso{animation-delay:4310ms}
+@keyframes emerge{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.alto{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.edizione{font-size:clamp(.62rem,1.6vw,.72rem);letter-spacing:.34em;
+          text-transform:uppercase;color:var(--ombra)}
+.stato{font-size:clamp(.6rem,1.5vw,.68rem);letter-spacing:.2em;
+       text-transform:uppercase;color:var(--bruno);text-align:right;line-height:1.9}
+
+.basso{display:flex;justify-content:space-between;align-items:flex-end;
+       gap:20px;flex-wrap:wrap}
+.luogo{font-size:clamp(.62rem,1.6vw,.72rem);letter-spacing:.14em;
+       color:var(--ombra);line-height:1.9}
+.dx-basso{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.credito{font-size:clamp(.56rem,1.4vw,.63rem);letter-spacing:.16em;
+         text-transform:uppercase;color:var(--bruno)}
+a.ig{font-size:clamp(.66rem,1.7vw,.76rem);letter-spacing:.18em;
+     text-transform:uppercase;color:var(--sabbia);text-decoration:none;
+     border-bottom:1px solid var(--bruno);padding-bottom:5px;
+     transition:border-color .25s}
+a.ig:hover,a.ig:focus-visible{border-color:var(--sabbia);outline:none}
+
+@media (max-width:620px){
+  .dx-basso{align-items:flex-start}
+  .blocco{width:78vw}
+  .marchio{width:72vw}
+  .alto,.basso{flex-direction:column;align-items:flex-start}
+  .stato{text-align:left}
+}
+@media (prefers-reduced-motion:reduce){
+  .blocco,.lama{display:none}
+  .alto,.basso,.centro{animation:none;opacity:1;transform:translate(-50%,-50%)}
+  .alto,.basso{transform:none}
+}
+</style></head><body>
+
+<div class="fondo"><i></i></div>
+
+<!-- il blocco: intero, tagliato a +77 gradi, poi le due meta' scorrono
+     di kerf + scorrimento e diventano il pittogramma -->
+<div class="blocco">
+  <div class="massa sx"></div>
+  <div class="massa dx"></div>
+  <div class="lama"></div>
+</div>
+
+<div class="centro">
+  <img class="marchio" src="_a/logo.svg" alt="CLUBBIN&rsquo;CAVA">
+  <p class="dati">
+    29 . 08 . 26<br>
+    <b>prima edizione</b> &middot; <span class="numero">4.739</span> <b>registrazioni</b>
+  </p>
+</div>
+
+<div class="foglio">
+  <div class="alto">
+    <p class="edizione">CC026</p>
+    <p class="stato">Il sito &egrave; in costruzione<br>La notte no, quella &egrave; gi&agrave; successa</p>
+  </div>
+  <div class="basso">
+    <p class="luogo">
+      Cava dell&rsquo;Erba / Stilmarmo<br>
+      Apricena, Puglia
+    </p>
+    <div class="dx-basso">
+      <p class="credito">foto Luca Grigolato</p>
+      <a class="ig" href="https://instagram.com/clubbincava" rel="noopener">Instagram &rarr;</a>
+    </div>
+  </div>
+</div>
+</body></html>
