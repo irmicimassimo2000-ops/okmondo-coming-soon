@@ -10,21 +10,20 @@
 <meta property="og:type" content="website">
 
 <!--
-  DIREZIONE: reparto Motion (Cesare), 03/09/2026.
-  Concetto: IL MARCHIO NON APPARE, VIENE CAVATO.
-  Un solo taglio, e dove il filo e' passato non c'e' piu' la pietra: c'e' il nome.
+  IL MARCHIO NON APPARE, VIENE CAVATO.  Direzione: reparto Motion, 03/09/2026.
 
-  Restraint ALTO: una idea sola, declinata due volte. Due oggetti si muovono
-  su dodici in scena. Il testo non entra mai da nessuna direzione: si accende.
+  La versione precedente aveva un difetto strutturale, non di tempi: il blocco
+  era una forma piatta APPOGGIATA sopra una fotografia. Due strati che non si
+  parlano leggono come un segnaposto, non come materia.
 
-  Tolti dalla versione precedente, ognuno per una ragione:
-  - la lama di luce   -> TELL n.1 (light sweep). E nel sistema il colore tocca
-                         la LUCE, mai la MATERIA: il filo non illumina, sottrae.
-  - la scala .962/1.035 -> 3,8% in un secondo sta sotto la soglia di lettura,
-                         e la stessa mossa due volte e' la definizione di template.
-  - le DUE meta' che scorrono -> niente resta ancorato, il segno si sfalda.
-                         In cava la parete resta e il blocco se ne va: UNA massa.
-  - il crossfade pittogramma/logotipo -> l'assenza di una decisione.
+  Qui il pittogramma non sta sopra la foto: e' una FINESTRA dentro il buio.
+  Si guarda la notte attraverso il taglio, il taglio si apre, e quando si apre
+  del tutto il buio se ne va e si e' dentro. Il segno diventa il punto di vista.
+
+  Conseguenza tecnica: la massa che si muove NON usa transform ma anima il
+  poligono. Con una transform i figli in position:fixed si ancorerebbero a lei,
+  e la finestra porterebbe con se' la propria immagine invece di scorrere
+  sopra un'immagine ferma. E' la differenza fra una finestra e un adesivo.
 -->
 
 <style>
@@ -36,67 +35,68 @@
   --segnale:#C4361B;
   --corpo:'SpaceMono',ui-monospace,'SFMono-Regular',Consolas,monospace;
 
-  /* Le due masse, in % della scatola d'inchiostro (117,565 x 75,963 u).
-     Quote convertite dal vettoriale lockato, non ridisegnate. */
-  --sin:polygon(0% 8.170%, 36.211% 13.072%, 23.572% 97.786%, 3.110% 100%);
+  /* la massa che resta: la parete */
   --des:polygon(49.726% 0%, 96.267% 6.302%, 100% 77.905%, 37.089% 84.714%);
 
-  /* IL BLOCCO CHIUSO, e i due tempi in cui si apre. Il vettoriale dichiara
-     kerf 13,250 u PERPENDICOLARI al taglio + scorrimento 13,250 u LUNGO il
-     taglio, a +77 gradi. Sono due movimenti di natura diversa, e il segno
-     stesso detta la sequenza: prima il filo che apre, poi la massa che scende.
-
-       chiuso       +13,517% / -13,071%   la massa piccola appoggiata alla grande
-       dopo il filo  +2,536% / -16,995%   13,250 u perpendicolari, verso fuori
-       finale                 0 / 0       13,250 u lungo il taglio, in giu'      */
-  --chiuso-x:13.517%;   --chiuso-y:-13.071%;
-  --aperto-x:2.536%;    --aperto-y:-16.995%;
+  /* la massa che se ne va, nelle sue tre posizioni. Le quote vengono dal
+     vettoriale lockato: kerf 13,250 u perpendicolari, poi scorrimento
+     13,250 u lungo il taglio a +77 gradi. */
+  --sin-chiuso:polygon(13.517% -4.901%, 49.728% 0.001%, 37.089% 84.715%, 16.627% 86.929%);
+  --sin-filo:  polygon(2.536% -8.825%, 38.747% -3.923%, 26.108% 80.791%, 5.646% 83.005%);
+  --sin-fine:  polygon(0% 8.170%, 36.211% 13.072%, 23.572% 97.786%, 3.110% 100%);
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
-html{background:var(--notte)}
-body{background:var(--notte);color:var(--sabbia);font-family:var(--corpo);
+html{background:#000}
+body{background:#000;color:var(--sabbia);font-family:var(--corpo);
      overflow:hidden;-webkit-font-smoothing:antialiased}
 
-/* La cava, la notte del 29. Scatto di LUCA GRIGOLATO.
-   Ferma: nessuna animazione. La direzione dice due oggetti in movimento in
-   tutto il pezzo, e sono gia' la massa e il bordo di rivelazione.
-   La velatura e' misurata, non a occhio: 45% in cima e 62% in fondo porta a
-   ZERO l'area sotto i 3:1 nell'impronta del marchio (x 30-70%, y 47-61%),
-   con il 99o percentile a 4,57:1. Il pack chiede 3:1. */
-.fondo{position:fixed;inset:0;z-index:0;background:var(--notte)}
-.fondo i{position:absolute;inset:0;display:block;
-         background:url(_a/cava-29.jpg) center/cover no-repeat;
-         /* Il palco e' la zona piu' chiara e piu' affollata della foto, e sta
-            proprio al centro. Il marchio pero' va centrato: quindi si sposta
-            l'inquadratura, non il marchio. Zoom 1,32 con origine al 70%: al
-            centro dello schermo finisce cio' che stava al 54,9%, cioe' la
-            folla. Misurato: 7,22:1 al 99o percentile contro i 3:1 richiesti,
-            e il palco resta visibile nel terzo alto. Con transform invece che
-            background-size perche' cover copre a ogni proporzione, telefono
-            compreso; una larghezza fissa no. */
-         transform:scale(1.32);transform-origin:center 70%}
-.fondo::after{content:"";position:absolute;inset:0;
+/* ── la notte, e la sua velatura misurata ────────────────────────────────
+   Zoom 1,32 con origine al 70%: al centro dello schermo arriva cio' che
+   stava al 54,9% della foto, cioe' la folla. Velatura 45%->62%: nell'impronta
+   del marchio l'area sotto i 3:1 e' ZERO, 99o percentile 4,57:1.          */
+.notte,.vetro{position:fixed;inset:0;
+  background:url(_a/cava-29.jpg) center/cover no-repeat;
+  transform:scale(1.32);transform-origin:center 70%}
+.notte::after,.vetro::after{content:"";position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(7,7,7,.45) 0%,rgba(7,7,7,.62) 100%)}
+.notte{z-index:0}
 
-/* ── LA SOSTITUZIONE ─────────────────────────────────────────────────────
-   Un bordo solo, a tutto schermo, inclinato come il kerf: a sinistra c'e' il
-   nome, a destra c'e' ancora la pietra. Il filo prosegue, e dove e' passato la
-   pietra non c'e' piu'. I due strati sono entrambi a tutto schermo perche' il
-   bordo deve vivere nelle stesse coordinate per tutti e due.
-   Su 100vh d'altezza lo scarto orizzontale e' 23,09vh = tan(13 gradi).       */
-.strato{position:fixed;inset:0;z-index:2;display:grid;place-items:center}
+/* il buio che copre tutto, e che il taglio porta via */
+.buio{position:fixed;inset:0;z-index:1;background:#000;
+      animation:apri 900ms 960ms cubic-bezier(.33,0,.2,1) forwards}
+@keyframes apri{to{opacity:0}}
 
-.nome{clip-path:polygon(0 0,calc(-30vh + 23.09vh) 0,-30vh 100%,0 100%);
-      animation:scopri 560ms 960ms cubic-bezier(.16,1,.3,1) forwards}
-@keyframes scopri{to{clip-path:polygon(0 0,calc(140vw + 23.09vh) 0,140vw 100%,0 100%)}}
+/* ── la finestra: il pittogramma come punto di vista ─────────────────────
+   Niente transform sul contenitore, altrimenti i .vetro in position:fixed
+   si ancorano a lui. La posizione si fa con calc, e tiene conto che il
+   blocco CHIUSO ha il suo ingombro spostato di 6,759% / -8,986%.          */
+.finestra{position:fixed;z-index:2;
+  width:min(38vw,320px);aspect-ratio:117.565/75.963;
+  left:calc(50% - min(38vw,320px) * .56759);
+  top:calc(50% - min(38vw,320px) * .26501);
+  animation:chiudi 900ms 960ms cubic-bezier(.33,0,.2,1) forwards}
+/* quando il buio se n'e' andato la finestra non serve piu': mostra la
+   stessa identica immagine del fondo, quindi sparisce senza che si veda. */
+@keyframes chiudi{to{opacity:0}}
 
-.roccia{z-index:3;
-        clip-path:polygon(calc(-30vh + 23.09vh) 0,100% 0,100% 100%,-30vh 100%);
-        animation:cava 560ms 960ms cubic-bezier(.16,1,.3,1) forwards}
-@keyframes cava{to{clip-path:polygon(calc(140vw + 23.09vh) 0,100% 0,100% 100%,140vw 100%)}}
+.lastra{position:absolute;inset:0}
+.lastra.dx{clip-path:var(--des)}
+.lastra.sx{clip-path:var(--sin-chiuso);
+           animation:scava 860ms linear forwards}
+@keyframes scava{
+  0%     {clip-path:var(--sin-chiuso);animation-timing-function:linear}
+  23.26% {clip-path:var(--sin-chiuso);animation-timing-function:cubic-bezier(.2,0,.35,1)}
+  51.16% {clip-path:var(--sin-filo);  animation-timing-function:cubic-bezier(.22,.61,.16,1)}
+  100%   {clip-path:var(--sin-fine)}}
 
-/* ── il nome: non si muove MAI, viene solo scoperto ─────────────────────── */
+/* ── il nome. Non si muove: viene scoperto dallo stesso taglio, a +77 gradi.
+   Su 100vh d'altezza lo scarto orizzontale e' 23,09vh = tan(13 gradi).    */
+.nome{position:fixed;inset:0;z-index:3;display:grid;place-items:center;
+      clip-path:polygon(0 0,calc(-30vh + 23.09vh) 0,-30vh 100%,0 100%);
+      animation:scopri 620ms 1080ms cubic-bezier(.16,1,.3,1) forwards}
+@keyframes scopri{to{clip-path:polygon(0 0,calc(150vw + 23.09vh) 0,150vw 100%,0 100%)}}
+
 .centro{display:flex;flex-direction:column;align-items:center;
         gap:clamp(14px,2.2vh,22px);text-align:center}
 .marchio{width:min(56vw,400px);height:auto;display:block}
@@ -104,35 +104,6 @@ body{background:var(--notte);color:var(--sabbia);font-family:var(--corpo);
       text-transform:uppercase;color:var(--sabbia);line-height:2.1}
 .dati b{font-weight:400;color:var(--ombra)}
 .numero{color:var(--segnale)}
-
-/* ── la pietra ───────────────────────────────────────────────────────────
-   Misura da direzione: altezza 2,4x la cap-height del logotipo. Cap = 8,368%
-   della larghezza del logotipo, quindi il blocco e' largo 0,3108 volte.
-   E il centro e' quello del blocco CHIUSO, non della scatola: chiuso la massa
-   piccola sta a +13,517 / -13,071, e l'ingombro reale ha centro in
-   56,759% / 41,014%. E' quel fotogramma che deve reggere da solo. */
-.pietra{width:min(34vw,280px);aspect-ratio:117.565/75.963;position:relative;
-        transform:translate(-6.759%,8.986%)}
-
-.saldatura{position:absolute;inset:0;background:var(--sabbia);
-           clip-path:polygon(13.517% -4.901%, 49.727% 0%, 96.267% 6.302%,
-                             100% 77.905%, 37.089% 84.714%, 16.627% 86.929%);
-           animation:salda 1ms 200ms linear forwards}
-@keyframes salda{to{opacity:0}}
-.massa{position:absolute;inset:0;background:var(--sabbia)}
-.massa.dx{clip-path:var(--des)}                    /* la parete resta */
-.massa.sx{clip-path:var(--sin);                    /* il blocco se ne va */
-          transform:translate(var(--chiuso-x),var(--chiuso-y));
-          animation:stacca 860ms linear forwards}
-/* due tempi che sono un gesto solo: il filo che apre, poi la massa che scende */
-@keyframes stacca{
-  0%     {transform:translate(var(--chiuso-x),var(--chiuso-y));
-          animation-timing-function:linear}
-  23.26% {transform:translate(var(--chiuso-x),var(--chiuso-y));
-          animation-timing-function:cubic-bezier(.2,0,.35,1)}
-  51.16% {transform:translate(var(--aperto-x),var(--aperto-y));
-          animation-timing-function:cubic-bezier(.22,.61,.16,1)}
-  100%   {transform:translate(0,0)}}
 
 /* ── i quattro angoli: si ACCENDONO, non entrano ────────────────────────── */
 .foglio{position:fixed;inset:0;z-index:4;
@@ -142,11 +113,11 @@ body{background:var(--notte);color:var(--sabbia);font-family:var(--corpo);
 .alto,.basso{display:flex;justify-content:space-between;gap:20px}
 .alto{align-items:flex-start}
 .basso{align-items:flex-end;flex-wrap:wrap}
-.edizione,.luogo,a.ig,.credito,.stato span{opacity:0;
-        animation:accendi 260ms 1700ms ease-out forwards}
+.edizione,.luogo,a.ig,.stato span{opacity:0;
+        animation:accendi 300ms 1820ms ease-out forwards}
 /* le due righe di stato sono un elenco, e un elenco ha un ordine di lettura:
    e' l'unico sfalsamento ammesso in tutto il pezzo. */
-.stato span:nth-child(2){animation-delay:1760ms}
+.stato span:nth-child(2){animation-delay:1880ms}
 @keyframes accendi{to{opacity:1}}
 
 .edizione{font-size:clamp(.62rem,1.6vw,.72rem);letter-spacing:.34em;
@@ -156,9 +127,6 @@ body{background:var(--notte);color:var(--sabbia);font-family:var(--corpo);
 .stato span{display:block}
 .luogo{font-size:clamp(.62rem,1.6vw,.72rem);letter-spacing:.14em;
        color:var(--ombra);line-height:1.9}
-.dx-basso{display:flex;flex-direction:column;align-items:flex-end;gap:9px}
-.credito{font-size:clamp(.55rem,1.35vw,.62rem);letter-spacing:.16em;
-         text-transform:uppercase;color:var(--bruno)}
 a.ig{font-size:clamp(.66rem,1.7vw,.76rem);letter-spacing:.18em;
      text-transform:uppercase;color:var(--sabbia);text-decoration:none;
      border-bottom:1px solid var(--bruno);padding-bottom:5px;
@@ -166,35 +134,37 @@ a.ig{font-size:clamp(.66rem,1.7vw,.76rem);letter-spacing:.18em;
 a.ig:hover,a.ig:focus-visible{border-color:var(--sabbia);outline:none}
 
 @media (max-width:620px){
-  .dx-basso{align-items:flex-start}
-  .pietra{width:64vw}
-  .marchio{width:72vw}
+  .finestra{width:76vw;
+            left:calc(50% - 76vw * .56759);
+            top:calc(50% - 76vw * .26501)}
+  .marchio{width:74vw}
   .alto,.basso{flex-direction:column;align-items:flex-start}
   .stato{text-align:left}
 }
 /* reduced-motion non e' «piu' corta»: e' ferma. */
 @media (prefers-reduced-motion:reduce){
-  .roccia{display:none}
+  .buio,.finestra{display:none}
   .nome{animation:none;clip-path:none}
-  .edizione,.luogo,a.ig,.credito,.stato span{animation:none;opacity:1}
+  .edizione,.luogo,a.ig,.stato span{animation:none;opacity:1}
 }
 </style></head><body>
 
-<div class="fondo"><i></i></div>
+<div class="notte"></div>
+<div class="buio"></div>
 
-<!-- il nome c'e' dall'inizio: e' la pietra che se ne va, non il nome che arriva -->
-<div class="strato nome"><div class="centro">
+<!-- il pittogramma non e' una forma sopra la foto: e' la finestra da cui
+     si guarda. Le lastre ritagliano, il vetro dentro sta fermo. -->
+<div class="finestra">
+  <div class="lastra dx"><i class="vetro"></i></div>
+  <div class="lastra sx"><i class="vetro"></i></div>
+</div>
+
+<div class="nome"><div class="centro">
   <img class="marchio" src="_a/logo.svg" alt="CLUBBIN&rsquo;CAVA">
   <p class="dati">
     29 . 08 . 26<br>
     <b>prima edizione</b> &middot; <span class="numero">4.739</span> <b>registrazioni</b>
   </p>
-</div></div>
-
-<div class="strato roccia"><div class="pietra">
-  <div class="saldatura"></div>
-  <div class="massa dx"></div>
-  <div class="massa sx"></div>
 </div></div>
 
 <div class="foglio">
@@ -210,10 +180,7 @@ a.ig:hover,a.ig:focus-visible{border-color:var(--sabbia);outline:none}
       Cava dell&rsquo;Erba / Stilmarmo<br>
       Apricena, Puglia
     </p>
-    <div class="dx-basso">
-      <p class="credito">foto Luca Grigolato</p>
-      <a class="ig" href="https://instagram.com/clubbincava" rel="noopener">Instagram &rarr;</a>
-    </div>
+    <a class="ig" href="https://instagram.com/clubbincava" rel="noopener">Instagram &rarr;</a>
   </div>
 </div>
 </body></html>
