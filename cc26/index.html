@@ -58,7 +58,26 @@ html{background:var(--notte)}
 body{background:var(--notte);color:var(--sabbia);font-family:var(--corpo);
      overflow:hidden;-webkit-font-smoothing:antialiased}
 
+/* La cava, la notte del 29. Scatto di LUCA GRIGOLATO.
+   Ferma: nessuna animazione. La direzione dice due oggetti in movimento in
+   tutto il pezzo, e sono gia' la massa e il bordo di rivelazione.
+   La velatura e' misurata, non a occhio: 45% in cima e 62% in fondo porta a
+   ZERO l'area sotto i 3:1 nell'impronta del marchio (x 30-70%, y 47-61%),
+   con il 99o percentile a 4,57:1. Il pack chiede 3:1. */
 .fondo{position:fixed;inset:0;z-index:0;background:var(--notte)}
+.fondo i{position:absolute;inset:0;display:block;
+         background:url(_a/cava-29.jpg) center/cover no-repeat;
+         /* Il palco e' la zona piu' chiara e piu' affollata della foto, e sta
+            proprio al centro. Il marchio pero' va centrato: quindi si sposta
+            l'inquadratura, non il marchio. Zoom 1,32 con origine al 70%: al
+            centro dello schermo finisce cio' che stava al 54,9%, cioe' la
+            folla. Misurato: 7,22:1 al 99o percentile contro i 3:1 richiesti,
+            e il palco resta visibile nel terzo alto. Con transform invece che
+            background-size perche' cover copre a ogni proporzione, telefono
+            compreso; una larghezza fissa no. */
+         transform:scale(1.32);transform-origin:center 70%}
+.fondo::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(7,7,7,.45) 0%,rgba(7,7,7,.62) 100%)}
 
 /* ── LA SOSTITUZIONE ─────────────────────────────────────────────────────
    Un bordo solo, a tutto schermo, inclinato come il kerf: a sinistra c'e' il
@@ -123,7 +142,7 @@ body{background:var(--notte);color:var(--sabbia);font-family:var(--corpo);
 .alto,.basso{display:flex;justify-content:space-between;gap:20px}
 .alto{align-items:flex-start}
 .basso{align-items:flex-end;flex-wrap:wrap}
-.edizione,.luogo,a.ig,.stato span{opacity:0;
+.edizione,.luogo,a.ig,.credito,.stato span{opacity:0;
         animation:accendi 260ms 1700ms ease-out forwards}
 /* le due righe di stato sono un elenco, e un elenco ha un ordine di lettura:
    e' l'unico sfalsamento ammesso in tutto il pezzo. */
@@ -137,6 +156,9 @@ body{background:var(--notte);color:var(--sabbia);font-family:var(--corpo);
 .stato span{display:block}
 .luogo{font-size:clamp(.62rem,1.6vw,.72rem);letter-spacing:.14em;
        color:var(--ombra);line-height:1.9}
+.dx-basso{display:flex;flex-direction:column;align-items:flex-end;gap:9px}
+.credito{font-size:clamp(.55rem,1.35vw,.62rem);letter-spacing:.16em;
+         text-transform:uppercase;color:var(--bruno)}
 a.ig{font-size:clamp(.66rem,1.7vw,.76rem);letter-spacing:.18em;
      text-transform:uppercase;color:var(--sabbia);text-decoration:none;
      border-bottom:1px solid var(--bruno);padding-bottom:5px;
@@ -144,6 +166,7 @@ a.ig{font-size:clamp(.66rem,1.7vw,.76rem);letter-spacing:.18em;
 a.ig:hover,a.ig:focus-visible{border-color:var(--sabbia);outline:none}
 
 @media (max-width:620px){
+  .dx-basso{align-items:flex-start}
   .pietra{width:64vw}
   .marchio{width:72vw}
   .alto,.basso{flex-direction:column;align-items:flex-start}
@@ -153,11 +176,11 @@ a.ig:hover,a.ig:focus-visible{border-color:var(--sabbia);outline:none}
 @media (prefers-reduced-motion:reduce){
   .roccia{display:none}
   .nome{animation:none;clip-path:none}
-  .edizione,.luogo,a.ig,.stato span{animation:none;opacity:1}
+  .edizione,.luogo,a.ig,.credito,.stato span{animation:none;opacity:1}
 }
 </style></head><body>
 
-<div class="fondo"></div>
+<div class="fondo"><i></i></div>
 
 <!-- il nome c'e' dall'inizio: e' la pietra che se ne va, non il nome che arriva -->
 <div class="strato nome"><div class="centro">
@@ -187,7 +210,10 @@ a.ig:hover,a.ig:focus-visible{border-color:var(--sabbia);outline:none}
       Cava dell&rsquo;Erba / Stilmarmo<br>
       Apricena, Puglia
     </p>
-    <a class="ig" href="https://instagram.com/clubbincava" rel="noopener">Instagram &rarr;</a>
+    <div class="dx-basso">
+      <p class="credito">foto Luca Grigolato</p>
+      <a class="ig" href="https://instagram.com/clubbincava" rel="noopener">Instagram &rarr;</a>
+    </div>
   </div>
 </div>
 </body></html>
