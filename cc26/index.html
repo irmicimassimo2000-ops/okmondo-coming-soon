@@ -65,7 +65,8 @@ body{background:#000;color:var(--sabbia);font-family:var(--corpo);
 /* il buio che copre tutto, e che il taglio porta via */
 .buio{position:fixed;inset:0;z-index:1;background:#000;
       animation:apri 900ms 960ms cubic-bezier(.33,0,.2,1) forwards}
-@keyframes apri{to{opacity:0}}
+@keyframes apri{99%{opacity:0;visibility:visible}
+                100%{opacity:0;visibility:hidden}}
 
 /* ── la finestra: il pittogramma come punto di vista ─────────────────────
    Niente transform sul contenitore, altrimenti i .vetro in position:fixed
@@ -78,7 +79,8 @@ body{background:#000;color:var(--sabbia);font-family:var(--corpo);
   animation:chiudi 900ms 960ms cubic-bezier(.33,0,.2,1) forwards}
 /* quando il buio se n'e' andato la finestra non serve piu': mostra la
    stessa identica immagine del fondo, quindi sparisce senza che si veda. */
-@keyframes chiudi{to{opacity:0}}
+@keyframes chiudi{99%{opacity:0;visibility:visible}
+                  100%{opacity:0;visibility:hidden}}
 
 .lastra{position:absolute;inset:0}
 .lastra.dx{clip-path:var(--des)}
