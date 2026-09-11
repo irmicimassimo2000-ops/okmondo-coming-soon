@@ -1048,7 +1048,14 @@ function isolaPezzo(){
   g.visible = true;
   g.traverse(o => { if(o.isMesh) o.visible = false; });
   p.traverse(o => { if(o.isMesh) o.visible = true; });
-  ao.enabled = false; sfoca.enabled = true;
+  /* L'OCCLUSIONE RESTA ACCESA. La spegnevo entrando nel pezzo, e insieme
+     al faro era meta' del guaio: misurato sullo stesso fotogramma, il
+     Tulum stava a 123,8 di luce al banco e a 162,6 in selezione, e i due
+     terzi di quella salita venivano da qui e dal faro in parti quasi
+     uguali. Senza occlusione le maglie del bracciale non hanno piu' la
+     riga d'ombra che le separa e il pezzo diventa una sagoma piatta —
+     proprio nel momento in cui lo si sta guardando da vicino. */
+  ao.enabled = !aoSpenta; sfoca.enabled = true;
   /* QUANTA LUCE SERVE LO DICE IL PEZZO, non il livello.
      Un metallo lucido non ha colore suo: fa vedere quello che gli sta
      intorno, e tolto l'espositore, davanti a una parete scura, una creola
@@ -1064,7 +1071,15 @@ function isolaPezzo(){
   p.traverse(o => { if(o.isMesh && o.material){
     tutte++; if(o.material.metalness > 0.5) metalliche++; } });
   const metallico = tutte ? metalliche / tutte : 1;
-  lampada.intensity = 1.35 + 1.25 * metallico;
+  /* IL FARO E' TUTTO PER IL METALLO, E NIENTE PER LA VERNICE. Lo avevo
+     gia' reso proporzionale, ma sotto ci avevo lasciato un fondo di 1,35
+     che toccava tutti: e su un Regina Swatch, che verniciato e' e il
+     colore ce l'ha suo, quel fondo era solo luce bianca in piu'. Adesso
+     va a zero, e il pezzo in selezione ha lo stesso colore che aveva sul
+     suo espositore — che e' l'unico modo di guardarlo da vicino senza che
+     cambi merce mentre lo guardi. Il metallo tiene i suoi 2,60 di prima:
+     quello senza scatola di luce resta nero. */
+  lampada.intensity = 2.60 * metallico;
   scena.environmentIntensity = AMBIENTE * (1 + 2.2 * metallico);
   /* NIENTE OMBRA. Il pezzo galleggia: un'ombra proiettata su un pavimento
      che non si vede piu' e' l'unico segno rimasto che c'e' ancora una
