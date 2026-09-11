@@ -71,7 +71,11 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
                      transition:opacity .2s}
 #vesti button.qui::after{opacity:1}
 #vesti button:active{transform:scale(.88)}
-#cartello.pezzo #basso{display:none}
+/* sul pezzo l'espositore non si vede piu', quindi le vesti non hanno piu'
+   niente da colorare: spariscono loro, non tutta la riga — il suggerimento
+   del gesto li' serve piu' che altrove, perche' e' l'unico posto senza
+   nessun appiglio visibile per uscire. */
+#cartello.pezzo #vesti{display:none}
 #cartello.via{opacity:0;transform:translateY(10px)}
 
 /* ── IL MENU: quattro parole, ed e' anche il «dove sei» ───────
@@ -986,7 +990,7 @@ function apriPezzo(k){
   inquadraPezzo();
   const r = RIPIANI[attiva][scelto] || ["", "", ""];
   scritte(r[0], r[2] + " €", r[1],
-          "trascina per girarci intorno · pizzica per ingrandire");
+          "trascina per girare · tocca fuori per uscire");
   dietro.hidden = false;
   sveglia();
 }
@@ -1249,10 +1253,20 @@ stanza.addEventListener("pointermove", e => {
   sveglia();
 });
 
+/* PIZZICARE ALL'INDIETRO E' USCIRE. Allargare le dita avvicina, stringerle
+   allontana — e allontanarsi abbastanza vuol dire tornare al quadro di
+   prima: dal pezzo all'espositore, dall'espositore al banco. E' lo stesso
+   verso del gesto, non un comando in piu' da imparare; e sotto il dito si
+   vede la scena rimpicciolire mentre lo si fa, quindi si capisce dove sta
+   andando prima di lasciare. La soglia sta a 0,82 e il limite a 0,70: c'e'
+   un pezzo di corsa dopo la soglia, per poter cambiare idea tornando
+   indietro con le dita senza alzare. */
+const PIZZICO_ESCI = 0.82;
 function chiudiDito(e){
   dita.delete(e.pointerId);
   if(dita.size < 2 && pizzico){
     pizzico = null;
+    if(zoom < PIZZICO_ESCI && livello > 0){ indietro(); return; }
     // sotto un ingrandimento minimo si torna da soli al quadro giusto:
     // restare al 103 per cento non e' una scelta, e' un residuo
     if(zoom < 1.06){ tornaAlPosto(); sveglia(); }
@@ -1356,10 +1370,54 @@ function pezzoVicino(x, y){
   return minimo < Math.min(innerWidth, innerHeight) * 0.24 ? quale : -1;
 }
 
+/* ── SONO SUL SOGGETTO, O NELL'AMBIENTE? ─────────────────────
+   Serve per uscire toccando fuori. Non si spara un raggio sulla geometria —
+   un anello e' un filo di pochi pixel e quasi ogni tocco cadrebbe «fuori»
+   anche quando il dito e' chiaramente sul gioiello. Si prende invece il
+   CERCHIO che il pezzo occupa sullo schermo: si proietta il centro, si
+   proietta un punto a un raggio di distanza lungo la destra della
+   macchina, e la distanza fra i due in pixel e' il raggio vero. Dentro
+   quello (con un dito di margine) si e' sul soggetto. */
+const _c1 = new THREE.Vector3(), _c2 = new THREE.Vector3(),
+      _lato = new THREE.Vector3();
+function cerchioDelPezzo(){
+  /* la destra della macchina si legge dalla SUA matrice, non dal vettore
+     che il ciclo di disegno si tiene da parte: quello vale solo dopo che un
+     fotogramma e' passato, e il primo tocco puo' arrivare prima. Misurato:
+     raggio zero, e ogni tocco — anche in mezzo all'anello — risultava
+     «fuori dal soggetto». */
+  _lato.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
+  _c1.copy(centroP).project(camera);
+  _c2.copy(centroP).addScaledVector(_lato, raggioP).project(camera);
+  const x1 = (_c1.x*0.5+0.5)*innerWidth, y1 = (-_c1.y*0.5+0.5)*innerHeight;
+  const x2 = (_c2.x*0.5+0.5)*innerWidth, y2 = (-_c2.y*0.5+0.5)*innerHeight;
+  return [x1, y1, Math.hypot(x2 - x1, y2 - y1)];
+}
+
 function tocca(e){
+  schermo.set((e.clientX/innerWidth)*2-1, -(e.clientY/innerHeight)*2+1);
+  raggio.setFromCamera(schermo, camera);
+
+  if(livello === 2){
+    /* SUL PEZZO NON C'E' NIENT'ALTRO DA TOCCARE. Toccare il vuoto attorno
+       e' il gesto naturale per rimetterlo giu': e' quello che si fa con una
+       cosa che ti hanno messo in mano — la si riappoggia. */
+    const [cx, cy, r] = cerchioDelPezzo();
+    if(Math.hypot(e.clientX - cx, e.clientY - cy) > r * 1.18) indietro();
+    return;
+  }
   if(livello === 1 && merci[attiva] && merci[attiva].length){
     const k = pezzoVicino(e.clientX, e.clientY);
-    if(k < 0) return;
+    if(k < 0){
+      /* niente merce sotto il dito. Se ha toccato l'ESPOSITORE non succede
+         niente — e' il mobile, ci si sta guardando sopra. Se ha toccato
+         l'AMBIENTE — il fondo, il ripiano, quello che c'e' di lato — si
+         torna al banco: guardare altrove e' gia' dire che hai finito qui. */
+      for(const g of banchi[attiva])
+        if(g.visible && raggio.intersectObject(g, true).length) return;
+      indietro();
+      return;
+    }
     const qui = stazioni(attiva)[Math.round(pos)] || [];
     if(qui.indexOf(k) >= 0){ apriPezzo(k); return; }
     /* il pezzo toccato sta su un'altra stazione: PRIMA ci si va. Aprirlo
@@ -1370,8 +1428,6 @@ function tocca(e){
     return;
   }
   if(livello === 0){
-    schermo.set((e.clientX/innerWidth)*2-1, -(e.clientY/innerHeight)*2+1);
-    raggio.setFromCamera(schermo, camera);
     for(const f of FAMIGLIE)
       if(raggio.intersectObject(banchi[f.id][0], true).length){ entra(f.id); return; }
   }
