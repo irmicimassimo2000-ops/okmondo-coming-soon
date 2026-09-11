@@ -1049,14 +1049,23 @@ function isolaPezzo(){
   g.traverse(o => { if(o.isMesh) o.visible = false; });
   p.traverse(o => { if(o.isMesh) o.visible = true; });
   ao.enabled = false; sfoca.enabled = true;
-  lampada.intensity = 2.6;
-  /* E L'AMBIENTE SI ALZA. Un metallo lucido non ha colore suo: fa vedere
-     quello che gli sta intorno. Tolto l'espositore e restata solo una
-     parete scura, una creola d'argento non aveva piu' NIENTE da riflettere
-     e usciva nera. Alzando l'ambiente il pezzo entra in una scatola di luce
-     — che e' come si fotografa un gioiello — mentre il fondo, che non e'
-     illuminato ma dipinto, resta scuro com'era. */
-  scena.environmentIntensity = AMBIENTE * 3.2;
+  /* QUANTA LUCE SERVE LO DICE IL PEZZO, non il livello.
+     Un metallo lucido non ha colore suo: fa vedere quello che gli sta
+     intorno, e tolto l'espositore, davanti a una parete scura, una creola
+     d'argento non ha piu' NIENTE da riflettere — usciva nera. Per quella
+     serviva una scatola di luce, ed e' come si fotografa un gioiello.
+     Ma un Regina Swatch non e' metallo: e' VERNICIATO, il colore ce l'ha
+     suo, e la stessa scatola di luce glielo SCHIARISCE — entrava in
+     selezione e il verde salvia diventava un verde pallido. Su un prodotto
+     monocromo il colore E' il prodotto, quindi non si tocca.
+     Si guarda di che cosa e' fatto il pezzo e si alza solo per la parte
+     metallica. */
+  let metalliche = 0, tutte = 0;
+  p.traverse(o => { if(o.isMesh && o.material){
+    tutte++; if(o.material.metalness > 0.5) metalliche++; } });
+  const metallico = tutte ? metalliche / tutte : 1;
+  lampada.intensity = 1.35 + 1.25 * metallico;
+  scena.environmentIntensity = AMBIENTE * (1 + 2.2 * metallico);
   /* NIENTE OMBRA. Il pezzo galleggia: un'ombra proiettata su un pavimento
      che non si vede piu' e' l'unico segno rimasto che c'e' ancora una
      stanza sotto, e basta quella a disfare il galleggiamento. */
