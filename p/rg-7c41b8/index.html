@@ -939,6 +939,12 @@ function vaiAlBanco(subito){
 }
 
 function entra(id){
+  /* OGNI FAMIGLIA TORNA A CASA PRIMA. Le copie di una famiglia «scambia»
+     restano dove le ha portate lo swipe: se si passa a un'altra categoria
+     col menu senza ripassare dal banco, quelle di prima rimangono
+     sparpagliate fuori posto. Il banco lo faceva gia', entrare no. */
+  for(const f of FAMIGLIE) (banchi[f.id] || []).forEach(g => {
+    if(CASA[f.id] !== undefined) g.position.x = CASA[f.id]; });
   livello = 1; attiva = id; indice = 0; scelto = -1;
   pos = posMeta = posGiu = 0; posV = 0; velDito = 0;
   azzeraPizzico();
@@ -1092,9 +1098,15 @@ function mostraTutto(){
   cartello.classList.remove("pezzo");
   for(const f of FAMIGLIE) (banchi[f.id] || []).forEach((g, k) => {
     g.traverse(o => { if(o.isMesh) o.visible = true; });
-    // al banco si vede una copia sola per famiglia: tre busti in fila
-    // sarebbero un magazzino, non una vetrina
-    g.visible = (livello === 0) ? k === 0 : true;
+    /* UNA COPIA SOLA PER FAMIGLIA, tranne quella in cui si e' entrati.
+       Al banco tre busti in fila sarebbero un magazzino, non una vetrina.
+       E dentro una famiglia vale lo stesso per le ALTRE: scritto
+       «altrimenti tutte», passando da collane a orecchini col menu
+       restavano accesi i tre busti e i due bracciali — accesi e fermi dove
+       lo swipe li aveva lasciati, perche' a spostarli e' `applicaPos`, che
+       tocca solo la famiglia attiva. In quadro finiva un espositore di
+       un'altra categoria, grande il doppio e davanti a tutto. */
+    g.visible = (livello >= 1 && f.id === attiva) ? true : k === 0;
   });
   ao.enabled = !aoSpenta; sfoca.enabled = false;
   lampada.intensity = 0;
