@@ -1435,7 +1435,14 @@ function inquadraFamiglia(){
      entrare quando ci si sposta. Dove invece l'espositore e' uno solo e
      cambia per intero, si inquadra tutto. */
   const quanti = stazioni(attiva).length, modo = MODI[attiva];
-  const finestra = modo === "cammina" ? 3.0 : modo === "salta" ? 1.7 : quanti;
+  /* E UNA «CAMMINA» NON PUO' AVERE TUTTO IN QUADRO. Con tre orologi la
+     finestra era 3,0 su 3 stazioni: l'espositore ci stava tutto, e lo
+     swipe spostava la macchina di un passo senza che entrasse o uscisse
+     niente — un gesto che non cambia nulla si legge come un gesto
+     casuale. La finestra resta sotto il numero delle stazioni, cosi' c'e'
+     sempre qualcosa da raggiungere. */
+  const finestra = modo === "cammina" ? Math.min(3.0, quanti * 0.78)
+                 : modo === "salta" ? 1.7 : quanti;
   const largo = u.largo * Math.min(1, finestra / quanti) + 0.016;
   const d = distanzaPer(largo, alto * 1.26, 1.02), sc = scartoChrome(d);
   /* QUANTO SI SPOSTA UN ESPOSITORE CHE ESCE. Il passo lo prendevo dalla
@@ -1444,9 +1451,24 @@ function inquadraFamiglia(){
      entrato, perche' il quadro e' piu' stretto di due busti affiancati. Il
      passo giusto e' la LARGHEZZA DEL QUADRO, appena piu' corta, cosi' uno
      esce mentre l'altro entra e in mezzo non c'e' mai il vuoto. */
+  const larghezzaVista = 2 * d * Math.tan(camera.fov*Math.PI/360) * camera.aspect;
   if(MODI[attiva] === "scambia")
-    PASSO_BANCO[attiva] =
-      2 * d * Math.tan(camera.fov*Math.PI/360) * camera.aspect * 0.94;
+    PASSO_BANCO[attiva] = larghezzaVista * 0.94;
+  /* IL PASSO DEL DITO, PER QUESTA FAMIGLIA. Quanti pixel di schermo
+     percorre una stazione: sulle collane e' la larghezza del quadro meno
+     un soffio, sugli anelli il passo fra due colonnine. Da qui in poi il
+     dito muove la scena uno a uno in tutte e cinque. */
+  {
+    let passoMondo;
+    if(MODI[attiva] === "scambia") passoMondo = PASSO_BANCO[attiva];
+    else {
+      const c = CENTRI[attiva] || [];
+      let somma = 0, quante = 0;
+      for(let i = 1; i < c.length; i++){ somma += Math.abs(c[i] - c[i-1]); quante++; }
+      passoMondo = quante ? somma / quante : larghezzaVista * 0.3;
+    }
+    PASSO_DITO = Math.max(26, passoMondo * innerWidth / larghezzaVista);
+  }
   const cx = CASA[attiva] !== undefined ? CASA[attiva] : g.position.x;
   if(SGUARDO[attiva] === "alto"){
     const my = u.alto * 0.80 - sc;
@@ -1987,8 +2009,28 @@ function adattaTitolo(){
    3. L'AGGANCIO CON MOLLA, non con interpolazione: una molla arriva, si
       posa e si ferma.
    E ai capi la GOMMA: oltre l'ultimo pezzo la scena resiste e torna. */
-const PASSO_DITO = 108;      // pixel di dito che valgono una stazione
-const CENNO = 0.34;          // quanto la scena si lascia tirare, al massimo
+/* ── QUANTO VALE UN DITO ───────────────────────────────────────────
+   Era un numero solo per tutte le famiglie: 108 pixel di dito valgono una
+   stazione. Ma una stazione non e' la stessa cosa in nessuna delle cinque:
+   sulle collane vale una LARGHEZZA DI QUADRO (il 94 per cento dello
+   schermo), sugli anelli il passo fra due colonnine (poche decine di
+   pixel). Misurato con cento pixel di dito, la merce si spostava di 246
+   pixel sulle collane, 128 sui bracciali, 93 sugli orecchini, 36 sugli
+   anelli e 37 sugli orologi: da 0,36 a 2,46 volte il dito, sette volte di
+   differenza fra una famiglia e l'altra. E' quello che si sente come
+   «non coordinato» e «un po' casuale», e non e' un difetto di gusto: e'
+   la stessa costante usata per cinque grandezze diverse.
+   Adesso il passo del dito e' la MISURA SULLO SCHERMO di una stazione, e
+   il freno e' in pixel: il dito porta la scena uno a uno e si ferma sempre
+   dopo gli stessi quarantasei pixel, in tutte e cinque. */
+let PASSO_DITO = 108;        // pixel di dito per una stazione: lo riscrive
+                             // inquadraFamiglia, famiglia per famiglia
+const CENNO_PX = 46;         // quanti pixel di scena si lascia tirare, al piu'
+/* e la VELOCITA' si misura in PIXEL al secondo, non in stazioni al secondo.
+   Dividendola per il passo, la stessa spinta del pollice valeva 0,85
+   stazioni su una famiglia e 2,4 su un'altra: la soglia del lancio
+   scattava a velocita' diverse a seconda di dove ti trovavi. */
+const LANCIO_PX = 320;       // pixel al secondo che valgono un lancio
 /* LA MOLLA E' PIU' MORBIDA DI PRIMA. A 210 arrivava in due decimi di
    secondo: giusta quando il dito portava la scena quasi a destinazione e
    alla molla restava solo l'ultimo pezzo di strada. Adesso che il dito si
@@ -2095,7 +2137,7 @@ stanza.addEventListener("pointermove", e => {
      posizioni piu' in la' senza che nessuno l'abbia chiesto. */
   const ora = performance.now(), dt = Math.max(8, ora - ultimoT);
   velDito = velDito * 0.72
-          + ((ultimoX - e.clientX) / PASSO_DITO / (dt / 1000)) * 0.28;
+          + ((ultimoX - e.clientX) / (dt / 1000)) * 0.28;
   ultimoX = e.clientX; ultimoT = ora;
 
   if(livello === 0){
@@ -2121,9 +2163,8 @@ stanza.addEventListener("pointermove", e => {
        piccolo, poi la resistenza cresce e si ferma a un terzo di stazione:
        si vede che l'espositore accanto c'e' e che il gesto e' stato preso,
        ma dove si va lo decide il RILASCIO. */
-    const chiesto = -mosso / PASSO_DITO;
-    const accenno = CENNO * Math.tanh(chiesto / CENNO);
-    pos = gomma(posGiu + accenno, 0, limiteN());
+    const accennoPx = CENNO_PX * Math.tanh(-mosso / CENNO_PX);
+    pos = gomma(posGiu + accennoPx / PASSO_DITO, 0, limiteN());
     posMeta = pos;
     applicaPos(true);
   } else if(livello === 2){
@@ -2189,9 +2230,9 @@ addEventListener("pointerup", e => {
        abbastanza strada o e' partito abbastanza in fretta, si va avanti di
        uno; altrimenti si torna dov'eravamo. */
     const n = limiteN(), base = Math.round(posGiu);
-    const STRADA = 30, LANCIO = 0.85;        // pixel, e stazioni al secondo
+    const STRADA = 30;                       // pixel di dito percorsi
     let passo = 0;
-    if(Math.abs(velDito) > LANCIO) passo = Math.sign(velDito);
+    if(Math.abs(velDito) > LANCIO_PX) passo = Math.sign(velDito);
     else if(Math.abs(dx) > STRADA) passo = -Math.sign(dx);
     posMeta = Math.max(0, Math.min(n, base + passo));
     mostraScheda();
@@ -2201,8 +2242,11 @@ addEventListener("pointerup", e => {
        meta e' indietro. */
     const verso = Math.sign(posMeta - pos);
     const w = Math.sqrt(K_POS) * Math.abs(pos - posMeta);
+    // la molla eredita la velocita' in STAZIONI al secondo: quella del
+    // dito e' in pixel, e il cambio di unita' lo fa il passo della famiglia
+    const velStaz = velDito / PASSO_DITO;
     posV = Math.sign(velDito) === verso
-         ? Math.max(-w, Math.min(w, velDito)) : 0;
+         ? Math.max(-w, Math.min(w, velStaz)) : 0;
     sveglia();
     if(Math.abs(dx) > 8 || Math.abs(dy) > 8) return;
   }
