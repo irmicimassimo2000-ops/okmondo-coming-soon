@@ -1927,7 +1927,17 @@ function indietro(){
 document.getElementById("dietro").onclick = indietro;
 
 function mostraScheda(){
-  const st = stazioni(attiva), qui = st[Math.round(pos)] || [];
+  /* LA STAZIONE E' QUELLA DOVE SI VA, NON QUELLA DOVE SI E'.
+     Leggeva `pos`, cioe' la posizione ISTANTANEA della scena. Ma al
+     rilascio di uno swipe `pos` sta ancora sulla stazione di partenza — il
+     dito la muove al massimo di quarantasei pixel, una frazione di
+     stazione — mentre la destinazione appena decisa sta in `posMeta`, e ci
+     arriva la molla nel mezzo secondo dopo. Risultato: la macchina andava
+     sul secondo anello e il cartellino restava sul primo. E con lui
+     `indice`, cioe' il pezzo che un tocco avrebbe aperto: si vedeva il
+     secondo e si apriva il primo.
+     La scheda descrive la DESTINAZIONE, sempre. */
+  const st = stazioni(attiva), qui = st[Math.round(posMeta)] || [];
   if(!qui.length) return;
   indice = qui[0];
   if(qui.length === 1){
