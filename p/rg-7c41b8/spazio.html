@@ -309,12 +309,18 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
 #foglio .faccia::-webkit-scrollbar{width:0}
 
 /* il fronte: la foto in alto, i dati, la dedica, il menu */
-/* LA FOTO E' BASSA DI PROPOSITO. A 4:3 la carta arrivava a 786 punti di
-   contenuto su 660 di altezza, e il MENU — che e' il motivo per cui la
-   carta si apre — restava tutto sotto la piega: si vedeva una scheda da
-   leggere, non un oggetto con cui fare qualcosa. A 16:11 due voci
-   affacciano, e la terza si scopre scorrendo. */
-#ritratto{display:block;width:100%;aspect-ratio:16/11;object-fit:cover;
+/* LA FOTO E' UNA FASCIA, e le OPZIONI stanno sopra la piega.
+   Verdetto di Massimo, con lo scatto del suo iPhone: «le opzioni si devono
+   vedere subito sulla carta». Su un telefono vero la barra di Safari in
+   alto e la sua barra in basso si prendono quasi un terzo dello schermo:
+   alla carta ne restano cinquecentosessanta punti, e con la foto a 16:11,
+   cinque righe di dati e la dedica, il menu cominciava a
+   cinquecentoquattordici. Restava una scheda da leggere.
+   Tre tagli, e nessuno butta via niente: la foto passa a 16:8, i dati da
+   cinque righe in colonna a tre su due colonne, e la DEDICA scende SOTTO
+   il menu — resta sempre sul fronte, come deve, ma dopo le cose da fare.
+   Prima si agisce, poi si legge. */
+#ritratto{display:block;width:100%;aspect-ratio:16/8;object-fit:cover;
   background:#6A625A;cursor:pointer}
 .riga-foto{position:relative;flex:none}
 .riga-foto .quante{position:absolute;right:10px;bottom:10px;pointer-events:none;
@@ -324,17 +330,20 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
 #carta-dentro .nome{font:400 27px/1.06 Bodoni,Didot,Georgia,serif;
   letter-spacing:-.005em}
 #carta-dentro .mat{margin-top:5px;font-size:12px;color:var(--quieto)}
-#carta-dentro .dati{margin-top:13px;padding-top:12px;
-  border-top:1px solid var(--filo);display:grid;gap:6px}
-#carta-dentro .dato{display:flex;justify-content:space-between;gap:14px;
-  font-size:12px;color:var(--quieto)}
-#carta-dentro .dato b{font-weight:400;color:var(--testo);
-  font-variant-numeric:lining-nums tabular-nums}
+#carta-dentro .dati{margin-top:11px;padding-top:11px;
+  border-top:1px solid var(--filo);display:grid;
+  grid-template-columns:1fr 1fr;gap:9px 16px}
+#carta-dentro .dato{display:flex;flex-direction:column;gap:2px;min-width:0}
+#carta-dentro .dato span{font:700 8px/1 Inter,sans-serif;letter-spacing:.10em;
+  text-transform:uppercase;color:var(--tenue)}
+#carta-dentro .dato b{font-weight:400;color:var(--testo);font-size:12.5px;
+  font-variant-numeric:lining-nums tabular-nums;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* LA DEDICA STA SEMPRE SUL FRONTE, e non e' un'opzione del menu: e' la
    ragione per cui una collana e' quella collana e non un'altra uguale.
    Se e' lunga si taglia a tre righe e si offre di girare la carta. */
-#dedica{margin:14px 18px 0;padding:13px 14px;background:var(--cipria);
+#dedica{margin:16px 18px 20px;padding:13px 14px;background:var(--cipria);
   position:relative;flex:none}
 #dedica .eco{font:700 8.5px/1 Inter,sans-serif;letter-spacing:.12em;
   text-transform:uppercase;color:var(--tenue);margin-bottom:7px}
@@ -349,15 +358,16 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
 #dedica.lunga .tutto{display:inline-block}
 
 /* il menu: una voce per riga, come le righe di un libretto */
-#voci{margin:16px 0 0;border-top:1px solid var(--filo);flex:none}
-#voci button{display:flex;width:100%;align-items:baseline;gap:12px;
+#voci{margin:14px 0 0;border-top:1px solid var(--filo);flex:none}
+#voci button{display:flex;width:100%;align-items:center;gap:10px;
   border:0;background:none;cursor:pointer;text-align:left;
-  padding:13px 18px;border-bottom:1px solid var(--filo)}
+  padding:11px 18px;border-bottom:1px solid var(--filo)}
 #voci button:last-child{border-bottom:0}
 #voci button:active{background:var(--cipria)}
-#voci .che{flex:1;font:400 16px/1.15 Bodoni,Didot,Georgia,serif;color:var(--testo)}
-#voci .perche{flex:none;max-width:52%;font-size:11px;line-height:1.35;
-  color:var(--tenue);text-align:right}
+#voci .che{flex:none;font:400 16px/1.15 Bodoni,Didot,Georgia,serif;color:var(--testo)}
+#voci .perche{flex:1;min-width:0;font-size:10.5px;line-height:1.3;
+  color:var(--tenue);text-align:right;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #voci button.grave .che{color:#9B4034}
 
 /* il retro: il codice, e cio' che l'azione comporta */
@@ -451,13 +461,13 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
         <div class="mat" id="carta-mat"></div>
         <div class="dati" id="carta-dati"></div>
       </div>
+      <div id="voci"></div>
       <div id="dedica">
         <div class="eco">La dedica</div>
         <p id="dedica-testo"></p>
         <div class="firma" id="dedica-firma"></div>
         <button class="tutto">mostra tutto</button>
       </div>
-      <div id="voci"></div>
     </div>
     <div class="faccia retro">
       <div id="retro-titolo"></div>
@@ -2028,14 +2038,18 @@ function apriCarta(fam, k){
     (1 + SCATTI.length) + " foto";
   document.getElementById("carta-nome").textContent = r[0];
   document.getElementById("carta-mat").textContent = r[1];
+  /* SU DUE COLONNE LE ETICHETTE SI ACCORCIANO. «Nella collezione dal» su
+     mezza carta va a capo e la riga cresce del doppio: in una scheda di
+     possesso quella data si chiama «nel cofanetto dal», che e' la stessa
+     cosa detta con la parola dell'app. */
   const dati = [
     ["Codice", CODICE(fam, k)],
     ["Valore", r[2] + " €"],
   ];
-  if(sc.quando) dati.push(["Nella collezione dal", sc.quando]);
-  if(sc.dove) dati.push(["Comprato", sc.dove]);
+  if(sc.quando) dati.push(["Nel cofanetto dal", sc.quando]);
   const col = collezioneDi(fam, k);
   if(col) dati.push(["Collezione", col.nome]);
+  if(sc.dove) dati.push(["Comprato", sc.dove]);
   document.getElementById("carta-dati").innerHTML = dati.map(([a, b]) =>
     `<div class="dato"><span>${a}</span><b>${b}</b></div>`).join("");
 
@@ -2057,15 +2071,15 @@ function apriCarta(fam, k){
   } else ded.hidden = true;
 
   const voci = [
-    {id:"regala", che:"Regala", perche:"Passa a un’altra persona con una scansione"},
+    {id:"regala", che:"Regala", perche:"con una scansione"},
   ];
   if(col) voci.push({id:"collezione", che:"Vedi la collezione",
-                     perche:"Cosa manca a " + col.nome + ", e cosa si apre chiudendola"});
+                     perche:"cosa manca a " + col.nome});
   voci.push({id:"assistenza", che:"Chiedi assistenza",
-             perche:"Una misura, una saldatura, una pietra da rimettere"});
-  voci.push({id:"condividi", che:"Condividi", perche:"Fallo vedere a chi vuoi"});
-  voci.push({id:"rimuovi", che:"Rimuovi dalla collezione",
-             perche:"Smarrito, o non piu’ tuo", grave:true});
+             perche:"una misura, una saldatura"});
+  voci.push({id:"condividi", che:"Condividi", perche:"fallo vedere a chi vuoi"});
+  voci.push({id:"rimuovi", che:"Rimuovi", perche:"smarrito, o non piu’ tuo",
+             grave:true});
   document.getElementById("voci").innerHTML = voci.map(v =>
     `<button data-fa="${v.id}"${v.grave ? ' class="grave"' : ""}>` +
     `<span class="che">${v.che}</span><span class="perche">${v.perche}</span></button>`).join("");
