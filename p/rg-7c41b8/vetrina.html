@@ -1,0 +1,97 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vetrina</title>
+<style>
+@font-face{font-family:Bodoni;src:url("font/bodoni.woff2") format("woff2");font-weight:400 500}
+@font-face{font-family:Bodoni;src:url("font/bodoni-it.woff2") format("woff2");font-weight:400;font-style:italic}
+@font-face{font-family:Inter;src:url("font/inter.woff2") format("woff2");font-weight:400 600}
+:root{
+  --fodera:#14110e; --vano:#1c1813; --vassoio:#241f19; --fossetta:#191510;
+  --luce:#f2ece1; --quieto:#b3a795; --tenue:#8a7e70; --incisa:#6f6459;
+  --filo:rgba(255,240,215,.12); --turchese:#106068;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;min-height:100%;overflow-x:hidden}
+body{max-width:520px;margin:0 auto}
+body{background:var(--fodera);color:var(--luce);position:relative;
+     font:400 15px/1.5 Inter,system-ui,sans-serif}
+.velluto{position:absolute;inset:0;
+  background:radial-gradient(120% 66% at 50% 6%, #241f19 0%, #14110e 62%)}
+.velluto::after{content:"";position:absolute;inset:0;opacity:.05;mix-blend-mode:screen;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E")}
+
+.testata{position:relative;z-index:5;display:flex;align-items:flex-end;
+  justify-content:space-between;padding:22px 20px 10px}
+.testata img{width:54px;filter:invert(1) brightness(1.06)}
+.chi{text-align:right;line-height:1.25}
+.chi b{display:block;font:400 18px/1 Bodoni,Georgia,serif}
+.chi span{font-size:10px;color:var(--quieto)}
+
+main{position:relative;z-index:3;padding:4px 20px 0}
+.eti{font:600 9.5px/1 Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;
+     color:var(--tenue)}
+.conta{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.conta .n{font:400 21px/1 Bodoni,Georgia,serif;font-variant-numeric:lining-nums}
+h1{font:400 27px/1.12 Bodoni,Georgia,serif;font-variation-settings:"opsz" 32}
+.frase{font:italic 400 13.5px/1.4 Bodoni,Georgia,serif;color:var(--quieto)}
+
+/* la fotografia: squadrata, senza ombra, e non la si arrotonda mai */
+img.pezzo{display:block;object-fit:cover;border-radius:0}
+
+/* il vassoio e la fossetta: stesso velluto, due gradini */
+.vassoio{background:linear-gradient(#241f19,#1b1712);
+  box-shadow:inset 0 1px 0 rgba(255,240,215,.07), 0 6px 14px -10px rgba(0,0,0,.9)}
+.fossetta{background:var(--fossetta);
+  box-shadow:inset 2px 3px 8px -3px rgba(0,0,0,.9),
+             inset -1px -2px 5px -3px rgba(255,240,215,.12)}
+.inciso{font:600 8px/1.3 Inter,sans-serif;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--incisa);text-shadow:0 1px 0 rgba(255,240,215,.07)}
+
+/* il turchese: uno solo, ed e' quello che si tocca */
+.tocca{display:block;text-align:center;text-decoration:none;background:var(--turchese);
+  color:#fff;padding:14px 10px;font:600 10px/1 Inter,sans-serif;
+  letter-spacing:.12em;text-transform:uppercase}
+
+.barra{position:absolute;left:0;right:0;bottom:0;height:54px;background:var(--fodera);
+  border-top:1px solid var(--filo);display:flex;align-items:center;
+  justify-content:space-around;z-index:6;
+  font:600 9.5px/1 Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--tenue)}
+.barra b{color:var(--luce);font-weight:600}
+.targa{position:absolute;left:0;top:0;z-index:7;background:#e4dccd;color:#14110e;
+  font:600 8.5px/1 Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;padding:5px 9px}
+
+.dove{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+.modi{display:flex;border:1px solid var(--filo);border-radius:3px;overflow:hidden;
+  margin-bottom:18px}
+.modi a{flex:1;text-align:center;text-decoration:none;padding:9px 0;
+  font:600 9px/1 Inter,sans-serif;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--tenue)}
+.modi a.qui{background:rgba(255,240,215,.09);color:var(--luce)}
+.coppia{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.scheda img{width:100%;aspect-ratio:.86}
+/* IL NOME SU UNA RIGA SOLA. «Filo di Luce · orecchini» a 17px in una
+   colonna da 160 va sempre a capo, e due schede che vanno a capo in punti
+   diversi hanno le righe sfalsate. La collezione sale a occhiello — che e'
+   un'etichetta di due parole, il suo posto — e resta il tipo di pezzo. */
+.scheda .coll{font:600 8px/1 Inter,sans-serif;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--tenue);margin-top:9px;display:block}
+.scheda b{display:block;margin-top:4px;font:400 18px/1.1 Bodoni,Georgia,serif}
+.scheda .mat{margin-top:2px;font-size:11px;color:var(--quieto);line-height:1.35}
+.scheda .pr{margin-top:5px;font:400 15px/1 Bodoni,Georgia,serif;
+  font-variant-numeric:lining-nums}
+.chiude{margin-top:3px;font:italic 400 11.5px/1.3 Bodoni,Georgia,serif;color:#7fc0c4}
+.lista{margin-top:22px;padding-top:16px;border-top:1px solid var(--filo);
+  display:flex;align-items:center;justify-content:space-between}
+.lista .frase{max-width:19em}
+
+.targa, .barra{display:none}
+.velluto{position:fixed;inset:0;max-width:520px;margin:0 auto}
+main{padding-bottom:34px}
+</style>
+<body>
+<div class="velluto"></div><div class="testata"><img src="marchio.png" alt="Regina Jewels"><div class="chi"><b>Lucia</b><span>RJ 00042 &middot; dal 2025</span></div></div>
+<main><div class="dove"><h1>La vetrina</h1><span class="eti">2 pezzi</span></div><div class="modi"><a class="qui" href="#">Elenco</a><a href="#">Stanza</a></div><div class="eti">Completa quello che hai</div><div class="coppia"><div class="scheda"><img class="pezzo" src="pezzi/rg-fl-004.jpg" alt=""><span class="coll">Filo di Luce</span><b>Creola Media</b><div class="mat">Argento 925 &middot; 16 mm</div><div class="pr">28,00 &euro;</div><div class="chiude">chiude Filo di Luce</div></div><div class="scheda"><img class="pezzo" src="pezzi/8054321000456.jpg" alt=""><span class="coll">Filo di Luce</span><b>Pendente Turchese</b><div class="mat">Acciaio dorato e cabochon</div><div class="pr">26,00 &euro;</div><div class="chiude">chiude Filo di Luce</div></div></div><div class="lista"><div class="frase">La tua lista: due pezzi.<br>Puoi mandarla a chi vuoi tu.</div><a class="tocca" href="#" style="padding:12px 16px">Mandala</a></div></main>
+<div class="barra"><span>Cofanetto</span><b>Vetrina</b><span>Per te</span><span>Profilo</span></div>
+<div class="targa">2 &middot; vetrina &mdash; cosa posso avere</div>
