@@ -27,12 +27,37 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
    Prima erano due velature sovrapposte e il basso dello schermo usciva
    torbido. Una sola, e dentro ci stanno le due cose che restano. */
 #fondo{position:fixed;left:0;right:0;bottom:0;z-index:3;pointer-events:none;
-       padding-top:76px;
+       padding-top:52px;
        background:linear-gradient(to top, var(--carta) 62%,
                   rgba(250,248,245,.90) 82%, transparent)}
 
 #cartello{padding:0 22px 4px;transition:opacity .26s cubic-bezier(.2,.7,.3,1),
           transform .26s cubic-bezier(.2,.7,.3,1)}
+
+/* ── LA SCHEDA SI RITIRA ──────────────────────────────────────────
+   Verdetto di Massimo: «il layout degli elementi del menu lascia poco
+   spazio alla visualizzazione dell'ambiente tridimensionale, che e' la
+   parte principale della sezione».
+   Misurato sul pezzo: della finestra da 844 punti, 44 li prendeva la
+   testata e 297 il cartellino — il 40 per cento dello schermo per un nome,
+   un prezzo, due righe di suggerimento e un bottone. All'ambiente ne
+   restavano 503.
+   Quindi il cartellino ha due altezze. Di serie sta RITIRATO: il nome, il
+   prezzo e il gesto, che sono le tre cose che servono per guardare. Chi
+   vuole comprare tira su la maniglia e trova il materiale, l'insieme e il
+   bottone. E l'inquadratura si rifa' a ogni cambio, perche' la macchina
+   centra sulla parte che si VEDE e quella parte e' appena cambiata. */
+#maniglia{display:none;pointer-events:auto;width:100%;border:0;background:none;
+          padding:10px 0 9px;cursor:pointer;margin-top:-10px}
+#maniglia span{display:block;width:42px;height:3.5px;border-radius:2px;margin:0 auto;
+               background:var(--bordo);opacity:.78;
+               transition:transform .24s cubic-bezier(.2,.7,.3,1), opacity .2s}
+#fondo.apribile #maniglia{display:block}
+#fondo.apribile:not(.ritirato) #maniglia span{transform:scaleY(-1)}
+#maniglia:active span{opacity:.9}
+#fondo.ritirato{padding-top:38px}
+#fondo.ritirato #sotto{display:none}
+#fondo.ritirato #insieme{display:none}
 #cartello .riga{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
 /* IL NOME DEL PEZZO PORTA IL RAPPORTO DELLE MAISON. Stava a 24 px contro
    un corpo di 12,5: rapporto 1,92, sotto la banda 2,6-3,7 misurata sulle
@@ -233,6 +258,7 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
 
 <div id="fondo">
   <div id="cartello">
+    <button id="maniglia" aria-expanded="false"><span></span></button>
     <div class="riga"><b id="titolo">Il banco</b><span class="prezzo" id="numero"></span></div>
     <p id="sotto">Gli espositori di Regina, in scala vera.</p>
     <div id="basso">
@@ -1402,6 +1428,8 @@ function apriPezzo(k){
   /* DOPO le scritte: `scritte` spegne l'insieme a ogni cartellino nuovo, ed
      e' giusto che lo faccia — ma allora chi lo accende deve venire dopo. */
   mostraInsieme();
+  fondo.classList.add("apribile");
+  scheda(true);
   inquadraPezzo();
   dietro.hidden = false;
   sveglia();
@@ -1691,6 +1719,8 @@ function isolaPezzo(){
 
 function mostraTutto(){
   togliInsieme();
+  fondo.classList.remove("apribile", "ritirato");
+  maniglia.setAttribute("aria-expanded", "true");
   for(const f of FAMIGLIE) (pose[f.id] || []).forEach(o => { if(o) o.visible = false; });
   cartello.classList.remove("pezzo");
   for(const f of FAMIGLIE) (banchi[f.id] || []).forEach((g, k) => {
@@ -1746,6 +1776,24 @@ function mostraScheda(){
   }
 }
 
+/* ── QUANTO CARTELLINO SI VEDE ────────────────────────────────────
+   Ritirato: nome, prezzo e gesto. Aperto: anche il materiale, l'insieme e
+   il bottone. L'inquadratura si rifa' DOPO che il browser ha impaginato
+   l'altezza nuova — chiesta subito, getBoundingClientRect torna ancora
+   quella vecchia e la macchina centra su una banda che non esiste piu'. */
+function scheda(ritirata){
+  fondo.classList.toggle("ritirato", ritirata);
+  maniglia.setAttribute("aria-expanded", ritirata ? "false" : "true");
+  maniglia.setAttribute("aria-label", ritirata ? "apri la scheda" : "chiudi la scheda");
+  adattaTitolo();
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if(livello === 2) inquadraPezzo();
+    else if(livello === 1) inquadraFamiglia();
+    sveglia();
+  }));
+}
+maniglia.onclick = () => scheda(!fondo.classList.contains("ritirato"));
+
 function scritte(t, n, s, g){
   insieme.hidden = true;
   titolo.textContent = t; numero.textContent = n;
@@ -1758,9 +1806,13 @@ function scritte(t, n, s, g){
    andato a capo — l'altezza del blocco lo dice, e funziona con qualunque
    nome, anche quelli di Stefano che non abbiamo ancora. */
 function adattaTitolo(){
-  let px = 34;
+  /* e a cartellino ritirato il nome parte piu' piccolo: li' non e' la
+     testata di una pagina, e' l'etichetta sotto un oggetto che si sta
+     guardando. La misura la scrive questa funzione, non il foglio di
+     stile: una regola CSS non batte uno stile in riga. */
+  let px = fondo.classList.contains("ritirato") ? 27 : 34;
   titolo.style.fontSize = px + "px";
-  while(px > 22 && titolo.offsetHeight > px * 1.5){
+  while(px > 21 && titolo.offsetHeight > px * 1.5){
     px -= 2;
     titolo.style.fontSize = px + "px";
   }
@@ -1789,6 +1841,7 @@ const CENNO = 0.34;          // quanto la scena si lascia tirare, al massimo
 const K_POS = 130;
 let pos = 0, posV = 0, posMeta = 0, posGiu = 0;
 let giu = null, mosso = 0, mossoY = 0, partenzaX = 0;
+let giroGiu = 0, altGiu = 0.12;
 let ultimoX = 0, ultimoT = 0, velDito = 0;
 const raggio = new THREE.Raycaster(), schermo = new THREE.Vector2();
 
@@ -1844,6 +1897,14 @@ stanza.addEventListener("pointerdown", e => {
   }
   if(dita.size > 1) return;
   giu = {x:e.clientX, y:e.clientY}; mosso = 0; mossoY = 0;
+  /* DA DOVE RIPARTE IL GIRO. Non da zero: da DOVE STA. Il pezzo si girava
+     con `giroP = -mosso*0.0075` e `altP = 0.12 - mossoY*0.0045`, cioe'
+     sempre a partire dall'origine — alzavi il dito e lo riappoggiavi, e la
+     macchina saltava di colpo indietro all'angolo di partenza. Sulla posa
+     stesa, che si guarda da 1,22 radianti, il salto era di settanta gradi
+     al primo tocco. Un oggetto che si rigira in mano riparte da come lo si
+     e' lasciato. */
+  giroGiu = giroP; altGiu = altP;
   partenzaX = occhioObiettivo.x;
   posGiu = pos; posV = 0; velDito = 0;
   ultimoX = e.clientX; ultimoT = performance.now();
@@ -1908,8 +1969,19 @@ stanza.addEventListener("pointermove", e => {
   } else if(livello === 2){
     /* AL PEZZO IL DITO NON SCORRE, GIRA. Il gioiello e' li' davanti: la
        cosa che si vuole fare e' voltarlo, come lo si volterebbe in mano. */
-    giroP = -mosso * 0.0075;
-    altP = Math.max(-0.45, Math.min(0.75, 0.12 - mossoY * 0.0045));
+    giroP = giroGiu - mosso * 0.0075;
+    /* E NON SI SCENDE SOTTO IL BANCO. L'alzata arrivava a -0,45: la
+       macchina passava sotto il piano di pietra, che e' opaco, e il pezzo
+       spariva dietro il proprio appoggio. Il fondo dipende da come sta il
+       pezzo — uno steso sulla pietra lo si guarda dall'alto e sotto i venti
+       gradi non c'e' niente da vedere; uno in piedi lo si puo' guardare
+       quasi in faccia, ma mai da sotto. */
+    /* e il fondo di un pezzo STESO non e' «sopra il banco», e' «abbastanza
+       da vederlo»: a ventidue gradi una collana distesa diventa una riga
+       sottile e la posa non racconta piu' niente. Trentadue gradi e' il
+       taglio piu' basso con cui un catalogo fotografa un vassoio. */
+    const [giu_, su_] = stesa(attiva, scelto) ? [0.56, 1.48] : [0.02, 1.00];
+    altP = Math.max(giu_, Math.min(su_, altGiu - mossoY * 0.0045));
     inquadraPezzo();
   }
   sveglia();
@@ -1975,7 +2047,16 @@ addEventListener("pointerup", e => {
     if(Math.abs(dx) > 8 || Math.abs(dy) > 8) return;
   }
 
-  if(dy > 70 && Math.abs(dy) > Math.abs(dx)){ indietro(); return; }
+  /* UN GESTO, UN COMANDO. Il trascinamento verso il basso torna indietro —
+     ma sul PEZZO lo stesso trascinamento e' quello che alza e abbassa la
+     macchina attorno al gioiello. Facevano tutti e due: si girava il pezzo
+     verso l'alto e al rilascio la vista usciva. Non e' un difetto di
+     taratura, sono due comandi sullo stesso movimento, e da fuori si legge
+     come un'applicazione che non obbedisce.
+     Sul pezzo si esce con «indietro», col pizzico all'indietro, o toccando
+     fuori dal gioiello: tre strade, nessuna delle quali e' il gesto con cui
+     lo si sta guardando. */
+  if(livello !== 2 && dy > 70 && Math.abs(dy) > Math.abs(dx)){ indietro(); return; }
   if(Math.abs(dx) < 8 && Math.abs(dy) < 8) tocca(e);
   sveglia();
 });
