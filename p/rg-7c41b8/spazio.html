@@ -697,8 +697,17 @@ scena.add(parete);
    piano combaciano nel centro del quadro e si vede il piano, che li' e'
    quello nitido; girando attorno al pezzo resta solo la sfera, sfocata di
    quarantaquattro pixel, dove non conta leggere ma esserci. */
+/* IL RAGGIO E' PIU' LUNGO DELLA DISTANZA DEL PIANO, e non di un caso.
+   Con il raggio uguale a FONDALE la sfera passa esattamente per il piano
+   del fondale: stessa distanza, stessi pixel, e chi vince lo decide
+   l'ultima cifra del numero. Finche' la sfera non scriveva profondita' il
+   piano vinceva sempre; tolto quel puntello — per un'altra ragione, la
+   riga netta che si vedeva su desktop — i due hanno cominciato a
+   contendersi il fondo, e dietro agli espositori e' comparsa una parete
+   piatta al posto della stanza. Venticinque centimetri piu' in la' e la
+   sfera sta dietro, dove deve stare. */
 const giro = new THREE.Mesh(
-  new THREE.SphereGeometry(FONDALE, 64, 40),
+  new THREE.SphereGeometry(FONDALE + 0.25, 64, 40),
   /* E LA SFERA SCRIVE LA SUA PROFONDITA'. Con `depthWrite:false` il
      buffer, dove c'e' solo lei, resta al valore di fondo — infinito. La
      sfocatura legge la profondita' per decidere quanto sfocare, e fra il
@@ -1729,7 +1738,6 @@ function mostraTutto(){
   togliInsieme();
   fondo.classList.remove("apribile", "ritirato");
   maniglia.setAttribute("aria-expanded", "true");
-  for(const f of FAMIGLIE) (pose[f.id] || []).forEach(o => { if(o) o.visible = false; });
   cartello.classList.remove("pezzo");
   for(const f of FAMIGLIE) (banchi[f.id] || []).forEach((g, k) => {
     g.traverse(o => { if(o.isMesh) o.visible = true; });
@@ -1743,6 +1751,13 @@ function mostraTutto(){
        un'altra categoria, grande il doppio e davanti a tutto. */
     g.visible = (livello >= 1 && f.id === attiva) ? true : k === 0;
   });
+  /* E LE POSE SI SPENGONO QUI, DOPO. Le spegnevo in cima alla funzione, e
+     due righe piu' sotto `g.traverse(o => o.visible = true)` riaccendeva
+     ogni mesh del gruppo — posa compresa. Tornando al banco dalle collane
+     restava una collana stesa sul bancone davanti al plinto: un pezzo per
+     terra, che non c'entra niente con l'espositore. L'ordine conta: prima
+     si riaccende tutto, poi si spegne quello che non va acceso. */
+  for(const f of FAMIGLIE) (pose[f.id] || []).forEach(o => { if(o) o.visible = false; });
   ao.enabled = !aoSpenta; ao.updateGtaoMaterial(AO_BANCO); profondita(livello);
   lampada.intensity = 0;
   scena.environmentIntensity = AMBIENTE;
