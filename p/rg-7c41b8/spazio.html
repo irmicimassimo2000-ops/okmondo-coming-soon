@@ -711,9 +711,7 @@ const ambiente = () => AMBIENTI.find(a => a.id === ambienteScelto) || AMBIENTI[0
    resto e' margine per quando la macchina gira sul pezzo. */
 const OCCHIO_ALTO = 0.0738, OCCHIO_INDIETRO = 0.9056, FONDALE = 3.206;
 const parete = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 10/3),
-  new THREE.MeshBasicMaterial({toneMapped:false, transparent:true}));
-// e si disegna DOPO la sfera, se no la dissolvenza non ha niente sotto
-parete.renderOrder = 1;
+  new THREE.MeshBasicMaterial({toneMapped:false}));
 parete.position.set(0, OCCHIO_ALTO, -2.30);
 scena.add(parete);
 
@@ -1684,7 +1682,7 @@ function mostraInsieme(){
                    `<i>${FAMIGLIE.find(f => f.id === fam).nome}</i>` +
                    `<b>${r[0]}</b><span>${r[2]} €</span>`;
     accanto.appendChild(el);
-    ancore.push([punto, el]);
+    ancore.push({p:punto, el, x:null, y:null, lato:-1});
     righe.push(`<div class="r"><b>${r[0]}</b><span>${r[2]} €</span></div>`);
   }
   accanto.classList.toggle("steso", !!stesa(attiva, scelto));
@@ -1692,7 +1690,7 @@ function mostraInsieme(){
   if(!ancore.length) return;
   /* le carte stanno SOPRA la scena, non dentro: l'inquadratura non si
      allarga piu' — ed e' anche il motivo per cui l'orizzonte non rientra */
-  requestAnimationFrame(() => ancore.forEach(([, el]) => el.classList.add("qui")));
+  requestAnimationFrame(() => ancore.forEach(a => a.el.classList.add("qui")));
   document.getElementById("insieme-righe").innerHTML = righe.join("");
   insieme.hidden = false;
 }
@@ -1718,58 +1716,66 @@ function seguiCarte(){
     // ancora come una cosa che gli sta sopra
     quadro = {x0: x0 - 8, y0: y0 - 8, x1: x1 + 8, y1: y1 + 8};
   }
-  for(const [p, el] of ancore){
-    _pr.copy(p).project(camera);
-    /* LA CARTA SEGUE, MA NON ESCE. Agganciata al punto e basta, meta' di
-       lei finiva fuori dallo schermo: su un telefono verticale il punto
-       dove un orecchino starebbe addosso cade oltre il bordo. Si trattiene
-       dentro il quadro tenendo conto di quanto e' larga lei stessa. */
-    /* E IL BASSO NON E' LO SCHERMO, E' IL CARTELLINO. Il limite era
-       `innerHeight - 150`, un numero scritto a mano: ma sul pezzo il
-       cartellino e' alto il doppio, e la carta ci finiva sopra — la foto
-       della creola col nome della collana che le passava attraverso. Il
-       limite lo dice il cartellino stesso, misurato. */
-    const l = el.offsetWidth / 2 + 10, a = el.offsetHeight / 2 + 10;
-    const suolo = cartello.getBoundingClientRect().top - a - 26;
-    let x = Math.min(innerWidth - l, Math.max(l, (_pr.x * 0.5 + 0.5) * innerWidth));
-    let y = Math.min(suolo, Math.max(a + 44, (-_pr.y * 0.5 + 0.5) * innerHeight));
-    /* ── E POI SI SPOSTANO VIA DAL PEZZO ────────────────────────────
-       Ancorarle a un punto e allontanarle di un tot di raggi non basta:
-       il pezzo gira, e a certi angoli la carta gli finisce addosso
-       comunque. Qui il pezzo lo si MISURA — gli otto spigoli del suo
-       riquadro, proiettati sullo schermo — e la carta viene spinta fuori
-       da quel rettangolo dal lato che costa meno. Cosi' non lo copre a
-       nessun angolo, e non serve fidarsi di un raggio scelto a mano. */
-    if(!quadro){ el.style.left = x + "px"; el.style.top = y + "px"; continue; }
-    const dx0 = quadro.x1 - (x - l), dx1 = (x + l) - quadro.x0;
-    const dy0 = quadro.y1 - (y - a), dy1 = (y + a) - quadro.y0;
-    if(dx0 > 0 && dx1 > 0 && dy0 > 0 && dy1 > 0){
-      // quattro uscite possibili: si prende la piu' corta che ci sta
-      const vie = [[-dx1, 0], [dx0, 0], [0, -dy1], [0, dy0]]
-        .map(([sx, sy]) => ({sx, sy, costo: Math.abs(sx) + Math.abs(sy)}))
-        .sort((p, q) => p.costo - q.costo);
-      let fatta = false;
-      for(const v of vie){
-        const nx = x + v.sx, ny = y + v.sy;
-        if(nx > l && nx < innerWidth - l && ny > a + 44 && ny < suolo){
-          x = nx; y = ny; fatta = true; break;
-        }
-      }
-      /* E SE NON CI STA DA NESSUNA PARTE, si fa quel che si puo'. Su un
-         telefono da trecentonovanta punti una carta larga centotrentotto
-         non esce dal fianco di un anello che ne occupa centosessanta al
-         centro: nessuna delle quattro uscite ci sta per intero. Allora si
-         prende la meno peggio e si spinge fin dove lo schermo lo permette.
-         Chi vuole il pezzo pulito ha il tasto per spegnerle: e' quello il
-         comando, non un'acrobazia di collocazione. */
-      if(!fatta){
-        const v = vie[0];
-        x = Math.min(innerWidth - l, Math.max(l, x + v.sx));
-        y = Math.min(suolo, Math.max(a + 44, y + v.sy));
-      }
+  for(const a of ancore){
+    const el = a.el;
+    const l = el.offsetWidth / 2, alt = el.offsetHeight / 2;
+    const suolo = cartello.getBoundingClientRect().top - alt - 20;
+
+    /* ── LA CARTA ORBITA, NON SALTA ───────────────────────────────────
+       Era agganciata a un PUNTO del mondo — dove il pezzo suggerito
+       starebbe addosso — e proiettata sullo schermo fotogramma per
+       fotogramma. Girando il gioiello quel punto gli passa DIETRO, la
+       carta finiva addosso al pezzo, e la spinta che la scacciava dal
+       riquadro cambiava lato di colpo: misurato, 55 pixel di salto fra due
+       fotogrammi e diciassette strappi in un solo giro di dito. «Scattano
+       e saltano in maniera troppo netta», ed era vero.
+       Del punto si tiene la DIREZIONE, non la posizione: da dove sta il
+       pezzo, verso dove starebbe il suggerimento. La carta si mette su
+       quella direzione, appena fuori dal riquadro del gioiello. Girando,
+       la direzione ruota piano e la carta gli gira intorno — resta un
+       insieme, e non attraversa mai il pezzo. */
+    let cx = innerWidth / 2, cy = innerHeight * 0.42, rx = 90, ry = 90;
+    if(quadro){
+      cx = (quadro.x0 + quadro.x1) / 2; cy = (quadro.y0 + quadro.y1) / 2;
+      rx = (quadro.x1 - quadro.x0) / 2; ry = (quadro.y1 - quadro.y0) / 2;
     }
-    el.style.left = x + "px";
-    el.style.top = y + "px";
+    _pr.copy(a.p).project(camera);
+    let ux = (_pr.x * 0.5 + 0.5) * innerWidth - cx;
+    let uy = (-_pr.y * 0.5 + 0.5) * innerHeight - cy;
+    const m = Math.hypot(ux, uy) || 1;
+    ux /= m; uy /= m;
+    // la direzione si muove piano: e' lei l'unica cosa che cambia
+    if(a.ux === undefined){ a.ux = ux; a.uy = uy; }
+    else {
+      a.ux += (ux - a.ux) * 0.05; a.uy += (uy - a.uy) * 0.05;
+      const q = Math.hypot(a.ux, a.uy) || 1; a.ux /= q; a.uy /= q;
+    }
+    /* QUANTO LONTANO, e da che parte si scavalca il pezzo. Per non
+       toccarlo basta scavalcarlo su UN asse: o la carta sta tutta di
+       fianco al suo riquadro, o tutta sopra o sotto. Le due distanze non
+       sono la stessa cosa, e la prima versione le confondeva prendendo il
+       massimo di due prodotti — un conto senza senso, che lasciava la
+       carta addosso all'anello.
+       Su un telefono si scavalca in VERTICALE: la larghezza non c'e'
+       (trecentonovanta punti, un anello che ne occupa centosessanta al
+       centro e una carta che ne vuole centodiciotto), l'altezza si'. Se
+       nemmeno sopra o sotto ci sta, si prova di fianco; e se non ci sta da
+       nessuna parte c'e' il tasto per spegnerle. */
+    const perAsse = (r, mezzo, comp) =>
+      (r + mezzo + 12) / Math.max(Math.abs(comp), 0.25);
+    const dv = perAsse(ry, alt, a.uy), dh = perAsse(rx, l, a.ux);
+    const dentroV = y => y > alt + 50 && y < suolo;
+    const dentroH = x => x > l + 12 && x < innerWidth - l - 12;
+    let d = dv;
+    if(!dentroV(cy + a.uy * dv) && dentroH(cx + a.ux * dh)) d = dh;
+    let tx = Math.min(innerWidth - l - 12, Math.max(l + 12, cx + a.ux * d));
+    let ty = Math.min(suolo, Math.max(alt + 50, cy + a.uy * d));
+
+    /* e ci arriva scivolando: la posizione e' un bersaglio, non un ordine */
+    if(a.x === null){ a.x = tx; a.y = ty; }
+    else { a.x += (tx - a.x) * 0.10; a.y += (ty - a.y) * 0.10; }
+    el.style.left = a.x + "px";
+    el.style.top = a.y + "px";
   }
 }
 
@@ -2431,28 +2437,18 @@ function gira(ora){
   camera.position.copy(_mira).addScaledVector(_dir, dist / zoom);
   camera.lookAt(_mira);
 
-  /* IL PIANO SERVE FINCHE' COPRE, E SUL PEZZO COPRE ANCORA.
-     Lo spegnevo per intero al livello del pezzo, perche' girando attorno
-     al gioiello il piano finisce per mostrare il proprio bordo. Ma da
-     fermi — cioe' come si apre la scheda, e come la si guarda per la
-     maggior parte del tempo — il piano copre tutto il quadro, ed e' lui
-     quello NITIDO: la sfera al suo posto dava la parete liscia della
-     panoramica, ed e' la «parete piatta» che Massimo ha visto tornare
-     proprio sul pezzo.
-     Il bordo del piano entra in campo solo oltre una decina di gradi di
-     rotazione: si tiene il piano finche' quel bordo e' fuori, e lo si
-     dissolve prima che arrivi. Non una soglia che scatta — una
-     dissolvenza, perche' un fondo che si spegne di colpo si vede piu' del
-     bordo che si stava evitando. */
-  if(livello === 2){
-    const g = Math.abs(giroP);
-    const q = g < 0.13 ? 1 : g > 0.26 ? 0 : (0.26 - g) / 0.13;
-    parete.material.opacity = q;
-    parete.visible = q > 0.004;
-  } else {
-    parete.material.opacity = 1;
-    parete.visible = true;
-  }
+  /* IL PIANO NON LAMPEGGIA PIU'. Avevo provato a tenerlo anche sul pezzo,
+     dissolvendolo quando la rotazione ne avrebbe mostrato il bordo: e la
+     dissolvenza si vede — «la parete addobbata fa ancora un effetto appare
+     e scompare». Un fondo che va e viene e' peggio di un fondo meno nitido.
+     Adesso al livello del pezzo lavora SOLO la sfera, ferma e sempre la
+     stessa. Prima non si poteva, perche' la sfera mostrava una fetta
+     qualunque di pavimento: la panoramica era resa da una macchina che
+     guardava in basso. Orientata e rimessa in verso, la sfera e' la stessa
+     stanza da ogni angolo — e a quel livello la profondita' di campo la
+     sfoca di quarantaquattro pixel, dove la differenza di nitidezza col
+     piano non si legge. */
+  parete.visible = (livello !== 2);
 
   if(sfoca.enabled){
     /* IL FUOCO STA SUL SOGGETTO DEL MOMENTO. Sul pezzo quando se ne guarda
