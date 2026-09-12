@@ -1322,7 +1322,19 @@ function distanzaPer(largo, alto, margine){
 
 let partenzaBanco = 0;
 function vaiAlBanco(subito){
-  if(attiva && gruppi[attiva]) partenzaBanco = gruppi[attiva].position.x;
+  /* DOVE SI TORNA E' CASA, NON DOV'ERA. Leggevo la x CORRENTE del gruppo
+     per far tornare la macchina davanti alla famiglia da cui si uscliva.
+     Funziona per anelli e orologi, dove lo swipe muove la MACCHINA e il
+     gruppo non si sposta di un millimetro. Ma collane e bracciali sono
+     «scambia»: li' lo swipe muove gli ESPOSITORI, e al secondo pezzo il
+     busto sta trentanove centimetri piu' in la'. Due righe sotto ogni
+     famiglia torna a casa — e la macchina restava puntata dove il busto
+     era un istante prima, cioe' su un pezzo di bancone vuoto.
+     Misurato: gruppo a -0,771 durante lo swipe, casa a -0,376, e la
+     macchina finiva a -0,771. Casa e' l'unico punto che valga per tutti
+     e tre i modi. */
+  if(attiva && CASA[attiva] !== undefined) partenzaBanco = CASA[attiva];
+  else if(attiva && gruppi[attiva]) partenzaBanco = gruppi[attiva].position.x;
   // ogni famiglia torna a casa: uscendo da «scambia» l'espositore era
   // rimasto mezzo fuori quadro, e al banco si vedeva un buco
   for(const f of FAMIGLIE) (banchi[f.id] || []).forEach(g => {
