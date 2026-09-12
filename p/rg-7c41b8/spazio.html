@@ -292,7 +292,7 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
    mostra, e per mostrarlo si volta la carta verso l'altro.
    ══════════════════════════════════════════════════════════════ */
 #carta-pezzo{position:fixed;inset:0;z-index:7;display:grid;place-items:center;
-  padding:26px 18px;perspective:1400px}
+  padding:26px 18px}
 #carta-pezzo[hidden]{display:none}
 /* IL VELO NON SPEGNE, SCOSTA. A 0,58 di nero l'ambiente dietro spariva e
    la carta diventava una schermata: ma la carta si APPOGGIA sopra
@@ -316,11 +316,23 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
    impaginata — e la si limita a quello che lo schermo concede. Cambia
    anche girando, e cambia con una transizione: una carta che si accorcia
    di scatto sembra rotta. */
-#foglio{position:relative;width:100%;max-width:330px;
+/* L'ENTRATA STA SU UN ALTRO ELEMENTO, e non e' un vezzo di struttura.
+   L'animazione «porgi» stava sul foglio stesso con `fill-mode: both`: a
+   fine corsa il suo ultimo fotogramma — `transform: none` — RESTA
+   applicato, e un valore che viene da un'animazione batte una regola
+   normale. Quindi `#foglio.girata{transform:rotateY(180deg)}` non ha mai
+   avuto effetto: la carta non si girava, si limitava a cambiare altezza
+   sulla misura del retro, e sotto il fronte restava una striscia di carta
+   vuota. E' il difetto che Massimo ha visto premendo «collezione».
+   L'entrata va quindi su un involucro, e la rotazione resta sul foglio.
+   La prospettiva si sposta con lei: `perspective` agisce sui FIGLI, e col
+   foglio diventato nipote si sarebbe perso il 3D. */
+#porta{width:100%;max-width:330px;perspective:1400px;
+  animation:porgi .24s cubic-bezier(.2,.7,.3,1) both}
+#foglio{position:relative;width:100%;
   transform-style:preserve-3d;
   transition:transform .62s cubic-bezier(.4,.05,.2,1),
-             height .34s cubic-bezier(.3,.1,.2,1);
-  animation:porgi .24s cubic-bezier(.2,.7,.3,1) both}
+             height .34s cubic-bezier(.3,.1,.2,1)}
 #foglio.girata{transform:rotateY(180deg)}
 /* UNA CARTA HA UN BORDO SUO. Spigoli vivi, nessun raggio e un'ombra
    secca: era un pannello. Dieci punti di raggio, un filo di luce sul
@@ -480,7 +492,17 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
    e' piu' alto della carta e «torna alla carta» finiva sotto la piega: si
    restava girati senza un modo evidente di tornare. Appiccicato in basso
    c'e' sempre. */
-#retro-fondo{margin-top:auto;padding:20px 0 0;display:flex;gap:10px;flex:none;
+/* I TASTI IN FONDO, SENZA MARGINE AUTOMATICO. Stavano col
+   `margin-top:auto` per cadere in basso quando il retro era corto. Ma
+   ora la carta prende l'altezza del contenuto, e per misurare il
+   contenuto si sommano le altezze dei figli con i loro margini: un
+   margine automatico, letto da getComputedStyle, torna come lo spazio
+   LIBERO in pixel — cioe' esattamente quello che manca per riempire la
+   carta. La somma tornava sempre uguale all'altezza della carta, e la
+   carta non si accorciava piu' (714, 718, 722, 726: cresceva di quattro
+   punti a ogni giro, inseguendo se stessa). Un margine dichiarato, e il
+   fondo cade in basso da solo perche' la carta finisce dove finisce. */
+#retro-fondo{margin-top:22px;padding:0;display:flex;gap:10px;flex:none;
   position:sticky;bottom:-22px;background:linear-gradient(to top,
     #1C1813 62%, rgba(28,24,19,.92) 82%, rgba(28,24,19,0))}
 #retro-fondo button{flex:1;border:0;cursor:pointer;padding:13px 10px;
@@ -495,6 +517,12 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
 .coll .r{display:flex;align-items:center;gap:11px;padding:9px 0;
   border-bottom:1px solid rgba(255,240,215,.10)}
 .coll .r img{width:40px;height:34px;object-fit:cover;background:#3A332B;flex:none}
+/* UN PEZZO CHE NON HAI ANCORA NON HA UNA FOTOGRAFIA TUA. Al posto della
+   foto stava un <img> senza sorgente: un rettangolo grigio pieno, che su
+   tre righe su cinque si legge come immagine rotta e non come «questo
+   manca». Un riquadro di filo, vuoto, dice la stessa cosa senza mentire. */
+.coll .r .vuoto{width:40px;height:34px;flex:none;
+  box-shadow:inset 0 0 0 1px rgba(255,240,215,.16)}
 .coll .r .n{flex:1;font:400 15px/1.15 Bodoni,Didot,Georgia,serif}
 .coll .r .s{font:700 8px/1 Inter,sans-serif;letter-spacing:.11em;
   text-transform:uppercase;color:#7FC0C4}
@@ -546,6 +574,7 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
 <div id="accanto" aria-hidden="true"></div>
 <div id="carta-pezzo" hidden aria-modal="true" role="dialog">
   <div class="velo"></div>
+  <div id="porta">
   <div id="foglio">
     <div class="faccia fronte">
       <button id="chiudi-carta" aria-label="chiudi la carta">&#215;</button>
@@ -578,6 +607,7 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
       <div id="retro-fondo"></div>
       </div>
     </div>
+  </div>
   </div>
 </div>
 
@@ -1184,14 +1214,44 @@ const sfoca = new BokehPass(scena, camera,
    Tre gradini, uno per livello — il banco, l'espositore, il pezzo — e a
    ogni passo avanti il mondo dietro si allontana un po' di piu'. E' il
    modo piu' semplice che esista per dire «adesso guardi QUESTO». */
+/* IL TAGLIO NETTO, E PERCHE' C'ERA.
+   Verdetto di Massimo: «quel taglio netto che si vede nell'ambiente e che
+   divide la visuale sfuocata da quella non sfuocata». Era vero, e stava
+   sul filo lontano del banco: una riga dritta, dura come un ritaglio di
+   carta, con i dentini quadrati della passata di sfocatura lungo il bordo.
+   La sfocatura di three.js raccoglie il colore intorno con un raggio preso
+   dalla profondita' del pixel CENTRALE. Se da un pixel al successivo la
+   profondita' salta, salta anche il raggio — e il salto si vede come una
+   linea. Al livello del pezzo il salto e' enorme: il filo del banco sta a
+   49 cm, e dietro non c'e' NULLA per 2,2 metri, perche' li' la parete
+   piatta si spegne e resta solo la sfera del panorama a 3,45 m.
+   La misura ha scartato due colpevoli: le schede dei suggerimenti (salto
+   7,83 con e 7,88 senza, lontano dalle carte) e il piano che raccoglie
+   l'ombra (togliergli la profondita' PEGGIORA il taglio da 27,9 a 57,7:
+   faceva da rampa). Il colpevole era la taratura.
+   L'apertura si diceva in numeri assoluti, e quei numeri dicevano che il
+   fondo va in poltiglia solo a QUATTRO METRI dal fuoco. Ma qui si mette a
+   fuoco a 15 cm: un obiettivo vero, a quella distanza, ha una profondita'
+   di campo di millimetri, e tutto cio' che sta 40 cm piu' indietro e' gia'
+   una macchia. Con la saturazione a 4 m, invece, il cerchio di confusione
+   era ancora in salita ripida proprio dove cade il filo del banco — 84%
+   da una parte e 100% dall'altra non fanno una linea, 20% e 100% si'.
+   Quindi non si tara piu' l'apertura: si dichiara PROFONDO, cioe' a quanti
+   metri oltre il fuoco il mondo e' del tutto morbido, e l'apertura si
+   ricava (satura quando distanza-fuoco >= massimo/apertura). Cosi' la
+   taratura e' una scelta fotografica leggibile, e oltre quella soglia
+   nessun salto di profondita' puo' piu' produrre un salto di raggio.
+   Misurato sul telefono, sul filo del banco: 32,5 -> 12,4 di salto, e il
+   profilo del pezzo passa da 17,0 a 18,3 — il soggetto non ci perde
+   nitidezza, ci guadagna stacco. */
 const FUOCO = [
-  {apertura: 0.0034, massimo: 0.0210},   // il banco: la stanza gia' respira
-  {apertura: 0.0058, massimo: 0.0270},   // un espositore
-  {apertura: 0.0135, massimo: 0.0560},   // un pezzo solo: la stanza sparisce
+  {profondo: 6.18, massimo: 0.0210},   // il banco: la stanza gia' respira
+  {profondo: 4.66, massimo: 0.0270},   // un espositore
+  {profondo: 0.40, massimo: 0.0560},   // un pezzo solo: macro, e la stanza sparisce
 ];
 function profondita(liv){
   const f = FUOCO[Math.max(0, Math.min(2, liv))];
-  sfoca.uniforms.aperture.value = f.apertura;
+  sfoca.uniforms.aperture.value = f.massimo / f.profondo;
   sfoca.uniforms.maxblur.value = f.massimo;
   sfoca.enabled = true;
 }
@@ -1226,6 +1286,7 @@ function dipingi(){
   }
 }
 window.__cam = camera; window.__scena = scena; window.__THREE = THREE;
+window.__sfoca = sfoca; window.__dipingi = () => dipingi();
 
 /* ── la materia ────────────────────────────────────────────── */
 function ripeti(t,n){ t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(n,n); t.anisotropy=8; return t; }
@@ -2263,9 +2324,28 @@ function chiudiCarta(){ cartaPezzo.hidden = true; foglio.classList.remove("girat
 function misuraCarta(){
   requestAnimationFrame(() => requestAnimationFrame(() => {
     const girata = foglio.classList.contains("girata");
-    const f = foglio.querySelector((girata ? ".retro" : ".fronte") + " .dentro-carta");
+    /* SI MISURA IL CONTENUTO, NON IL CONTENITORE. Leggevo lo scrollHeight
+       dello scorrevole: ma quello e' `flex:1`, quindi quando il contenuto
+       e' piu' corto della carta il suo scrollHeight E' l'altezza della
+       carta — e la carta non si accorciava mai. Passando dalla collezione
+       (614) all'assistenza (che ne vuole 450) restava a 614, con
+       centosessanta punti di carta vuota sotto.
+       Si sommano le altezze dei figli: in una colonna flessibile i margini
+       non collassano, quindi la somma e' esatta. */
+    const d = foglio.querySelector((girata ? ".retro" : ".fronte") + " .dentro-carta");
+    const sd = getComputedStyle(d);
+    let alto = parseFloat(sd.paddingTop) + parseFloat(sd.paddingBottom);
+    for(const c of d.children){
+      if(c.hidden) continue;
+      const cs = getComputedStyle(c);
+      if(cs.display === "none") continue;
+      /* e un margine che vale piu' di 120 punti non e' un margine: e'
+         un `auto` risolto nello spazio libero. Non si somma. */
+      const ms = m => (m > 120 ? 0 : m);
+      alto += c.offsetHeight + ms(parseFloat(cs.marginTop)) + ms(parseFloat(cs.marginBottom));
+    }
     const concesso = cartaPezzo.clientHeight - 52;
-    foglio.style.height = Math.min(concesso, f.scrollHeight) + "px";
+    foglio.style.height = Math.min(concesso, Math.ceil(alto)) + "px";
   }));
 }
 
@@ -2322,9 +2402,13 @@ function giraCarta(fa){
     S.textContent = "Fai inquadrare questo codice dal telefono di chi lo " +
                     "riceve. Il pezzo entra nella sua collezione ed esce " +
                     "dalla tua, nello stesso istante.";
+    /* E QUI NON SI DICE CHE SI PUO' RIGIRARE. Il testo prometteva «si
+       puo' regalare a sua volta», e il sistema fa l'opposto: chi riceve un
+       pezzo in regalo non trova il tasto Regala, per il principio etico
+       che Massimo ha fissato. Un dono che rimbalza non e' un dono. */
     conQR("<b>Un pezzo ricevuto in regalo non chiude una collezione.</b> " +
-          "Entra nel cofanetto, si vede, si indossa, si puo’ regalare a " +
-          "sua volta — ma per il pezzo che chiude non conta. Altrimenti " +
+          "Entra nel cofanetto, si vede, si indossa, resta suo — ma non " +
+          "si rigira, e per il pezzo che chiude non conta. Altrimenti " +
           "basterebbe passarsi gli stessi quattro pezzi fra amici.");
     tasti([["annulla"], ["torna alla carta"]]);
   } else if(fa === "condividi"){
@@ -2365,9 +2449,9 @@ function giraCarta(fa){
           `<img src="${provino(p.fam, p.k)}" alt="">` +
           `<span class="n">${p.nome}</span>` +
           `<span class="s">${mio(p) ? "ce l’hai" : "in regalo"}</span></div>`
-        : `<div class="r manca"><img alt=""><span class="n">${p.nome}</span>` +
+        : `<div class="r manca"><span class="vuoto"></span><span class="n">${p.nome}</span>` +
           `<span class="s">${p.prezzo} €</span></div>`).join("") +
-      `<div class="r chiude"><img alt=""><span class="n">${col.chiude.nome}</span>` +
+      `<div class="r chiude"><span class="vuoto"></span><span class="n">${col.chiude.nome}</span>` +
       `<span class="s">non si compra</span></div></div>` +
       `<div style="margin-top:10px;font-size:11.5px;line-height:1.5;color:#B3A795">` +
       col.chiude.nota + "</div>" +
