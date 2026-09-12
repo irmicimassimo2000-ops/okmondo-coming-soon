@@ -179,11 +179,26 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
    blocco opaco — e restano leggibili perche' il testo ha il suo contrasto,
    non perche' ha un muro dietro. Il filetto e' un capello di luce, non un
    bordo nero. */
+/* E LA CARTA PORTA LA SUA ESPOSIZIONE, non quella di cio' che ha dietro.
+   Il velo era soltanto trasparente: sul nero della stanza la carta usciva
+   scura e leggibile, ma quando scorrendo finiva sopra la crema del
+   bancone il composito saliva a #666054 e le scritte piu' tenui
+   sparivano — l'occhiello «BRACCIALI» misurava 1,57:1 e il prezzo 2,67:1,
+   contro i 4,5:1 che questo progetto si e' dato e annota accanto a ogni
+   coppia in sistema.css. La stessa carta, in alto sul nero, dava 4,82 e
+   8,06: lo stesso pezzo di interfaccia, leggibile o invisibile secondo
+   dove passava.
+   Si aggiunge `brightness` al filtro: la carta prende cio' che ha dietro,
+   lo sfuoca E lo chiude di due stop. Cosi' resta VELATA come voleva
+   Massimo — dentro l'ambiente, non un blocco opaco davanti — ma il valore
+   del suo fondo non dipende piu' dal caso. E l'occhiello sale al tono del
+   prezzo: a sette punti e mezzo in maiuscoletto, quel grigio non arriva a
+   4,5:1 su nessun fondo medio. */
 #accanto .carta{position:absolute;transform:translate(-50%,-50%);
   width:118px;padding:7px 8px 8px;
-  background:rgba(30,25,20,.60);
-  backdrop-filter:blur(9px) saturate(.9);
-  -webkit-backdrop-filter:blur(9px) saturate(.9);
+  background:rgba(26,22,18,.34);
+  backdrop-filter:blur(9px) saturate(.85) brightness(.34);
+  -webkit-backdrop-filter:blur(9px) saturate(.85) brightness(.34);
   box-shadow:0 0 0 1px rgba(255,240,215,.13);
   opacity:0;transition:opacity .34s ease}
 #accanto .carta.qui{opacity:1}
@@ -200,7 +215,7 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
   border-radius:0;margin-bottom:6px;background:rgba(255,240,215,.04);
   opacity:.92}
 #accanto .carta i{display:block;font:600 7.5px/1 Inter,system-ui,sans-serif;
-  letter-spacing:.13em;text-transform:uppercase;color:#8a7e70;font-style:normal;
+  letter-spacing:.13em;text-transform:uppercase;color:#b3a795;font-style:normal;
   padding-bottom:5px;margin-bottom:6px;border-bottom:1px solid rgba(255,240,215,.13)}
 #accanto .carta b{display:block;font:400 14px/1.15 Bodoni,Didot,Georgia,serif;
   color:#f2ece1;font-weight:400}
@@ -3426,7 +3441,13 @@ function ferma(){
   dipingi();
 }
 function scorciatoia(){
-  if(q.get("f")) entra(q.get("f"));
+  /* E UNA FAMIGLIA CHE NON ESISTE NON APRE NIENTE. `entra` si fidava del
+     valore nell'indirizzo: con un `f` sbagliato — un link copiato a mano,
+     un vecchio segnalibro — `banchi[attiva]` usciva indefinito e l'app
+     restava allo schermo nero. Un indirizzo storto deve portare al banco,
+     non nel vuoto. */
+  const f = q.get("f");
+  if(f && FAMIGLIE.some(x => x.id === f)) entra(f);
   if(q.get("st")){ pos = posMeta = posGiu = parseFloat(q.get("st"));
                    applicaPos(false); mostraScheda(); }
   if(q.get("p")) apriPezzo(parseInt(q.get("p"), 10));
