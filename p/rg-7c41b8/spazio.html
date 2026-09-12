@@ -1505,7 +1505,8 @@ function apriPezzo(k){
      «45 cm». A settanta gradi il seno vale 0,94 e il rapporto resta.
      E' anche l'alzata con cui i cataloghi fotografano una catena stesa:
      la posa serve a mostrare lo SVILUPPO. */
-  giroP = 0; dondolo = 0; altP = stesa(attiva, k) ? 1.22 : 0.12;
+  giroP = 0; dondolo = 0; giroBase = 0; giroV = 0;
+  altP = stesa(attiva, k) ? 1.22 : 0.12;
   cartello.classList.add("pezzo");
   isolaPezzo();
   /* LE MATRICI PRIMA DELLA MISURA. Il riquadro di un oggetto si calcola
@@ -2043,7 +2044,7 @@ const LANCIO_PX = 320;       // pixel al secondo che valgono un lancio
 const K_POS = 130;
 let pos = 0, posV = 0, posMeta = 0, posGiu = 0;
 let giu = null, mosso = 0, mossoY = 0, partenzaX = 0;
-let giroGiu = 0, altGiu = 0.12, dondolo = 0;
+let giroGiu = 0, altGiu = 0.12, dondolo = 0, giroBase = 0, giroV = 0;
 let ultimoX = 0, ultimoT = 0, velDito = 0;
 const raggio = new THREE.Raycaster(), schermo = new THREE.Vector2();
 
@@ -2106,7 +2107,7 @@ stanza.addEventListener("pointerdown", e => {
      stesa, che si guarda da 1,22 radianti, il salto era di settanta gradi
      al primo tocco. Un oggetto che si rigira in mano riparte da come lo si
      e' lasciato. */
-  giroGiu = giroP; altGiu = altP;
+  giroGiu = giroP; altGiu = altP; giroV = 0;
   partenzaX = occhioObiettivo.x;
   posGiu = pos; posV = 0; velDito = 0;
   ultimoX = e.clientX; ultimoT = performance.now();
@@ -2169,8 +2170,16 @@ stanza.addEventListener("pointermove", e => {
     applicaPos(true);
   } else if(livello === 2){
     /* AL PEZZO IL DITO NON SCORRE, GIRA. Il gioiello e' li' davanti: la
-       cosa che si vuole fare e' voltarlo, come lo si volterebbe in mano. */
-    giroP = giroGiu - mosso * 0.0075;
+       cosa che si vuole fare e' voltarlo, come lo si volterebbe in mano.
+       E QUANTO GIRA SI DICHIARA, non si tara a caso. Era 0,0075 radianti
+       per pixel: una passata di dito su tutto lo schermo — trecentonovanta
+       punti — valeva 168 gradi, meno di mezzo giro. Per vedere il retro di
+       un anello servivano due passate, e il gesto si legge come pesante.
+       Una passata di schermo vale UN GIRO INTERO: 2*pi / larghezza. Su un
+       telefono da 390 fa 0,0161 rad per pixel, su uno stretto un po' di
+       piu' — che e' giusto, perche' il gesto e' «attraversa lo schermo»,
+       non «percorri tot pixel». */
+    giroP = giroGiu - mosso * (2 * Math.PI / innerWidth);
     /* E NON SI SCENDE SOTTO IL BANCO. L'alzata arrivava a -0,45: la
        macchina passava sotto il piano di pietra, che e' opaco, e il pezzo
        spariva dietro il proprio appoggio. Il fondo dipende da come sta il
@@ -2215,6 +2224,22 @@ addEventListener("pointerup", e => {
   const dx = mosso, dy = mossoY;
   giu = null;
   if(Math.abs(dx) > 24) cartello.classList.add("imparato");
+
+  if(livello === 2){
+    /* E AL RILASCIO IL PEZZO CONTINUA A GIRARE. La velocita' del dito e'
+       in pixel al secondo; qui diventa radianti al secondo con lo stesso
+       cambio del trascinamento — una passata di schermo, un giro. Si
+       limita: misurato, con il tetto a nove radianti al secondo un colpo
+       secco aggiungeva 216 gradi dopo il rilascio — il gioiello frullava e
+       non si capiva piu' da che lato lo si stava guardando. A 4,5, con la
+       coda che si spegne in 0,38 secondi, la coda vale al piu' un ottavo
+       di giro: si sente che il gesto e' stato preso, e si sa dove si e'
+       finiti. */
+    const perPixel = 2 * Math.PI / innerWidth;
+    giroV = Math.max(-4.5, Math.min(4.5, velDito * perPixel));
+    giroBase = giroP;
+    dondolo = 0;
+  }
 
   if(livello === 1){
     /* LA LEGGE DELLO SFOGLIO. Proiettare la velocita' e arrotondare e' la
@@ -2441,17 +2466,26 @@ function gira(ora){
      tornio: undici centesimi di radiante avanti e indietro, dentro il
      campo che il fondale copre, e il movimento si vede uguale. */
   if(livello === 2 && !giu && !pizzico){
-    /* E CI TORNA DA SOLO. Prima il dondolo si fermava appena il dito
-       aveva portato la macchina oltre mezzo radiante: chi girava il pezzo
-       lo lasciava girato per sempre, il fondale nitido restava dissolto e
-       dietro al gioiello rimaneva la panoramica. E' il difetto che Massimo
-       ha visto: l'ambiente c'era al primo pezzo e poi non tornava piu'.
-       Adesso il dondolo e' un BERSAGLIO e la macchina ci va sempre, con
-       una costante di due secondi e mezzo: si legge come un oggetto che si
-       riassesta in mano, e riporta il fondale dove serve. */
-    dondolo += dt;
-    const meta = 0.11 * Math.sin(dondolo * 0.42);
-    giroP += (meta - giroP) * Math.min(1, dt / 2.5);
+    /* E RESTA DOVE LO LASCI. Per un po' il dondolo era un BERSAGLIO e la
+       macchina ci tornava sempre: l'avevo fatto perche' il piano del
+       fondale copriva solo i primi dieci gradi e girando si perdeva la
+       stanza. Quel motivo non c'e' piu' — al livello del pezzo lavora la
+       sfera, che e' la stessa stanza da ogni angolo — e il ritorno
+       rimaneva solo come un difetto: giravi il gioiello e se ne tornava
+       indietro da solo, che e' un altro modo di sembrare lento.
+       Adesso il dondolo oscilla attorno a DOVE L'HAI LASCIATO. E dopo un
+       lancio la rotazione prosegue e si spegne in mezzo secondo: e' quella
+       coda a far sentire il gesto, piu' di qualunque taratura. */
+    if(Math.abs(giroV) > 0.02){
+      giroP += giroV * dt;
+      giroV *= Math.exp(-dt / 0.38);
+      giroBase = giroP;
+      dondolo = 0;
+    } else {
+      giroV = 0;
+      dondolo += dt;
+      giroP = giroBase + 0.11 * Math.sin(dondolo * 0.42);
+    }
     inquadraPezzo();
   }
 
