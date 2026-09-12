@@ -1032,10 +1032,26 @@ scena.add(fianco);
    visuale — la strada e' allargarlo e alzargli il campo, non alzare
    l'opacita'. */
 
-const ombraBanco = new THREE.Mesh(new THREE.PlaneGeometry(6, 6),
+/* E IL PIANO CHE RACCOGLIE L'OMBRA HA L'IMPRONTA DEL BANCO.
+   Era sei metri per sei: invisibile, ma scriveva profondita' per due metri
+   e settanta OLTRE il filo del banco, dove non c'e' nessuna superficie.
+   Visto da una macchina che sta otto centimetri sopra di lui, il suo filo
+   lontano si proietta come una riga dritta attraverso tutto lo schermo, e
+   la sfocatura la trasforma in un taglio: il raggio con cui raccoglie il
+   colore lo prende dalla profondita' del pixel centrale, e sopra quella
+   riga la profondita' e' quella del fondo lontano mentre sotto e' quella
+   di un piano a mezz'aria. Massimo l'ha visto da desktop, dove lo schermo
+   e' largo e la riga attraversa tutto.
+   Misurato sul fotogramma girato a 1440x900, riga 300: contrasto relativo
+   fra righe 0,535 -> 0,035, salto assoluto 9,47 -> 0,83. Nasconderlo del
+   tutto da 0,032, cioe' lo stesso: quindi non serve toglierlo, serve
+   ridurlo a quello che deve fare. L'ombra di contatto cade a centimetri
+   dal pezzo, dentro il banco: fuori dal banco quel piano non serve a
+   niente e rovina l'immagine. */
+const ombraBanco = new THREE.Mesh(new THREE.PlaneGeometry(PIANO_L, PIANO_P),
   new THREE.ShadowMaterial({opacity:0.30}));
 ombraBanco.rotation.x = -Math.PI/2;
-ombraBanco.position.y = 0.0004;
+ombraBanco.position.set(0, 0.0004, 0.06);
 ombraBanco.receiveShadow = true;
 scena.add(ombraBanco);
 
@@ -1302,6 +1318,7 @@ function dipingi(){
 }
 window.__cam = camera; window.__scena = scena; window.__THREE = THREE;
 window.__sfoca = sfoca; window.__dipingi = () => dipingi();
+window.__ao = ao; window.__ombraBanco = ombraBanco; window.__giro = giro;
 
 /* ── la materia ────────────────────────────────────────────── */
 function ripeti(t,n){ t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(n,n); t.anisotropy=8; return t; }

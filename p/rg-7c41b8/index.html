@@ -60,6 +60,12 @@ const SEZIONI = [
 /* «Cofanetto» apre il banco in tre dimensioni; la scheda cofanetto.html
    costruita a parte resta come vista d'elenco e la si raggiunge da dentro.
    Qui la sezione e' lo SPAZIO, perche' e' quello il cofanetto. */
+/* E OGNI SEZIONE PORTA LA SUA VERSIONE.
+   Le schermate sono file statici da dieci megabyte: il browser se li tiene,
+   e una correzione appena pubblicata poteva non arrivare mai a chi aveva
+   gia' aperto il link. Con la versione nell'indirizzo il telaio chiede un
+   file nuovo, e questa riga si alza a ogni pubblicazione. */
+const VERSIONE = "2026-09-12c";
 const dentro = document.getElementById("dentro");
 const barra = document.getElementById("barra");
 const velo = document.getElementById("velo");
@@ -71,7 +77,7 @@ function apri(id){
   const s = SEZIONI.find(x => x.id === id);
   if(!telai[id]){
     const t = document.createElement("iframe");
-    t.src = s.dove;
+    t.src = s.dove + "?v=" + VERSIONE;
     t.title = s.nome;
     t.loading = "eager";
     // il banco e' l'unico che deve poter chiedere lo schermo intero
