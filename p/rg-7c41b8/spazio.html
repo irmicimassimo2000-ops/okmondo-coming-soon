@@ -102,6 +102,20 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
 #gesto span{display:block}
 #vesti{display:flex;gap:9px;pointer-events:auto;flex:none;
        align-self:flex-end}
+/* ── IL TASTO CHE SPEGNE I SUGGERIMENTI ──────────────────────────
+   Massimo: «devo avere la possibilita' di nasconderli». Due carte da
+   centoquattro punti su uno schermo da trecentonovanta ne prendono piu'
+   di meta', e a volte stanno davanti alla cosa che si e' aperti per
+   guardare. Il comando sta dove sta il gesto, ha la forma delle voci del
+   menu — maiuscoletto e filetto — e si ricorda la scelta: chi li spegne
+   non deve rispegnerli a ogni pezzo. */
+#tasto-insieme{display:none;pointer-events:auto;align-self:flex-end;
+  border:0;background:none;cursor:pointer;padding:3px 0 4px;
+  font:700 8px/1 Inter,sans-serif;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--tenue);border-bottom:1px solid transparent}
+#fondo.apribile #tasto-insieme{display:block}
+#tasto-insieme[aria-pressed="true"]{color:var(--voce);
+  border-bottom-color:var(--firma)}
 #vesti button{width:21px;height:21px;padding:0;border-radius:50%;cursor:pointer;
               border:1px solid rgba(26,22,20,.16);background:var(--tinta);
               position:relative;
@@ -144,13 +158,23 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
    Restano AGGANCIATE al punto dello spazio dove starebbero addosso, quindi
    girando il pezzo si spostano con lui: e' quello a farne un insieme. */
 #accanto{position:fixed;inset:0;pointer-events:none;z-index:3}
+#accanto[hidden]{display:none}
+/* ── LE CARTE SI FANNO DA PARTE ───────────────────────────────────
+   Massimo: «devono essere piu' amalgamate nell'ambiente, in modo da
+   lasciare spazio e visibilita' al pezzo».
+   Erano due cartoncini neri pieni con un filetto scuro attorno e un'ombra
+   portata: su una crema sfocata sono i due oggetti piu' contrastati del
+   quadro, e lo squint test li trovava prima del gioiello. Adesso sono
+   VELATE — il fondo del cofanetto con un velo di sfocatura sotto, non un
+   blocco opaco — e restano leggibili perche' il testo ha il suo contrasto,
+   non perche' ha un muro dietro. Il filetto e' un capello di luce, non un
+   bordo nero. */
 #accanto .carta{position:absolute;transform:translate(-50%,-50%);
-  width:126px;padding:8px 9px 9px;
-  transition:opacity .34s ease;
-  background:linear-gradient(#2b251f,#221d18);
-  box-shadow:0 1px 0 rgba(255,240,215,.10) inset,
-             0 0 0 1px rgba(12,9,6,.85),
-             0 10px 18px -12px rgba(0,0,0,.95);
+  width:118px;padding:7px 8px 8px;
+  background:rgba(30,25,20,.60);
+  backdrop-filter:blur(9px) saturate(.9);
+  -webkit-backdrop-filter:blur(9px) saturate(.9);
+  box-shadow:0 0 0 1px rgba(255,240,215,.13);
   opacity:0;transition:opacity .34s ease}
 #accanto .carta.qui{opacity:1}
 /* SUL PEZZO STESO LE CARTE SI STRINGONO. Un gioiello in piedi occupa una
@@ -158,12 +182,13 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
    cento della larghezza, e su un telefono da 390 punti non restano due
    corridoi da 126. O si rimpicciolisce il pezzo — ma il pezzo e' il motivo
    per cui si e' entrati — o si stringono le carte. Si stringono. */
-#accanto.steso .carta{width:104px;padding:6px 7px 7px}
+#accanto.steso .carta{width:100px;padding:6px 7px 7px}
 #accanto.steso .carta i{font-size:7px;padding-bottom:4px;margin-bottom:5px}
 #accanto.steso .carta b{font-size:12.5px}
 #accanto.steso .carta span{font-size:9.5px}
 #accanto .carta img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;
-  border-radius:0;margin-bottom:7px;background:rgba(255,240,215,.04)}
+  border-radius:0;margin-bottom:6px;background:rgba(255,240,215,.04);
+  opacity:.92}
 #accanto .carta i{display:block;font:600 7.5px/1 Inter,system-ui,sans-serif;
   letter-spacing:.13em;text-transform:uppercase;color:#8a7e70;font-style:normal;
   padding-bottom:5px;margin-bottom:6px;border-bottom:1px solid rgba(255,240,215,.13)}
@@ -268,6 +293,7 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
         <span id="gesto-testo">trascina per scorrere il banco</span>
       </div>
       <div id="vesti" aria-label="il colore dell&#39;espositore"></div>
+      <button id="tasto-insieme" aria-pressed="true">suggerimenti</button>
     </div>
     <div id="insieme" hidden>
       <div class="eco">Con questo ci sta anche</div>
@@ -685,7 +711,9 @@ const ambiente = () => AMBIENTI.find(a => a.id === ambienteScelto) || AMBIENTI[0
    resto e' margine per quando la macchina gira sul pezzo. */
 const OCCHIO_ALTO = 0.0738, OCCHIO_INDIETRO = 0.9056, FONDALE = 3.206;
 const parete = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 10/3),
-  new THREE.MeshBasicMaterial({toneMapped:false}));
+  new THREE.MeshBasicMaterial({toneMapped:false, transparent:true}));
+// e si disegna DOPO la sfera, se no la dissolvenza non ha niente sotto
+parete.renderOrder = 1;
 parete.position.set(0, OCCHIO_ALTO, -2.30);
 scena.add(parete);
 
@@ -1420,6 +1448,8 @@ function inquadraFamiglia(){
    Non c'e' nessuna fotografia di mezzo. E' lo STESSO oggetto che stava sul
    mobile un istante fa, e si vede che e' lo stesso. */
 let giroP = 0, altP = 0.12, raggioP = 0.02;
+const boxP = new THREE.Box3();
+const _ang = new THREE.Vector3();
 const centroP = new THREE.Vector3();
 
 function apriPezzo(k){
@@ -1435,7 +1465,7 @@ function apriPezzo(k){
      «45 cm». A settanta gradi il seno vale 0,94 e il rapporto resta.
      E' anche l'alzata con cui i cataloghi fotografano una catena stesa:
      la posa serve a mostrare lo SVILUPPO. */
-  giroP = 0; altP = stesa(attiva, k) ? 1.22 : 0.12;
+  giroP = 0; dondolo = 0; altP = stesa(attiva, k) ? 1.22 : 0.12;
   cartello.classList.add("pezzo");
   isolaPezzo();
   /* LE MATRICI PRIMA DELLA MISURA. Il riquadro di un oggetto si calcola
@@ -1447,6 +1477,7 @@ function apriPezzo(k){
   scena.updateMatrixWorld(true);
   const p = stesa(attiva, scelto) || merci[attiva][scelto];
   const b = new THREE.Box3().setFromObject(p);
+  boxP.copy(b);
   b.getCenter(centroP);
   raggioP = Math.max(0.004, b.getSize(new THREE.Vector3()).length() / 2);
   togliInsieme();
@@ -1637,6 +1668,7 @@ function mostraInsieme(){
     righe.push(`<div class="r"><b>${r[0]}</b><span>${r[2]} €</span></div>`);
   }
   accanto.classList.toggle("steso", !!stesa(attiva, scelto));
+  accanto.hidden = !vuoleInsieme;
   if(!ancore.length) return;
   /* le carte stanno SOPRA la scena, non dentro: l'inquadratura non si
      allarga piu' — ed e' anche il motivo per cui l'orizzonte non rientra */
@@ -1649,6 +1681,23 @@ function mostraInsieme(){
    spazio, e lo spazio si muove sotto di loro */
 function seguiCarte(){
   if(!ancore.length) return;
+  // il rettangolo che il pezzo occupa sullo schermo, adesso
+  let quadro = null;
+  if(livello === 2 && !boxP.isEmpty()){
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for(let i = 0; i < 8; i++){
+      _ang.set(i & 1 ? boxP.max.x : boxP.min.x,
+               i & 2 ? boxP.max.y : boxP.min.y,
+               i & 4 ? boxP.max.z : boxP.min.z).project(camera);
+      const sx = (_ang.x * 0.5 + 0.5) * innerWidth;
+      const sy = (-_ang.y * 0.5 + 0.5) * innerHeight;
+      x0 = Math.min(x0, sx); x1 = Math.max(x1, sx);
+      y0 = Math.min(y0, sy); y1 = Math.max(y1, sy);
+    }
+    // un filo d'aria attorno al pezzo: appoggiate al bordo si leggono
+    // ancora come una cosa che gli sta sopra
+    quadro = {x0: x0 - 8, y0: y0 - 8, x1: x1 + 8, y1: y1 + 8};
+  }
   for(const [p, el] of ancore){
     _pr.copy(p).project(camera);
     /* LA CARTA SEGUE, MA NON ESCE. Agganciata al punto e basta, meta' di
@@ -1662,8 +1711,43 @@ function seguiCarte(){
        limite lo dice il cartellino stesso, misurato. */
     const l = el.offsetWidth / 2 + 10, a = el.offsetHeight / 2 + 10;
     const suolo = cartello.getBoundingClientRect().top - a - 26;
-    const x = Math.min(innerWidth - l, Math.max(l, (_pr.x * 0.5 + 0.5) * innerWidth));
-    const y = Math.min(suolo, Math.max(a + 44, (-_pr.y * 0.5 + 0.5) * innerHeight));
+    let x = Math.min(innerWidth - l, Math.max(l, (_pr.x * 0.5 + 0.5) * innerWidth));
+    let y = Math.min(suolo, Math.max(a + 44, (-_pr.y * 0.5 + 0.5) * innerHeight));
+    /* ── E POI SI SPOSTANO VIA DAL PEZZO ────────────────────────────
+       Ancorarle a un punto e allontanarle di un tot di raggi non basta:
+       il pezzo gira, e a certi angoli la carta gli finisce addosso
+       comunque. Qui il pezzo lo si MISURA — gli otto spigoli del suo
+       riquadro, proiettati sullo schermo — e la carta viene spinta fuori
+       da quel rettangolo dal lato che costa meno. Cosi' non lo copre a
+       nessun angolo, e non serve fidarsi di un raggio scelto a mano. */
+    if(!quadro){ el.style.left = x + "px"; el.style.top = y + "px"; continue; }
+    const dx0 = quadro.x1 - (x - l), dx1 = (x + l) - quadro.x0;
+    const dy0 = quadro.y1 - (y - a), dy1 = (y + a) - quadro.y0;
+    if(dx0 > 0 && dx1 > 0 && dy0 > 0 && dy1 > 0){
+      // quattro uscite possibili: si prende la piu' corta che ci sta
+      const vie = [[-dx1, 0], [dx0, 0], [0, -dy1], [0, dy0]]
+        .map(([sx, sy]) => ({sx, sy, costo: Math.abs(sx) + Math.abs(sy)}))
+        .sort((p, q) => p.costo - q.costo);
+      let fatta = false;
+      for(const v of vie){
+        const nx = x + v.sx, ny = y + v.sy;
+        if(nx > l && nx < innerWidth - l && ny > a + 44 && ny < suolo){
+          x = nx; y = ny; fatta = true; break;
+        }
+      }
+      /* E SE NON CI STA DA NESSUNA PARTE, si fa quel che si puo'. Su un
+         telefono da trecentonovanta punti una carta larga centotrentotto
+         non esce dal fianco di un anello che ne occupa centosessanta al
+         centro: nessuna delle quattro uscite ci sta per intero. Allora si
+         prende la meno peggio e si spinge fin dove lo schermo lo permette.
+         Chi vuole il pezzo pulito ha il tasto per spegnerle: e' quello il
+         comando, non un'acrobazia di collocazione. */
+      if(!fatta){
+        const v = vie[0];
+        x = Math.min(innerWidth - l, Math.max(l, x + v.sx));
+        y = Math.min(suolo, Math.max(a + 44, y + v.sy));
+      }
+    }
     el.style.left = x + "px";
     el.style.top = y + "px";
   }
@@ -1829,6 +1913,21 @@ function scheda(ritirata){
 }
 maniglia.onclick = () => scheda(!fondo.classList.contains("ritirato"));
 
+let vuoleInsieme = true;
+try { vuoleInsieme = localStorage.getItem("regina.insieme") !== "no"; } catch(_) {}
+const tastoInsieme = document.getElementById("tasto-insieme");
+function segnaInsieme(){
+  tastoInsieme.setAttribute("aria-pressed", vuoleInsieme ? "true" : "false");
+  accanto.hidden = !vuoleInsieme;
+}
+tastoInsieme.onclick = () => {
+  vuoleInsieme = !vuoleInsieme;
+  try { localStorage.setItem("regina.insieme", vuoleInsieme ? "si" : "no"); } catch(_) {}
+  segnaInsieme();
+  sveglia();
+};
+segnaInsieme();
+
 function scritte(t, n, s, g){
   insieme.hidden = true;
   titolo.textContent = t; numero.textContent = n;
@@ -1876,7 +1975,7 @@ const CENNO = 0.34;          // quanto la scena si lascia tirare, al massimo
 const K_POS = 130;
 let pos = 0, posV = 0, posMeta = 0, posGiu = 0;
 let giu = null, mosso = 0, mossoY = 0, partenzaX = 0;
-let giroGiu = 0, altGiu = 0.12;
+let giroGiu = 0, altGiu = 0.12, dondolo = 0;
 let ultimoX = 0, ultimoT = 0, velDito = 0;
 const raggio = new THREE.Raycaster(), schermo = new THREE.Vector2();
 
@@ -2263,9 +2362,17 @@ function gira(ora){
 
   /* AL PEZZO LA MACCHINA NON STA MAI FERMA DEL TUTTO. Un oggetto in mano lo
      si muove sempre un po', e quel minimo di movimento e' quello che dice
-     che e' un oggetto e non una figura. Si ferma appena lo tocchi. */
-  if(livello === 2 && !giu && !pizzico){
-    giroP += 0.085 * dt;
+     che e' un oggetto e non una figura. Si ferma appena lo tocchi.
+     MA NON GIRA VIA. Sommava 0,085 radianti al secondo senza mai tornare:
+     in tre secondi la macchina era a quattordici gradi, cioe' fuori dal
+     piano del fondale — quello nitido — e dietro al gioiello restava la
+     parete liscia della panoramica. E' la «parete piatta» che tornava sul
+     pezzo. Un oggetto in mano lo si DONDOLA, non lo si mette su un
+     tornio: undici centesimi di radiante avanti e indietro, dentro il
+     campo che il fondale copre, e il movimento si vede uguale. */
+  if(livello === 2 && !giu && !pizzico && Math.abs(giroP) < 0.5){
+    dondolo += dt;
+    giroP = 0.11 * Math.sin(dondolo * 0.42);
     inquadraPezzo();
   }
 
@@ -2295,12 +2402,28 @@ function gira(ora){
   camera.position.copy(_mira).addScaledVector(_dir, dist / zoom);
   camera.lookAt(_mira);
 
-  /* IL PIANO SERVE FINCHE' COPRE. Sul pezzo la macchina gira, e appena
-     gira il piano mostra il proprio bordo: un taglio netto in mezzo al
-     quadro. Li' si lascia lavorare la sfera da sola — e' lo stesso
-     ambiente, ripreso dallo stesso punto, e a quella sfocatura la
-     differenza di nitidezza non si legge. */
-  parete.visible = (livello !== 2);
+  /* IL PIANO SERVE FINCHE' COPRE, E SUL PEZZO COPRE ANCORA.
+     Lo spegnevo per intero al livello del pezzo, perche' girando attorno
+     al gioiello il piano finisce per mostrare il proprio bordo. Ma da
+     fermi — cioe' come si apre la scheda, e come la si guarda per la
+     maggior parte del tempo — il piano copre tutto il quadro, ed e' lui
+     quello NITIDO: la sfera al suo posto dava la parete liscia della
+     panoramica, ed e' la «parete piatta» che Massimo ha visto tornare
+     proprio sul pezzo.
+     Il bordo del piano entra in campo solo oltre una decina di gradi di
+     rotazione: si tiene il piano finche' quel bordo e' fuori, e lo si
+     dissolve prima che arrivi. Non una soglia che scatta — una
+     dissolvenza, perche' un fondo che si spegne di colpo si vede piu' del
+     bordo che si stava evitando. */
+  if(livello === 2){
+    const g = Math.abs(giroP);
+    const q = g < 0.13 ? 1 : g > 0.26 ? 0 : (0.26 - g) / 0.13;
+    parete.material.opacity = q;
+    parete.visible = q > 0.004;
+  } else {
+    parete.material.opacity = 1;
+    parete.visible = true;
+  }
 
   if(sfoca.enabled){
     /* IL FUOCO STA SUL SOGGETTO DEL MOMENTO. Sul pezzo quando se ne guarda
