@@ -392,6 +392,29 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
   opacity:0;transition:opacity .34s ease,
                        transform var(--tocco) var(--curva-entra)}
 #accanto .carta.qui{opacity:1}
+/* ══════════════════════════════════════════════════════════════
+   IL FILTRO DI FONDO SOPRA LA TELA — e perche' su un telefono va via
+
+   `backdrop-filter` non sfoca un'immagine ferma: sfoca QUELLO CHE STA
+   SOTTO, adesso. E sotto c'e' una tela WebGL che si ridisegna a ogni
+   fotogramma. Su Safari questo obbliga il compositore a rifare la
+   sfocatura del fondale sessanta volte al secondo, su un'area che non e'
+   nemmeno quella della carta: e' un secondo effetto a schermo, pagato dal
+   sistema invece che da noi, e non compare in nessuna delle nostre
+   misure — per questo era rimasto invisibile.
+   `#accanto` e' `position:fixed; inset:0` sopra `#stanza`: le sue carte
+   stanno SOPRA la tela, e al livello del pezzo la tela si muove (il
+   dondolo). Quindi dove si tocca il filtro se ne va e resta un fondo
+   semiopaco — il velo lo faceva gia' quasi tutto: `brightness(.34)` su un
+   fondo gia' scuro e' un nero all'80 per cento, che qui si scrive e
+   basta. Il filtro resta dove la scena e' davvero ferma: il velo della
+   carta del pezzo e la pastiglia dentro la carta, che compaiono su una
+   stanza che non si sta disegnando per loro.
+   ══════════════════════════════════════════════════════════════ */
+:root[data-resa="leggera"] #accanto .carta,
+:root[data-resa="leggera"][data-sugg="b"] #accanto .carta{
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  background:rgba(10,8,6,.80)}
 #accanto .carta:active{transform:translate(-50%,-50%) scale(.96)}
 /* SUL PEZZO STESO LE CARTE SI STRINGONO. Un gioiello in piedi occupa una
    colonna e le carte gli stanno di fianco; uno steso prende il settanta per
@@ -2213,7 +2236,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perche' il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova e' una correzione che non arriva. */
-const VERSIONE = "2026-09-13e";
+const VERSIONE = "2026-09-14a";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non e' zero, e' un ReferenceError, e un ReferenceError li'
@@ -2484,7 +2507,60 @@ const lasciaToast = e => {
 toast.addEventListener("pointerup", lasciaToast);
 toast.addEventListener("pointercancel", lasciaToast);
 
-const rend = new THREE.WebGLRenderer({antialias:true, powerPreference:"low-power"});
+/* ══════════════════════════════════════════════════════════════
+   IL PROFILO DI RESA — e perche' sta QUI, in cima al disegnatore
+
+   La misura vera, dal telefono del cliente: registrazione dello schermo
+   di un iPhone 1180x2556 (tre punti per pixel) con la batteria al dieci
+   per cento. Sui diciotto secondi, ai livelli 0 e 1, i fotogrammi NUOVI
+   al secondo stanno fra 4 e 25, mediana circa DIECI. Verdetto: «il
+   telefono si appesantisce, gli swipe sono macchinosi».
+   Il tetto ai punti per pixel, l'occlusione spenta e la tela a sette
+   decimi c'erano gia' e non sono bastati, perche' attaccavano i pixel di
+   UNA passata mentre il fotogramma ne paga quattro, e la geometria la
+   attraversa QUATTRO volte: colore, profondita' per la sfocatura, e due
+   volte la mappa d'ombra (misurato col banco _M_: 4 passate, 2,96 Mpx di
+   colore e 8,39 Mpx di ombra per fotogramma, 795.130 triangoli al
+   livello 1).
+   Quindi il profilo non e' una manopola: e' una DICHIARAZIONE che sta
+   prima di tutto il resto, perche' la mappa d'ombra, i materiali e la
+   catena delle passate si costruiscono dopo e devono leggerla.
+   `?resa=leggera|piena` la forza, per poter guardare i due mondi sullo
+   stesso schermo senza cambiare telefono.
+   ══════════════════════════════════════════════════════════════ */
+/* dove si TOCCA. Non e' «e' un telefono»: e' «il bersaglio e' un
+   polpastrello», che e' la domanda giusta — un portatile con lo schermo
+   a tocco non deve degradarsi, e infatti non ha `pointer:coarse`. */
+const TOCCO_GROSSO = matchMedia("(pointer:coarse)");
+const RESA_DETTA = scegli("resa", ["leggera", "piena"], "");
+let telefono = RESA_DETTA ? RESA_DETTA === "leggera" : TOCCO_GROSSO.matches;
+/* e la diagnosi si accende dall'indirizzo: serve a LEGGERE i numeri da
+   una registrazione dello schermo del cliente, che e' l'unico posto dove
+   il telefono vero si lascia misurare */
+const DIAG = q.get("diag") === "1";
+/* il profilo si scrive sulla radice perche' anche il FOGLIO DI STILE deve
+   saperlo: il filtro di fondo sopra la tela (vedi `#accanto .carta`) non
+   si spegne da JavaScript, si spegne con una regola. */
+document.documentElement.dataset.resa = telefono ? "leggera" : "piena";
+
+/* ══════════════════════════════════════════════════════════════
+   I FLAG DI CREAZIONE, MISURATI E NON EREDITATI
+
+   `antialias:true` non serviva a NIENTE e costava un buffer multicampione
+   grande quanto la tela. Il quadro finito non passa mai dal multicampione:
+   a riposo lo compone la catena delle passate, che disegna dentro i propri
+   bersagli e poi appoggia UN rettangolo a tutto schermo sul framebuffer di
+   default — e l'unico bordo che il multicampione potrebbe levigare e' il
+   perimetro di quel rettangolo, cioe' il bordo dello schermo. Durante il
+   gesto, dove il disegno adesso va diretto (vedi `dipingi`), un'immagine
+   che si muove non si legge sui contorni: si legge sulla cadenza.
+   `low-power` chiedeva esplicitamente all'iPhone la GPU meno capace:
+   e' l'opposto di quello che serve a quindici fotogrammi al secondo.
+   `stencil:false` toglie otto bit per pixel su ogni bersaglio: qui nessun
+   materiale usa lo stencil. La profondita' serve e resta. */
+const rend = new THREE.WebGLRenderer({antialias:false, stencil:false,
+  depth:true, preserveDrawingBuffer:false,
+  powerPreference:"high-performance"});
 rend.setPixelRatio(Math.min(devicePixelRatio, 2));
 rend.setSize(innerWidth, innerHeight);
 rend.outputColorSpace = THREE.SRGBColorSpace;
@@ -2492,6 +2568,72 @@ rend.toneMapping = THREE.ACESFilmicToneMapping;
 rend.toneMappingExposure = 0.62;
 rend.shadowMap.enabled = true;
 rend.shadowMap.type = THREE.PCFShadowMap;
+/* ── L'OMBRA NON SI RIDISEGNA SESSANTA VOLTE AL SECONDO ────────
+   Misurato col banco _M_ prima di questa riga: DUE mappe d'ombra per
+   fotogramma, 2048 per 2048 ciascuna, cioe' 8,39 megapixel — piu' del
+   colore (2,96). Due, non una, perche' la mappa si rifa' all'inizio di
+   OGNI `renderer.render`, e la catena delle passate la scena la disegna
+   due volte: una per il colore e una per la profondita' della sfocatura.
+   Ed e' una passata di GEOMETRIA: quei 2048 quadrati costano anche tutti
+   i triangoli del banco, un'altra volta.
+   Ma qui dentro l'ombra la fa `sole`, che e' FISSO, e la getta su un
+   ripiano fisso. Cambia solo quando cambia la roba: un livello, una posa
+   che scivola, un pezzo tolto, la fine di un volo. Quindi su telefono la
+   si calcola quando serve — `ombraDaRifare()` — e negli altri fotogrammi
+   si riusa. Su desktop resta automatica: li' non e' mai stata il
+   problema, e una scelta non misurata non si estende.
+   La misura da 2048 a 512 la porta da 4,19 a 0,26 megapixel: su un fronte
+   di 1,6 metri sono 3,1 millimetri per campione contro 0,8. L'ombra di
+   contatto sotto il fusto resta (verificata col banco: vedi la tabella
+   nella consegna), quella che si perde e' la nitidezza del bordo lontano,
+   che sul telefono cade dentro la sfocatura di campo. */
+/* ── E LA SPORCA E' LA ROBA, NON LA MACCHINA ───────────────────
+   L'errore facile qui sarebbe legare il rinfresco al MOVIMENTO, cioe' al
+   dito. Ma la mappa d'ombra la disegna `sole`, che e' fisso, su un
+   ripiano fisso: non dipende da dove guarda la macchina. Girare attorno
+   al banco non cambia un'ombra di un pixel, e infatti col rinfresco
+   legato alla macchina si pagavano sessanta mappe al secondo per niente.
+   Cambia invece quando cambia la ROBA: un espositore che scorre, una
+   posa che scivola, un livello, un pezzo tolto, la vela che accende e
+   spegne le mesh. Quindi la chiamano quelle — `applicaPos`, `passoPosa`,
+   il passo della vela, i cambi di livello — e nessun altro. */
+if(telefono) rend.shadowMap.autoUpdate = false;
+function ombraDaRifare(){ if(telefono) rend.shadowMap.needsUpdate = true; }
+/* ══════════════════════════════════════════════════════════════
+   E CHI GETTA L'OMBRA: gli espositori, non la merce
+
+   La mappa d'ombra e' una passata di GEOMETRIA, e la sua inquadratura e'
+   quella del faretto — un fronte di 1,6 metri che tiene dentro TUTTO il
+   banco, mentre la macchina ne vede una fetta. Misurato: durante uno
+   swipe al livello 1 la passata d'ombra attraversa circa 194.000
+   triangoli, quanto la passata a colori. E quasi tutti quei triangoli
+   sono CATENA: un busto e' 93.000 triangoli e 64.000 sono le maglie delle
+   due collane, per tre busti in fila.
+   Cosa getta quella catena? La sua ombra sul busto, che sta gia' dentro
+   la penombra del collo — e sul ripiano non arriva, perche' fra la
+   collana e il ripiano c'e' il busto intero. Si paga la geometria piu'
+   cara del banco per un'ombra che quasi non si vede.
+   Quindi dove si tocca la merce non getta: gettano il busto, il plinto,
+   il nastro, la colonnina — cioe' le cose che appoggiano sul ripiano ed e'
+   la loro ombra che dice quanto sono lontane. La merce continua a
+   RICEVERE, che e' quello che la tiene attaccata all'espositore. */
+function chiOmbra(){
+  if(!telefono) return;
+  for(const f of FAMIGLIE){
+    for(const o of (merci[f.id] || []))
+      if(o) o.traverse(m => { if(m.isMesh) m.castShadow = false; });
+    for(const o of (pose[f.id] || []))
+      if(o) o.traverse(m => { if(m.isMesh) m.castShadow = false; });
+  }
+  ombraDaRifare();
+}
+/* il contatore delle chiamate di disegno si azzera a ogni `render`, e con
+   la catena delle passate un fotogramma ne fa quattro: letto in fondo al
+   ciclo direbbe «1 chiamata, 2 triangoli», cioe' il rettangolo di uscita.
+   Spento l'azzeramento automatico e rimesso in cima a `gira()`, il numero
+   diventa quello del FOTOGRAMMA — che e' l'unico che si possa leggere da
+   una registrazione dello schermo e confrontare con una tabella. */
+rend.info.autoReset = false;
 stanza.appendChild(rend.domElement);
 
 const scena = new THREE.Scene();
@@ -2558,7 +2700,9 @@ sole.castShadow = true;
 // 2048 su un fronte di 1,6 m fa 0,8 mm per campione: e' la misura che
 // serve per vedere l'ombra dove il fusto appoggia sul plinto, che a 1024
 // spariva dentro un solo campione
-sole.shadow.mapSize.set(2048, 2048);
+// e dove si tocca la misura scende a 512: la mappa passa da 4,19 a 0,26
+// megapixel, e a quel punto rifarla ogni tanto non costa piu' niente
+sole.shadow.mapSize.set(telefono ? 512 : 2048, telefono ? 512 : 2048);
 sole.shadow.camera.left = -0.8; sole.shadow.camera.right = 0.8;
 sole.shadow.camera.top = 0.8;   sole.shadow.camera.bottom = -0.5;
 sole.shadow.camera.near = 0.05; sole.shadow.camera.far = 3;
@@ -2916,10 +3060,30 @@ const FUOCO = [
   {profondo: 4.66, massimo: 0.0270},   // un espositore
   {profondo: 0.40, massimo: 0.0560},   // un pezzo solo: macro, e la stanza sparisce
 ];
+/* ── LA LENTE SI RIAPRE, NON SI ACCENDE ───────────────────────
+   Misurato il salto fra i due fotogrammi — quello diretto del gesto e
+   quello con la catena — al livello 1 a riposo: la luminanza media del
+   fondo passa da 57,8 a 49,1 (meno 15 per cento) e su tutto il quadro da
+   84,2 a 79,3. Non e' poco: un cambio secco si legge come un LAMPO che
+   scurisce la stanza, cioe' esattamente il difetto che gia' era costato
+   la dissolvenza del piano sul pezzo («fa ancora un effetto appare e
+   scompare»).
+   La dissolvenza fra due immagini costerebbe due fotogrammi e una
+   passata di mescolatura. Non serve: la sfocatura ha gia' la sua
+   manopola fisica. Si rimette la catena con la lente CHIUSA — `maxblur`
+   a zero, cioe' un quadro che vale quello diretto — e la si apre in
+   ventidue centesimi di secondo. Non e' un'immagine che sfuma dentro
+   un'altra: e' un obiettivo che si apre, che e' anche quello che fa un
+   occhio quando smette di seguire una cosa che si muove.
+   `sfocaMax` tiene il bersaglio del livello, `sfocaT` quanto se n'e'
+   gia' aperta. Sul desktop restano fermi a uno e non succede nulla. */
+let sfocaMax = 0.0210, sfocaT = 1;
+const RIENTRO_S = 0.22;
 function profondita(liv){
   const f = FUOCO[Math.max(0, Math.min(2, liv))];
   sfoca.uniforms.aperture.value = f.massimo / f.profondo;
-  sfoca.uniforms.maxblur.value = f.massimo;
+  sfocaMax = f.massimo;
+  sfoca.uniforms.maxblur.value = f.massimo * sfocaT;
   sfoca.enabled = true;
 }
 sfoca.enabled = true;
@@ -2957,11 +3121,9 @@ passe.addPass(new OutputPass());
        profilo del pezzo non toglie niente di leggibile: energia del
        gradiente 1.485.492 con, 1.485.044 senza — un quarto di per mille.
    ══════════════════════════════════════════════════════════════ */
-/* dove si TOCCA. Non e' «e' un telefono»: e' «il bersaglio e' un
-   polpastrello», che e' la domanda giusta — un portatile con lo schermo
-   a tocco non deve degradarsi, e infatti non ha `pointer:coarse`. */
-const TOCCO_GROSSO = matchMedia("(pointer:coarse)");
-let telefono = TOCCO_GROSSO.matches;
+/* `TOCCO_GROSSO` e `telefono` sono saliti in cima al disegnatore, col
+   profilo di resa: la mappa d'ombra e i materiali si costruiscono prima
+   di questa riga e devono gia' sapere su che macchina siamo. */
 /* la scala dei punti per pixel, a gradini. Il primo e' quello di serie.
    Sul desktop il primo gradino resta il 2 di sempre: quel quadro e' stato
    approvato cosi', e non si tocca senza che nessuno l'abbia chiesto. */
@@ -2976,10 +3138,31 @@ let gradino = 0;
    la misura invece di presumerla. Da `window.__gesto` si accende
    comunque, per provarla. */
 let GESTO_SCALA = 0.7, gestoAMano = false;
-const scalaSottoIlDito = () => (telefono || gestoAMano) ? GESTO_SCALA : 1;
+/* ══════════════════════════════════════════════════════════════
+   SOTTO IL DITO NON SI RIALLOCA PIU' NIENTE — dove si tocca
+
+   La tela a sette decimi era una buona idea su carta e una cattiva su un
+   iPhone. Scendere e risalire vuol dire cambiare la misura del
+   framebuffer e dei TRE bersagli della catena (il bersaglio di lettura,
+   quello di scrittura, la mappa di profondita' della sfocatura): tre
+   texture buttate e tre riallocate, due volte per gesto. Misurato col
+   banco _M_ su cinque swipe, PRIMA: 27 `setSize` e 9 `setPixelRatio`.
+   Su iOS una riallocazione di quel genere non e' gratis e non e'
+   nemmeno regolare — e cade esattamente all'inizio e alla fine dello
+   swipe, che e' dove il cliente dice «macchinoso».
+   Quindi dove si tocca la risoluzione e' FISSA: la sceglie il monitor,
+   una volta, e non cambia in corsa. Se deve cambiare, cambia A RIPOSO —
+   e li' un fotogramma che costa qualcosa non lo sente nessuno.
+   Sul desktop la manopola resta, perche' li' non c'e' mai stata. */
+const scalaSottoIlDito = () => gestoAMano ? GESTO_SCALA : 1;
 let gestoScala = 1, ripresaGesto = 0, prOra = 0, msRisoluzione = 0;
+/* alzata da `gira()` per la durata del gesto: finche' e' vera, la
+   risoluzione non si tocca. Il valore nuovo lo prende il primo
+   fotogramma a riposo, che ripassa comunque di qui. */
+let bloccaRisoluzione = false;
 const _tela = new THREE.Vector2();
 function risoluzione(forza){
+  if(bloccaRisoluzione && !forza) return false;
   const v = Math.min(devicePixelRatio, SCALE()[gradino] * gestoScala);
   if(!forza && Math.abs(v - prOra) < 0.002) return false;
   const t0 = performance.now();
@@ -3081,9 +3264,53 @@ function decidiAO(acceso, perche, delMonitor){
    non c'e' niente da discutere e l'occlusione si spegne subito, in mezzo
    secondo di applicazione. A riaccenderla, se c'e' margine, pensa
    `monitor`, che il tempo lo misura fra un fotogramma e l'altro. */
+/* ══════════════════════════════════════════════════════════════
+   LA SFOCATURA SI STACCA MENTRE CI SI MUOVE
+
+   Ai livelli 0 e 1, un fotogramma con la catena intera costa (misurato
+   col banco _M_, iPhone finto, 390x844 a 1,5 punti per pixel): QUATTRO
+   passate — la scena a colori, la scena UN'ALTRA VOLTA in profondita' per
+   la sfocatura, il quadro della sfocatura, il quadro di uscita — 2,96
+   megapixel scritti e 795.130 triangoli attraversati al livello 1, piu'
+   due mappe d'ombra. La sfocatura da sola vale la meta' di tutto questo,
+   e non e' una passata qualunque: la sua seconda scena e' geometria vera,
+   e il suo quadro fa quarantuno prelievi per pixel a tutto schermo.
+   Tutto questo per il FONDO. Il fondo morbido e' la firma della vetrina e
+   si guarda quando si guarda: mentre il dito trascina un espositore, gli
+   occhi stanno sull'espositore, e un fondo che passa a sedici fotogrammi
+   al secondo si vede molto piu' di un fondo nitido.
+   Quindi dove si tocca, ai livelli 0 e 1 e SOLO mentre qualcosa si muove,
+   la passata della sfocatura esce dalla catena. Restano la scena, una
+   volta sola, e il quadro di uscita. A riposo — un quarto di secondo
+   senza moto — rientra, e la lente si riapre in ventidue centesimi (vedi
+   `profondita`). Al livello 2 non esce MAI: li' la scena e' piccola —
+   misurate 22 chiamate di disegno — e la sfocatura non e' un fondale,
+   e' il pezzo.
+   ══════════════════════════════════════════════════════════════ */
+let postDiretto = false;
 let provini = [], aoChiuso = false;
 function dipingi(){
   const t0 = aoChiuso ? 0 : performance.now();
+  /* SI STACCA LA PASSATA, NON LA CATENA — e questa e' una correzione
+     pagata sul banco. La prima stesura disegnava DIRETTO, con
+     `rend.render(scena, camera)`, contando sul fatto che `toneMapping` e
+     `outputColorSpace` stanno sul disegnatore e quindi il quadro non
+     sarebbe cambiato. MISURATO: cambia, e di molto. Stessa scena, stesso
+     istante, livello 1 a riposo — luminanza media del fondo 57,8 in
+     diretta contro 48,7 con la catena a lente chiusa: il diciannove per
+     cento piu' chiaro. E non e' la sfocatura (a lente chiusa la catena
+     da' 48,7 e a lente aperta 49,1: mezzo punto), e' il passaggio dentro
+     i bersagli della catena. Un quadro che schiarisce del diciannove per
+     cento all'inizio di ogni swipe e' un LAMPO, cioe' molto peggio di un
+     fondo nitido.
+     Quindi la catena resta e se ne toglie il pezzo caro: la sfocatura,
+     che e' due terzi del costo — una seconda intera passata della scena
+     per la profondita' piu' un quadro a tutto schermo con quarantuno
+     prelievi per pixel. Restano la scena, una volta, e il quadro di
+     uscita, che e' un prelievo per pixel. Il colore e' lo STESSO byte per
+     byte, perche' e' la stessa strada. */
+  const vuoiSfoca = !postDiretto;
+  if(sfoca.enabled !== vuoiSfoca) sfoca.enabled = vuoiSfoca;
   passe.render();
   /* le carte si riproiettano DOPO il disegno, quando la macchina e' dove
      dice di essere: proiettate prima restano indietro di un fotogramma e
@@ -3119,6 +3346,13 @@ function dipingi(){
    un'applicazione diversa da quella che va sul telefono. */
 const DURATE = new Array(60).fill(0);
 let nDurate = 0, pDurate = 0, msMediana = 0, ultimoGradino = 0, bassoDa = 0;
+/* lo SCARTO fra il primo e il terzo quarto delle sessanta durate, e il
+   lavoro di JS dentro il fotogramma: servono al riconoscimento del tetto,
+   qui sotto. Si affacciano anche in `__resa` e nel riquadro di diagnosi,
+   perche' da una registrazione dello schermo del cliente questi due
+   numeri dicono se il telefono e' lento o se e' in risparmio energetico. */
+let msScarto = 0, msLavoro = 0, tetto30 = false;
+const LAVORI = new Array(60).fill(0);
 let softGL = null;
 function daSoftware(){
   if(softGL !== null) return softGL;
@@ -3137,7 +3371,7 @@ function daSoftware(){
   } catch(_) {}
   return softGL;
 }
-function monitor(ora, grezzo){
+function monitor(ora, grezzo, lavoro){
   /* un ciclo che riparte dopo essere stato fermo non e' un fotogramma
      lento: e' un fotogramma che non c'era */
   if(grezzo <= 0 || grezzo > 100) return;
@@ -3150,10 +3384,36 @@ function monitor(ora, grezzo){
      risoluzione, e il momento giusto e' subito dopo il rilascio, con le
      molle che ancora corrono. */
   if(gestoScala < 1){ bassoDa = 0; return; }
-  DURATE[pDurate] = grezzo; pDurate = (pDurate + 1) % 60;
+  DURATE[pDurate] = grezzo; LAVORI[pDurate] = lavoro || 0;
+  pDurate = (pDurate + 1) % 60;
   if(nDurate < 60){ nDurate++; return; }
   const ord = DURATE.slice().sort((a, b) => a - b);
   msMediana = (ord[29] + ord[30]) / 2;
+  msScarto = +(ord[44] - ord[15]).toFixed(2);
+  const ordL = LAVORI.slice().sort((a, b) => a - b);
+  msLavoro = +((ordL[29] + ordL[30]) / 2).toFixed(2);
+  /* ── IL RISPARMIO ENERGETICO NON E' LENTEZZA ───────────────────
+     Su iOS, con la batteria bassa, il sistema limita `requestAnimationFrame`
+     a trenta al secondo: la mediana si pianta a 33,3 ms e ci RESTA. Per il
+     monitor di prima quello era «oltre i 20 ms», cioe' una macchina in
+     ginocchio: toglieva l'ombra, poi i pixel, poi ancora, e non finiva
+     mai — degradando un'applicazione che stava disegnando benissimo,
+     solo meno spesso. E' esattamente il caso del cliente: registrazione
+     fatta con la batteria al dieci per cento.
+     I due casi si distinguono, e non serve indovinare: un TETTO e'
+     REGOLARE. Se il sistema decide la cadenza, i fotogrammi arrivano
+     tutti alla stessa distanza — lo scarto fra il primo e il terzo quarto
+     delle sessanta durate sta sotto i tre millesimi — e la distanza e' un
+     multiplo pulito del ritracciamento (33,3 ms, o 16,7 se il tetto e' 60
+     su un pannello a 120). Una macchina che non ce la fa arriva SLABBRATA:
+     un fotogramma da 24, uno da 51, uno da 30. Misurato sul cliente: fra 4
+     e 25 fotogrammi al secondo, cioe' scarto enorme — li' il monitor deve
+     degradare. Fermo a 30 pulito, no.
+     E dal tetto non si legge nemmeno il MARGINE: la stessa ragione per cui
+     non si risale a 120 Hz. Quindi sotto un tetto il monitor tace, in
+     tutte e due le direzioni. */
+  tetto30 = msScarto <= 3.0 && Math.abs(msMediana - 33.34) <= 2.0;
+  if(tetto30){ bassoDa = 0; return; }
   /* ── UN OROLOGIO TROPPO VELOCE NON E' UNO SCHERMO ─────────────
      Sotto i 6 millisecondi — piu' di 166 fotogrammi al secondo — non c'e'
      nessun pannello al mondo: c'e' un `requestAnimationFrame` che non e'
@@ -3226,7 +3486,52 @@ Object.defineProperty(window, "__resa", {configurable:true,
     tetto: SCALE()[gradino], dpr: +prOra.toFixed(3), gesto: gestoScala,
     telefono, ao: ao.enabled, aoAccesa, aoDetto, aoTolta, aoFlop,
     software: daSoftware(),
+    scarto: msScarto, lavoro: msLavoro, tetto30,
+    diretto: postDiretto, ombreAuto: rend.shadowMap.autoUpdate,
+    ombraLato: sole.shadow.mapSize.x,
+    draw: rend.info.render.calls, tri: rend.info.render.triangles,
     msRisoluzione: +msRisoluzione.toFixed(2)})});
+
+/* ══════════════════════════════════════════════════════════════
+   IL RIQUADRO DI DIAGNOSI — `?diag=1`
+
+   Il telefono del cliente non si collega a nessun banco di prova: l'unica
+   misura che torna indietro e' una REGISTRAZIONE DELLO SCHERMO. Allora i
+   numeri devono stare sullo schermo. Monospaziato a 11 punti, fondo scuro
+   al 70 per cento e — questo e' il punto — NESSUN filtro di fondo: un
+   riquadro che sfoca quello che sta sotto falserebbe proprio la misura
+   che sta mostrando.
+   Si scrive una volta per fotogramma e solo se qualcosa e' cambiato, cosi'
+   la diagnosi non e' anche il difetto.
+   ══════════════════════════════════════════════════════════════ */
+let scriviDiagnosi = () => {};
+if(DIAG){
+  const d = document.createElement("div");
+  d.id = "diag";
+  d.setAttribute("aria-hidden", "true");
+  d.style.cssText = "position:fixed;left:6px;top:6px;z-index:99;" +
+    "pointer-events:none;white-space:pre;padding:5px 7px;border-radius:5px;" +
+    "background:rgba(0,0,0,.70);color:#9FE8C0;" +
+    "font:11px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;" +
+    "letter-spacing:.01em";
+  (document.body || document.documentElement).appendChild(d);
+  let ultimo = "";
+  scriviDiagnosi = () => {
+    const i = rend.info.render;
+    const t = "fps " + (window.__fps || 0) + "  " + msMediana.toFixed(1) + " ms" +
+      (tetto30 ? " (tetto)" : "") +
+      "\nlavoro " + msLavoro.toFixed(1) + " ms · scarto " + msScarto.toFixed(1) +
+      "\ndpr " + prOra.toFixed(2) + " · " + (telefono ? "touch" : "desktop") +
+      (RESA_DETTA ? "*" : "") +
+      "\ndof " + (postDiretto ? "OFF" : "ON") + " " + sfocaT.toFixed(2) +
+      " · ombre " + (rend.shadowMap.enabled
+        ? (rend.shadowMap.autoUpdate ? "auto" : "cache") + " " + sole.shadow.mapSize.x
+        : "off") +
+      "\ndraw " + i.calls + " · tri " + i.triangles +
+      "\nlivello " + livello + (attiva ? " · " + attiva : "");
+    if(t !== ultimo){ ultimo = t; d.textContent = t; }
+  };
+}
 window.__cam = camera; window.__scena = scena; window.__THREE = THREE;
 /* IL DISEGNATORE E LA CATENA DELLE PASSATE si affacciano qui perche' il
    costo di un fotogramma non si indovina: `rend.info.render` dice quante
@@ -3234,6 +3539,12 @@ window.__cam = camera; window.__scena = scena; window.__THREE = THREE;
    vede passata per passata — la scena e' disegnata DUE volte, colore e
    profondita' per la sfocatura, e l'occlusione ne aggiunge altre tre a
    tutto schermo. Senza queste due prese la tabella si scrive a memoria. */
+/* e il banco deve poter mettere a confronto i DUE fotogrammi — quello
+   diretto e quello con la catena — sulla stessa scena e nello stesso
+   istante: e' l'unico modo di misurare quanto SALTA il quadro quando la
+   sfocatura rientra, e quindi se quel rientro ha bisogno di una
+   dissolvenza o se puo' essere un cambio secco. */
+window.__diretto = v => { postDiretto = !!v; dipingi(); return postDiretto; };
 window.__rend = rend; window.__passe = passe;
 window.__sfoca = sfoca; window.__dipingi = () => dipingi();
 window.__ao = ao; window.__ombraBanco = ombraBanco; window.__giro = giro;
@@ -3517,6 +3828,7 @@ const cTolto = (fam, k) => TOLTI.has(fam + ":" + k);
    `mostraTutto` riaccende tutto il gruppo con un traverse, e senza questo
    passo un pezzo tolto tornerebbe in vetrina al primo passo indietro */
 function applicaTolti(){
+  ombraDaRifare();                 // un pezzo che esce porta via la sua ombra
   if(!TOLTI.size) return;
   for(const f of FAMIGLIE){
     (merci[f.id] || []).forEach((o, k) => {
@@ -3601,6 +3913,10 @@ function apparecchia(solo){
                                : scatola.getCenter(punto).x;
     });
   }
+  /* e la merce appena apparecchiata smette di gettare ombra: `metti` la
+     accende su tutte le mesh del modello, e questa e' l'unica riga che
+     passa DOPO che `merci`/`pose` esistono */
+  chiOmbra();
 }
 
 /* la x di una stazione, anche fra una e l'altra e anche oltre i capi */
@@ -3985,6 +4301,7 @@ function distanzaPer(largo, alto, margine){
 
 let partenzaBanco = 0;
 function vaiAlBanco(subito){
+  ombraDaRifare();
   /* DOVE SI TORNA E' CASA, NON DOV'ERA. Leggevo la x CORRENTE del gruppo
      per far tornare la macchina davanti alla famiglia da cui si uscliva.
      Funziona per anelli e orologi, dove lo swipe muove la MACCHINA e il
@@ -4029,6 +4346,7 @@ function vaiAlBanco(subito){
 }
 
 function entra(id){
+  ombraDaRifare();
   /* E NON SI ENTRA IN UN REPARTO CHE NON E' ANCORA SCESO. Chi ci arriva
      da un link o da una carta passa da `chiediFamiglia`, che lo aspetta;
      qui si chiude la porta e basta. */
@@ -4225,6 +4543,7 @@ const _ang = new THREE.Vector3();
 const centroP = new THREE.Vector3();
 
 function apriPezzo(k){
+  ombraDaRifare();
   if(k == null || k < 0 || !merci[attiva] || !merci[attiva][k]) return;
   /* un pezzo uscito dal cofanetto non si apre: le sue mesh sono spente e
      la carta descriverebbe una cosa che non c'e' — la stessa ragione per
@@ -6321,6 +6640,7 @@ function chiudiVela(){
 }
 function passoVela(dt){
   if(!velaVerso) return;
+  ombraDaRifare();                 // le mesh della vela entrano ed escono
   velaT += velaVerso * dt / VELA_S;
   if(velaT <= 0 || velaT >= 1){ velaT = velaT <= 0 ? 0 : 1; chiudiVela(); return; }
   // la stessa curva con cui passa il colore delle vesti: non parte di
@@ -6440,6 +6760,7 @@ function avviaPosa(verso){
 }
 function passoPosa(){
   if(!posaMobile) return;
+  ombraDaRifare();                 // la posa scivola: la sua ombra con lei
   /* la frazione di volo gia' fatta dalla macchina: e' lei l'orologio.
      Un tempo suo sarebbe un secondo movimento, ed e' quello che si sta
      togliendo. Sotto un millimetro di strada non c'e' niente da
@@ -6548,9 +6869,11 @@ function isolaPezzo(){
   const appoggia = !!ste;
   rend.shadowMap.enabled = appoggia;
   scena.traverse(o => { if(o.isMesh) o.castShadow = appoggia; });
+  if(appoggia) chiOmbra();         // la merce non getta: vedi `chiOmbra`
 }
 
 function mostraTutto(conVela){
+  ombraDaRifare();
   /* e la posa torna a casa sua prima di tutto: se e' rimasta a meta'
      strada di uno scivolamento, tutto quello che segue la misurerebbe
      dove non sta */
@@ -6587,6 +6910,7 @@ function mostraTutto(conVela){
   scena.environmentIntensity = AMBIENTE;
   rend.shadowMap.enabled = true;
   scena.traverse(o => { if(o.isMesh) o.castShadow = true; });
+  chiOmbra();                      // e la merce torna a non gettare
   /* E L'ESPOSITORE RIENTRA. Non ricompare: si riforma mentre la macchina
      si tira indietro, che e' lo stesso gesto letto al contrario — il
      gioielliere rimette il pezzo e la vetrina torna a essere la vetrina.
@@ -7418,6 +7742,14 @@ addEventListener("keydown", e => {
    entrare un altro. */
 function applicaPos(mentreTrascina){
   if(livello !== 1 || !attiva || !banchi[attiva]) return;
+  /* qui la ROBA si sposta (nel modo «scambia» sono gli espositori a
+     scorrere), quindi la mappa d'ombra e' scaduta: vedi `ombraDaRifare`.
+     MA SOLO SE SI E' SPOSTATA DAVVERO: questa funzione la chiama `gira()`
+     a OGNI fotogramma finche' si sta al livello 1, anche a fila ferma, e
+     senza questo confronto la mappa si sarebbe rifatta sessanta volte al
+     secondo davanti a un banco immobile — cioe' l'ombra cara di prima con
+     un nome nuovo. */
+  if(pos !== ultimaPosOmbra){ ultimaPosOmbra = pos; ombraDaRifare(); }
   const g0 = banchi[attiva][0], n = stazioni(attiva).length;
   const modo = MODI[attiva];
   if(modo === "cammina" || modo === "salta"){
@@ -7550,6 +7882,15 @@ function molla(x, v, meta, k, dt){
 }
 
 let ultimoFrame = 0;
+/* da quanti millisecondi non si muove piu' nulla, e dopo quanti la
+   catena delle passate torna in servizio (vedi `dipingi`). Un quarto di
+   secondo e' il tempo in cui una mano si ferma per davvero: piu' corto e
+   la sfocatura rientra dentro la coda della molla, piu' lungo e il fondo
+   resta nitido abbastanza da farsi notare. */
+let fermoDa = 1e9;
+const POST_A_RIPOSO = 250;
+/* dove stava la fila l'ultima volta che si e' rifatta la mappa d'ombra */
+let ultimaPosOmbra = NaN;
 const occhioV = new THREE.Vector3(), miraV = new THREE.Vector3();
 function sveglia(){ if(!vivo){ vivo = requestAnimationFrame(gira); } }
 
@@ -7569,6 +7910,16 @@ function gira(ora){
      dentro il fotogramma non fa nulla, ed e' la coda del fotogramma a
      decidere se ce n'e' un altro. */
   vivo = -1;
+  /* quanto costa il fotogramma in JS — disegno compreso, per quel che la
+     chiamata a WebGL sa dire. Serve al monitor e al riquadro di diagnosi:
+     letto accanto alla distanza fra un fotogramma e l'altro, dice se la
+     macchina e' in affanno o se sta solo disegnando meno spesso. */
+  const _lavoro0 = performance.now();
+  rend.info.reset();               // vedi `rend.info.autoReset`: si conta il FOTOGRAMMA
+  /* i fotogrammi DISEGNATI, non le richieste di rAF: il banco di prova
+     pilota il gesto con un rAF suo, e dividere per quelle darebbe numeri
+     per fotogramma piu' bassi del vero */
+  window.__fotogrammi = (window.__fotogrammi || 0) + 1;
   /* IL PASSO DI TEMPO SI MISURA E SI LIMITA: legata ai fotogrammi, la
      stessa molla e' due volte piu' veloce su uno schermo a 120 Hz; e se la
      scheda torna in primo piano dopo un minuto, un dt enorme fa esplodere
@@ -7611,6 +7962,10 @@ function gira(ora){
     ripresaGesto++;
     gestoScala = ripresaGesto >= 2 ? 1 : (gestoScala + 1) / 2;
   }
+  /* e mentre il dito e' giu' NON si rialloca: vedi `risoluzione`. Il
+     valore nuovo, se il monitor ne ha deciso uno, lo prende il primo
+     fotogramma a riposo — che ripassa comunque di qui. */
+  bloccaRisoluzione = telefono && inGesto;
   risoluzione();
 
   passoVela(dt);
@@ -7796,7 +8151,15 @@ function gira(ora){
      piano non si legge. */
   parete.visible = (livello !== 2);
 
-  if(sfoca.enabled){
+  /* ── E IL FUOCO SI TIENE AGGIORNATO ANCHE A PASSATA SPENTA ─────
+     Questo blocco stava sotto `if(sfoca.enabled)`, e la condizione era
+     sempre vera perche' nessuno spegneva mai la passata. Adesso qualcuno
+     la spegne — durante il gesto — e se il blocco ci restasse dentro
+     succederebbero due cose: il fuoco tornerebbe con il valore di mezzo
+     secondo prima, e la LAMPADA del gioielliere smetterebbe di seguire la
+     macchina durante il volo al pezzo, per poi saltarci addosso
+     all'arrivo. Costano due sottrazioni di vettori: si fanno sempre. */
+  {
     /* IL FUOCO STA SUL SOGGETTO DEL MOMENTO. Sul pezzo quando se ne guarda
        uno; sul punto che si sta mirando quando si guarda un espositore o
        tutto il banco — se no, al banco la macchina metterebbe a fuoco un
@@ -7808,6 +8171,35 @@ function gira(ora){
       .addScaledVector(_su, 0.05).addScaledVector(_destra, -0.04);
     lampada.target.position.copy(centroP);
     lampada.target.updateMatrixWorld();
+  }
+
+  /* ── CHI SI MUOVE, E DA QUANTO NON SI MUOVE PIU' ───────────────
+     Non e' `inGesto`: il dito lascia lo schermo e la molla continua a
+     correre per mezzo secondo, e quella e' la parte del gesto che si
+     guarda di piu'. Si contano tutti i moti che disegnano — il dito, il
+     volo, la vela, la posa che scivola, la finestra che si insegue, il
+     colore che attraversa — e si misura da quanti millisecondi sono
+     finiti TUTTI. Un quarto di secondo: e' il tempo in cui una mano si
+     ferma davvero, ed e' sotto la soglia in cui un ritorno di fuoco si
+     legge come un ripensamento. */
+  const muove = inGesto || voloAlPezzo || velaVerso || posaMobile
+    || seguiFinestra > 0 || vesteT < 1
+    || occhio.distanceTo(occhioObiettivo) > 0.0012
+    || Math.abs(pos - posMeta) > 0.002;
+  if(muove) fermoDa = 0; else fermoDa += Math.max(1, Math.min(100, grezzo || 16.7));
+  /* ── E IL VOLO AL PEZZO VALE COME UN GESTO ─────────────────────
+     `livello` diventa 2 nell'istante del tocco, ma il volo che porta il
+     gioiello in mano dura mezzo secondo e in quel mezzo secondo la scena
+     e' ancora tutta quella del banco: tenerci la catena addosso vuol dire
+     pagare il fotogramma piu' caro proprio durante il movimento piu'
+     largo. Si vola diretti, e la lente si apre all'arrivo — che e' anche
+     il gesto vero di un obiettivo che va sul soggetto. */
+  postDiretto = telefono && (livello < 2 || voloAlPezzo)
+             && fermoDa < POST_A_RIPOSO;
+  if(postDiretto) sfocaT = 0;
+  else if(sfocaT < 1){
+    sfocaT = Math.min(1, sfocaT + dt / RIENTRO_S);
+    sfoca.uniforms.maxblur.value = sfocaMax * sfocaT;
   }
   dipingi();
 
@@ -7827,8 +8219,18 @@ function gira(ora){
      fotogrammi in quindici secondi di scena immobile. Il dondolo ha una
      vita, e quando e' finita il livello del pezzo si ferma come tutti
      gli altri — il prossimo tocco lo risveglia. */
-  monitor(ora, grezzo);
-  if(!fermo || giu !== null || pizzico || (livello === 2 && dondoloVivo))
+  monitor(ora, grezzo, performance.now() - _lavoro0);
+  if(DIAG) scriviDiagnosi();
+  /* ── E NON SI SPEGNE PRIMA DI AVER RIMESSO LA SFOCATURA ────────
+     Con la catena staccata, l'ultimo fotogramma disegnato sarebbe quello
+     DIRETTO: il gesto finisce, la molla si posa, il ciclo si ferma — e la
+     stanza resta nitida per sempre, cioe' l'app perde la sua firma proprio
+     nel momento in cui ci si ferma a guardarla. `postDiretto` tiene acceso
+     il ciclo per il quarto di secondo che manca; poi passa un fotogramma
+     con la catena, e li' si spegne. Sono una quindicina di fotogrammi
+     diretti, che e' la forma piu' economica che abbia questo ciclo. */
+  if(!fermo || giu !== null || pizzico || postDiretto || sfocaT < 1
+     || (livello === 2 && dondoloVivo))
     vivo = requestAnimationFrame(gira);
   else { vivo = 0; pos = posMeta; posV = 0; ultimoFrame = 0; }
 }
@@ -7956,10 +8358,16 @@ addEventListener("resize", ()=>{
    Le fotografie di prova prendevano la macchina MENTRE volava, non
    arrivata: il fotogramma sembrava sbagliato e non lo era. */
 function ferma(){
+  /* la scorciatoia porta la macchina ALL'ARRIVO: da li' non si sta
+     muovendo piu' niente, quindi il fotogramma deve essere quello
+     completo — con la catena e la sfocatura — o le fotografie di prova
+     ritrarrebbero il quadro del gesto invece di quello del riposo */
+  postDiretto = false; fermoDa = 1e9; sfocaT = 1;
+  sfoca.uniforms.maxblur.value = sfocaMax;
   occhio.copy(occhioObiettivo); mira.copy(miraObiettivo);
   camera.position.copy(occhio); camera.lookAt(mira);
   camera.updateMatrixWorld(true);
-  if(sfoca.enabled) sfoca.uniforms.focus.value = camera.position
+  sfoca.uniforms.focus.value = camera.position
     .distanceTo(livello === 2 ? centroP : mira);
   dipingi();
 }
