@@ -2112,13 +2112,30 @@ let codaAlto = null;
    rilegge solo quando cambia per davvero: la scheda che si apre, lo
    schermo che si ridimensiona. */
 let bandaPezzo = null;
+/* ── E NEMMENO L'ALTRA BANDA SI RIMISURA A OGNI FOTOGRAMMA ──────
+   `bandaPezzo` congela la misura al livello del pezzo. Al banco e in
+   selezione no, e li' la misura la chiede `scostaDiLato` — che passa da
+   `applicaPos`, cioe' da OGNI pointermove. Contato col banco _F_ durante
+   uno swipe: 180 `getBoundingClientRect` in 89 fotogrammi, due per
+   fotogramma, e ognuna su un telefono e' una sincronizzazione di stile e
+   layout — il browser deve impaginare la pagina prima di poter
+   rispondere, in mezzo al gesto.
+   La misura non cambia per conto suo: cambia quando cambia l'altezza di
+   uno dei nodi che la fanno (la testata, il cartellino, il pannello, la
+   barra dei reparti) o quando cambia lo schermo. Allora la si tiene, e la
+   si butta via quando quei nodi si muovono davvero — lo dice un
+   `ResizeObserver`, che costa zero per fotogramma perche' parla solo
+   quando c'e' qualcosa da dire. */
+let areaCache = null;
+function scadeArea(){ areaCache = null; }
 function areaUtile(){ return bandaPezzo || misuraArea(); }
 function misuraArea(){
+  if(areaCache) return areaCache;
   if(larga){
     const p = fondo.getBoundingClientRect();
     const m = document.getElementById("menu").getBoundingClientRect();
-    return {x0:0, y0:Math.max(0, m.bottom + 8),
-            x1:Math.max(120, p.left), y1:innerHeight};
+    return (areaCache = {x0:0, y0:Math.max(0, m.bottom + 8),
+            x1:Math.max(120, p.left), y1:innerHeight});
   }
   const ra = alto.getBoundingClientRect();
   if(codaAlto === null)
@@ -2130,8 +2147,26 @@ function misuraArea(){
      puo' essere impaginato a un'altezza che non e' ancora la sua: senza
      questo pavimento il rapporto schizzerebbe e la macchina si butterebbe
      fuori dal mondo per un fotogramma. */
-  return {x0:0, y0:cima, x1:innerWidth,
-          y1:Math.max(cima + innerHeight * 0.25, Math.min(innerHeight, giu))};
+  /* `giuCartello` e' il filo del cartellino PRIMA del pavimento del quarto
+     di schermo: serve alle carte-suggerimento, che fin qui se lo andavano
+     a rileggere da sole — una terza sincronizzazione di layout per
+     fotogramma. Sta qui perche' e' la stessa misura, presa una volta. */
+  return (areaCache = {x0:0, y0:cima, x1:innerWidth, giuCartello:giu,
+          y1:Math.max(cima + innerHeight * 0.25, Math.min(innerHeight, giu))});
+}
+/* QUANDO LA MISURA SCADE. Non a tempo e non «per sicurezza»: quando uno
+   dei quattro nodi che la compongono cambia forma, e quando finisce una
+   transizione o un'animazione dentro il pannello — li' il cartellino si
+   SPOSTA senza cambiare misura, e un osservatore di dimensioni non se ne
+   accorgerebbe. */
+if(window.ResizeObserver){
+  const occhi = new ResizeObserver(scadeArea);
+  for(const n of [alto, cartello, fondo, document.getElementById("menu")])
+    if(n) occhi.observe(n);
+}
+for(const t of ["transitionend", "animationend"]){
+  fondo.addEventListener(t, scadeArea);
+  alto.addEventListener(t, scadeArea);
 }
 sistemaImpianto();
 
@@ -2178,7 +2213,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perche' il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova e' una correzione che non arriva. */
-const VERSIONE = "2026-09-13d";
+const VERSIONE = "2026-09-13e";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non e' zero, e' un ReferenceError, e un ReferenceError li'
@@ -2890,34 +2925,316 @@ function profondita(liv){
 sfoca.enabled = true;
 passe.addPass(sfoca);
 passe.addPass(new OutputPass());
-/* L'OCCLUSIONE SI SPEGNE DA SOLA SE IL TELEFONO NON CE LA FA.
-   E' una passata in piu' su ogni fotogramma, e su un telefono di tre anni
-   fa puo' costare piu' di tutto il resto messo insieme. Invece di
-   indovinare il modello, si guarda: si cronometrano i primi fotogrammi di
-   movimento e, se il disegno va oltre i 30 millisecondi (cioe' sotto i
-   trentatre al secondo), si toglie. Meglio un banco senza l'ombra negli
-   angoli che un banco che scatta: lo scatto si sente sotto il dito, il
-   grigio in fondo a una fessura no. */
-let provini = [], aoSpenta = false;
+
+/* ══════════════════════════════════════════════════════════════
+   QUANTI PIXEL SI DISEGNANO — e chi lo decide
+
+   Il cliente, sul suo iPhone: «lo swipe nel cofanetto e' poco fluido».
+   Misurato col banco _F_ su 390x844 a due punti per pixel, prima di
+   questo blocco: NOVE passate per fotogramma, 11,85 milioni di pixel, e
+   la scena disegnata TRE volte — il colore, la profondita' con le normali
+   per l'occlusione, e di nuovo la profondita' per la sfocatura. Al banco
+   sono 279 chiamate di disegno e 734.244 triangoli; in selezione
+   1.051.440. Nello stesso banco il JS costa 0,17 millisecondi per
+   fotogramma. Il collo di bottiglia non e' il codice: sono i pixel.
+   Tre manopole, tutte misurate, nessuna indovinata:
+
+   1 · IL TETTO AI PUNTI PER PIXEL. Un iPhone ne dichiara 3; qui erano
+       gia' tagliati a 2, e due punti per pixel su 390x844 fanno comunque
+       1,32 milioni di pixel per passata. Il tetto di 1,5 e' quello che i
+       visualizzatori 3D sul web usano da anni (Codrops: 1 su desktop,
+       1,5 su telefono), e toglie il 44 per cento dei pixel di OGNI
+       passata.
+   2 · MENO PIXEL SOTTO IL DITO. Mentre il dito e' giu' la tela si
+       disegna a sette decimi di lato — meta' dei pixel — e torna piena
+       al rilascio in due fotogrammi. E' il trucco di ogni visualizzatore
+       serio: sotto il dito conta la FLUIDITA', non la nitidezza, perche'
+       quello che si guarda si sta muovendo. Fermo, la nitidezza torna
+       intera.
+   3 · L'OCCLUSIONE SPENTA DI SERIE DOVE SI TOCCA. Da sola vale cinque
+       delle nove passate e la meta' esatta dei pixel (misurato: 11,85 →
+       5,27 Mpx, 9 → 4 passate, e una scena in meno da disegnare). Sul
+       profilo del pezzo non toglie niente di leggibile: energia del
+       gradiente 1.485.492 con, 1.485.044 senza — un quarto di per mille.
+   ══════════════════════════════════════════════════════════════ */
+/* dove si TOCCA. Non e' «e' un telefono»: e' «il bersaglio e' un
+   polpastrello», che e' la domanda giusta — un portatile con lo schermo
+   a tocco non deve degradarsi, e infatti non ha `pointer:coarse`. */
+const TOCCO_GROSSO = matchMedia("(pointer:coarse)");
+let telefono = TOCCO_GROSSO.matches;
+/* la scala dei punti per pixel, a gradini. Il primo e' quello di serie.
+   Sul desktop il primo gradino resta il 2 di sempre: quel quadro e' stato
+   approvato cosi', e non si tocca senza che nessuno l'abbia chiesto. */
+const SCALE = () => telefono ? [1.5, 1.25, 1.0] : [2, 1.5, 1.25];
+let gradino = 0;
+/* sette decimi di lato fanno meta' dei pixel (0,7 al quadrato = 0,49).
+   E VALE DOVE SI TOCCA. Sul desktop no: quel quadro e' stato approvato
+   com'e', e misurato li' il trascinamento del mouse sarebbe passato da
+   11,85 a 5,80 Mpx — cioe' un'immagine che si ammorbidisce sotto il
+   cursore su una macchina che non ne ha nessun bisogno. Se una macchina
+   da scrivania non ce la fa, a toglierle pixel ci pensa il monitor, che
+   la misura invece di presumerla. Da `window.__gesto` si accende
+   comunque, per provarla. */
+let GESTO_SCALA = 0.7, gestoAMano = false;
+const scalaSottoIlDito = () => (telefono || gestoAMano) ? GESTO_SCALA : 1;
+let gestoScala = 1, ripresaGesto = 0, prOra = 0, msRisoluzione = 0;
+const _tela = new THREE.Vector2();
+function risoluzione(forza){
+  const v = Math.min(devicePixelRatio, SCALE()[gradino] * gestoScala);
+  if(!forza && Math.abs(v - prOra) < 0.002) return false;
+  const t0 = performance.now();
+  prOra = v;
+  rend.setPixelRatio(v);
+  /* e il composer NON si regola con lo stesso numero: `setPixelRatio` li'
+     moltiplica la misura in punti CSS, e 390 per 1,05 fa 409,5 — un
+     bersaglio con la virgola, che WebGL tronca a modo suo e che non
+     combacia con la tela. Si prende invece la misura VERA della tela,
+     gia' intera, e gliela si consegna. Cosi' ogni passata scrive
+     esattamente i pixel che poi finiscono sullo schermo. */
+  rend.getDrawingBufferSize(_tela);
+  passe.setPixelRatio(1);
+  passe.setSize(_tela.x, _tela.y);
+  msRisoluzione += performance.now() - t0;
+  return true;
+}
+TOCCO_GROSSO.addEventListener("change", e => {
+  telefono = e.matches; gradino = 0; risoluzione();
+  /* e la scelta di serie sull'occlusione va rifatta: era stata presa
+     quando il puntatore diceva un'altra cosa. Una decisione gia' presa
+     dal cronometro o dalla sessione resta, perche' quella e' misurata. */
+  politicaAO();
+});
+risoluzione();
+
+/* ── L'OCCLUSIONE: SPENTA DOVE SI TOCCA, E LA MISURA PUO' RIACCENDERLA
+   E' una passata in piu' su ogni fotogramma — anzi cinque, contate — e su
+   un telefono di tre anni fa puo' costare piu' di tutto il resto messo
+   insieme. Prima si accendeva sempre e si spegneva sola se il disegno
+   andava oltre i 30 millisecondi: una via sola, e i primi ventiquattro
+   fotogrammi — quelli dell'ingresso, quelli che si ricordano — li pagava
+   comunque. Adesso: dove si tocca parte SPENTA, e se la misura dice che
+   c'e' margine largo (sotto i 12 ms, cioe' meno di tre quarti del budget
+   di un fotogramma) si accende. Se accendendola si sfonda, si spegne e
+   non si riprova piu': un interruttore che va avanti e indietro e' peggio
+   di tutti e due i suoi stati.
+   E la decisione RESTA per la sessione: chi apre un pezzo, torna al banco
+   ed entra in un'altra famiglia non deve ricominciare a cronometrare, e
+   soprattutto non deve ritrovarsi l'ombra che va e viene. */
+/* ── E IL MONITOR PUO' DISFARE SOLO CIO' CHE HA FATTO LUI ──────
+   Prima versione, provata e buttata: «se la mediana sta sotto i 12 ms,
+   riaccendila». Su uno schermo a 120 Hz un fotogramma dura 8,3 ms e la
+   regola scattava SEMPRE — non perche' ci fosse margine, ma perche'
+   piu' veloce del pannello non si va. Da un orologio agganciato al
+   ritracciamento il margine non si legge: si legge solo se si sta
+   MANCANDO la cadenza.
+   Quindi le due vie sono: il monitor toglie quando la cadenza si perde,
+   e rimette solo quello che ha tolto lui. Lo spegnimento di SERIE dove
+   si tocca non e' una misura, e' una scelta — e una misura che non sa
+   provare il contrario non la ribalta. */
+const CHIAVE_AO = "regina.occlusione";
+let aoDetto = null;
+try { aoDetto = sessionStorage.getItem(CHIAVE_AO); } catch(_) {}
+/* `aoAccesa` e' la VERITA', `ao.enabled` solo il suo riflesso: i due
+   cambi di livello — al pezzo e al ritorno al banco — riaccendono la
+   passata e devono chiedere a lei, se no una decisione presa dal
+   cronometro dura fino al primo «indietro». */
+let aoAccesa = aoDetto !== null ? aoDetto === "1" : !telefono;
+/* `aoTolta`: l'ha spenta il monitor, e quindi puo' rimetterla.
+   `aoFlop`: l'aveva gia' rimessa una volta e si e' ripreso lo scatto —
+   da qui in poi resta spenta, perche' un interruttore che va avanti e
+   indietro si vede piu' di tutti e due i suoi stati. Una decisione che
+   arriva dalla sessione e' gia' stata presa: non si rilitiga. */
+let aoTolta = false, aoFlop = aoDetto === "0";
+ao.enabled = aoAccesa;
+/* la SCELTA DI SERIE, che non e' una misura e quindi non si scrive nella
+   sessione: dove si tocca, spenta. Si rifa' se il puntatore cambia
+   natura — un tablet a cui si attacca un mouse, o un banco di prova che
+   accende l'emulazione dopo l'avvio — e si tira indietro appena una
+   misura ha deciso qualcosa, perche' una misura batte una politica.
+   PROVATO E CORRETTO QUI: scritta come `decidiAO`, questa riga finiva
+   nella sessione. Un solo istante in cui l'emulazione del telefono si
+   staccava bastava a scrivere «accesa», e da li' in poi l'occlusione
+   restava accesa su tutte le famiglie successive — misurato: rampa e
+   orologi con l'ombra, le prime tre senza. */
+function politicaAO(){
+  if(aoDetto !== null || aoTolta || aoFlop) return;
+  const vuole = !telefono;
+  if(aoAccesa === vuole) return;
+  aoAccesa = vuole; ao.enabled = vuole;
+}
+function decidiAO(acceso, perche, delMonitor){
+  if(aoAccesa === acceso) return;
+  aoAccesa = acceso; ao.enabled = acceso;
+  if(delMonitor){ if(acceso) aoTolta = false; else { if(aoTolta) aoFlop = true; aoTolta = true; } }
+  try { sessionStorage.setItem(CHIAVE_AO, acceso ? "1" : "0"); } catch(_) {}
+  console.log("occlusione " + (acceso ? "accesa" : "spenta") + ": " + perche);
+}
+
+/* ── IL CRONOMETRO DEI PRIMI VENTIQUATTRO: UNA SOLA VIA ────────────
+   Misura quanto ci mette `passe.render()` a TORNARE, che non e' quanto ci
+   mette la scheda a disegnare: una chiamata a WebGL mette i comandi in
+   coda e torna subito. Quindi come giudice e' un bugiardo generoso —
+   provato: su questa macchina, fingendosi telefono, diceva meno di 12 ms
+   e avrebbe riacceso l'occlusione qualunque cosa fosse successa dopo.
+   Resta come rete di sicurezza in UNA sola direzione: se perfino questa
+   misura sfonda i 30 millisecondi, la macchina e' cosi' in ginocchio che
+   non c'e' niente da discutere e l'occlusione si spegne subito, in mezzo
+   secondo di applicazione. A riaccenderla, se c'e' margine, pensa
+   `monitor`, che il tempo lo misura fra un fotogramma e l'altro. */
+let provini = [], aoChiuso = false;
 function dipingi(){
-  const t0 = aoSpenta ? 0 : performance.now();
+  const t0 = aoChiuso ? 0 : performance.now();
   passe.render();
   /* le carte si riproiettano DOPO il disegno, quando la macchina e' dove
      dice di essere: proiettate prima restano indietro di un fotogramma e
      sull'oscillazione della molla si vede che scivolano */
   seguiCarte();
-  if(aoSpenta || provini.length >= 24) return;
+  if(aoChiuso) return;
   provini.push(performance.now() - t0);
   if(provini.length < 24) return;
   const ordinati = provini.slice().sort((a, b) => a - b);
   const mediana = ordinati[12];
-  if(mediana > 30){
-    ao.enabled = false; aoSpenta = true;
-    console.log("occlusione spenta: il disegno costava " +
-                mediana.toFixed(1) + " ms");
-  }
+  provini = []; aoChiuso = true;
+  if(aoAccesa && mediana > 30)
+    decidiAO(false, "il disegno costava " + mediana.toFixed(1) + " ms", true);
 }
+
+/* ══════════════════════════════════════════════════════════════
+   IL MONITOR DEI FOTOGRAMMI — e perche' non mente
+
+   Non cronometra il disegno (una chiamata a WebGL torna prima che la
+   scheda abbia finito): guarda QUANTO TEMPO PASSA fra un fotogramma e il
+   successivo, che e' esattamente quello che il dito sente. Mediana su
+   sessanta, cioe' un secondo di gesto: la media la sposta un fotogramma
+   solo, la mediana no.
+   Scende di un gradino se la mediana supera i 20 ms (cinquanta al
+   secondo: sotto, il trascinamento comincia a «tirare»), risale se sta
+   sotto i 12 per tre secondi di fila. Fra un cambio e l'altro passano
+   almeno due secondi. Le tre soglie sono la distanza che impedisce il
+   batti-e-ribatti: un sistema che scende e risale ogni mezzo secondo si
+   vede piu' di quello che correggerebbe.
+   E IN HEADLESS NON SI DEGRADA MAI. Li' il disegno lo fa SwiftShader, in
+   software, e un fotogramma costa quello che non costerebbe su nessun
+   telefono al mondo: degradare su quella misura vorrebbe dire collaudare
+   un'applicazione diversa da quella che va sul telefono. */
+const DURATE = new Array(60).fill(0);
+let nDurate = 0, pDurate = 0, msMediana = 0, ultimoGradino = 0, bassoDa = 0;
+let softGL = null;
+function daSoftware(){
+  if(softGL !== null) return softGL;
+  softGL = false;
+  /* due nomi, non uno: Chrome puo' mascherare `UNMASKED_RENDERER_WEBGL`
+     per non far riconoscere la macchina, e allora il nome vero resta solo
+     in `RENDERER`. Basta che uno dei due dica «software». */
+  try {
+    const gl = rend.getContext();
+    const e = gl.getExtension("WEBGL_debug_renderer_info");
+    const n = (e ? String(gl.getParameter(e.UNMASKED_RENDERER_WEBGL)) : "")
+            + " " + String(gl.getParameter(gl.RENDERER))
+            + " " + String(gl.getParameter(gl.VENDOR));
+    softGL = /swiftshader|llvmpipe|software|basic render|microsoft basic/i.test(n);
+    window.__gpu = n.trim();
+  } catch(_) {}
+  return softGL;
+}
+function monitor(ora, grezzo){
+  /* un ciclo che riparte dopo essere stato fermo non e' un fotogramma
+     lento: e' un fotogramma che non c'era */
+  if(grezzo <= 0 || grezzo > 100) return;
+  /* ── E NON SI MISURA MENTRE SI STA BARANDO ────────────────────
+     Sotto il dito la tela si disegna a meta' dei pixel: e' un trucco, e
+     un trucco non puo' essere anche la prova che tutto va bene. Misurato
+     li', il monitor avrebbe visto fotogrammi facili e avrebbe RIACCESO
+     l'occlusione in mezzo a uno swipe — cioe' esattamente nel momento in
+     cui il cliente dice che non e' fluido. Si misura a piena
+     risoluzione, e il momento giusto e' subito dopo il rilascio, con le
+     molle che ancora corrono. */
+  if(gestoScala < 1){ bassoDa = 0; return; }
+  DURATE[pDurate] = grezzo; pDurate = (pDurate + 1) % 60;
+  if(nDurate < 60){ nDurate++; return; }
+  const ord = DURATE.slice().sort((a, b) => a - b);
+  msMediana = (ord[29] + ord[30]) / 2;
+  /* ── UN OROLOGIO TROPPO VELOCE NON E' UNO SCHERMO ─────────────
+     Sotto i 6 millisecondi — piu' di 166 fotogrammi al secondo — non c'e'
+     nessun pannello al mondo: c'e' un `requestAnimationFrame` che non e'
+     agganciato al ritracciamento, che e' quello che succede in headless.
+     Misurato: al primo caricamento il banco correva cosi', e il monitor
+     dedusse che c'era margine e riaccese l'occlusione — una decisione
+     presa su un orologio che nel telefono del cliente non esiste.
+     A 60 come a 120 Hz (8,3 ms) la misura resta buona. */
+  if(daSoftware() || msMediana < 6 || ora - ultimoGradino < 2000) return;
+  const sc = SCALE();
+  /* ── L'ORDINE IN CUI SI RINUNCIA ───────────────────────────────
+     Scendendo si toglie PRIMA l'occlusione: da sola vale cinque passate
+     su nove e la meta' esatta dei pixel, e quello che porta via — il
+     grigio in fondo a una fessura — non si guarda mentre il dito si
+     muove. Solo dopo si tolgono punti per pixel, che invece si vedono
+     sui contorni del gioiello. Risalendo si fa il contrario: prima
+     tornano i pixel, poi l'ombra. */
+  if(msMediana > 20){
+    bassoDa = 0;
+    if(aoAccesa){
+      ultimoGradino = ora;
+      decidiAO(false, msMediana.toFixed(1) + " ms per fotogramma", true);
+    } else if(gradino < sc.length - 1){
+      gradino++; ultimoGradino = ora;
+      if(risoluzione()) console.log("meno pixel: " + msMediana.toFixed(1) +
+        " ms per fotogramma, punti per pixel " + sc[gradino]);
+    }
+    return;
+  }
+  if(msMediana < 12){
+    if(!bassoDa){ bassoDa = ora; return; }
+    if(ora - bassoDa < 3000) return;
+    bassoDa = 0;
+    if(gradino > 0){
+      gradino--; ultimoGradino = ora;
+      if(risoluzione()) console.log("piu' pixel: " + msMediana.toFixed(1) +
+        " ms per fotogramma, punti per pixel " + sc[gradino]);
+    } else if(!aoAccesa && aoTolta && !aoFlop){
+      /* solo quello che ha tolto lui: se l'occlusione e' spenta perche'
+         qui si tocca, questa riga non la accende */
+      ultimoGradino = ora;
+      decidiAO(true, msMediana.toFixed(1) + " ms per fotogramma, la cadenza regge",
+               true);
+    }
+  } else bassoDa = 0;
+}
+/* il monitor si legge da fuori: e' il numero che dice se una taratura ha
+   funzionato, e il banco lo interroga senza doverlo dedurre da uno
+   scatto. `__fps` e' quello chiesto; `__resa` e' il dietro. */
+Object.defineProperty(window, "__fps", {configurable:true,
+  get: () => msMediana ? Math.round(1000 / msMediana) : 0});
+/* ── E LE DUE MANOPOLE SI GIRANO DA FUORI ─────────────────────────
+   Stessa forma di `window.__moto` e `window.__sugg`: sono decisioni che
+   si provano guardando, non leggendo. `__gesto` e' quanto si rimpicciolisce
+   la tela sotto il dito (1 = niente); `__occlusione` forza l'ombra negli
+   angoli, e forzarla a mano vale come una misura — da li' in poi la
+   politica del dispositivo non la ribalta piu'. */
+Object.defineProperty(window, "__gesto", {configurable:true,
+  get: () => GESTO_SCALA,
+  set: v => { v = Math.max(0.4, Math.min(1, +v || 1));
+              GESTO_SCALA = v; gestoAMano = v < 1;
+              if(gestoScala < 1) gestoScala = v;
+              risoluzione(); sveglia(); }});
+Object.defineProperty(window, "__occlusione", {configurable:true,
+  get: () => aoAccesa,
+  set: v => { aoDetto = v ? "1" : "0"; aoFlop = true; aoTolta = false;
+              decidiAO(!!v, "chiesta a mano"); sveglia(); }});
+Object.defineProperty(window, "__resa", {configurable:true,
+  get: () => ({ms: +msMediana.toFixed(2), fps: window.__fps, gradino,
+    tetto: SCALE()[gradino], dpr: +prOra.toFixed(3), gesto: gestoScala,
+    telefono, ao: ao.enabled, aoAccesa, aoDetto, aoTolta, aoFlop,
+    software: daSoftware(),
+    msRisoluzione: +msRisoluzione.toFixed(2)})});
 window.__cam = camera; window.__scena = scena; window.__THREE = THREE;
+/* IL DISEGNATORE E LA CATENA DELLE PASSATE si affacciano qui perche' il
+   costo di un fotogramma non si indovina: `rend.info.render` dice quante
+   chiamate di disegno e quanti triangoli, e avvolgendo `rend.render` si
+   vede passata per passata — la scena e' disegnata DUE volte, colore e
+   profondita' per la sfocatura, e l'occlusione ne aggiunge altre tre a
+   tutto schermo. Senza queste due prese la tabella si scrive a memoria. */
+window.__rend = rend; window.__passe = passe;
 window.__sfoca = sfoca; window.__dipingi = () => dipingi();
 window.__ao = ao; window.__ombraBanco = ombraBanco; window.__giro = giro;
 
@@ -3299,9 +3616,19 @@ function centroStazione(fam, dove){
    · sugli anelli e' un ANELLO — cinque colonnine, cinque fermate;
    · sugli orecchini e' un NASTRO, e dentro ci stanno tre paia;
    · sulle collane e sui bracciali e' un ESPOSITORE INTERO, uno per pezzo. */
+/* e la lista NON si rifa' ogni volta che qualcuno ne chiede la lunghezza.
+   `limiteN`, `applicaPos` e `scritte` la chiamano dentro il gesto, e ogni
+   chiamata costruiva una matrice nuova — cinque array dentro un array —
+   per leggerne `.length`. Cambia solo quando cambia il numero di pezzi
+   della famiglia, e allora si rifa'. Nessuno la modifica: la si legge e
+   basta (`.length`, `.map`, `.findIndex`, `.indexOf`). */
+const STAZIONI_OREC = [[0,1,2],[3,4,5],[6,7,8]], STAZ = {};
 function stazioni(fam){
-  if(fam === "orecchini") return [[0,1,2],[3,4,5],[6,7,8]];
-  return (merci[fam] || []).map((_, i) => [i]);
+  if(fam === "orecchini") return STAZIONI_OREC;
+  const m = merci[fam] || [];
+  let c = STAZ[fam];
+  if(!c || c.length !== m.length) c = STAZ[fam] = m.map((_, i) => [i]);
+  return c;
 }
 function bancoDi(k){
   const b = banchi[attiva] || [];
@@ -5542,7 +5869,8 @@ const railSugg = document.getElementById("rail-sugg");
 
 function togliInsieme(subito){
   const vuota = () => { ancore = []; accanto.innerHTML = ""; raggioQuadro = 0;
-                        rigaSugg.innerHTML = ""; railSugg.innerHTML = ""; };
+                        rigaSugg.innerHTML = ""; railSugg.innerHTML = "";
+                        misuraCarte(); };
   insieme.hidden = true;
   const vivi = [accanto, rigaSugg, railSugg].filter(e => !e.hidden);
   if(subito || !vivi.length){
@@ -5697,6 +6025,7 @@ function mostraInsieme(){
   /* le carte stanno SOPRA la scena, non dentro: l'inquadratura non si
      allarga piu' — ed e' anche il motivo per cui l'orizzonte non rientra */
   requestAnimationFrame(() => ancore.forEach(a => a.el.classList.add("qui")));
+  misuraCarte();
   document.getElementById("insieme-righe").innerHTML = righe.join("");
   insieme.hidden = false;
 }
@@ -5772,12 +6101,25 @@ function seguiCarte(){
      incastrate in cima. Il recinto e' l'area visibile, misurata: sotto la
      barra dei reparti, sopra il fondo, e a sinistra del pannello. */
   const au = areaUtile();
+  /* ── E LA MISURA DELLA CARTA NON SI RILEGGE OGNI FOTOGRAMMA ─────
+     Erano tre sincronizzazioni di layout per fotogramma per ogni carta —
+     `offsetWidth`, `offsetHeight` e il filo del cartellino — contate col
+     banco _F_ mentre il dito girava il gioiello: 270 letture in 90
+     fotogrammi. Su un telefono ognuna e' un'impaginazione forzata in
+     mezzo al gesto, e sono tre proprio nel momento in cui il ciclo non
+     deve fare altro che disegnare.
+     Una carta cambia misura in due soli momenti — quando nasce e quando
+     le arriva il provino — e tutti e due li dice un `ResizeObserver`
+     (vedi `misuraCarte`). Il filo del cartellino lo porta gia' la banda,
+     misurata con lei. */
   for(const a of ancore){
     const el = a.el;
-    const l = el.offsetWidth / 2, alt = el.offsetHeight / 2;
+    if(a.w === undefined){ a.w = el.offsetWidth; a.h = el.offsetHeight; }
+    const l = a.w / 2, alt = a.h / 2;
     const cielo = larga ? au.y0 + alt + 12 : alt + 50;
     const suolo = larga ? au.y1 - alt - 12
-                        : cartello.getBoundingClientRect().top - alt - 20;
+                        : (au.giuCartello !== undefined ? au.giuCartello : au.y1)
+                          - alt - 20;
     const manca = larga ? au.x0 + l + 12 : l + 12;
     const dritta = larga ? au.x1 - l - 12 : innerWidth - l - 12;
 
@@ -5841,9 +6183,32 @@ function seguiCarte(){
     /* e ci arriva scivolando: la posizione e' un bersaglio, non un ordine */
     if(a.x === null){ a.x = tx; a.y = ty; }
     else { a.x += (tx - a.x) * 0.10; a.y += (ty - a.y) * 0.10; }
-    el.style.left = a.x + "px";
-    el.style.top = a.y + "px";
+    /* E SI SCRIVE SOLO SE CAMBIA. Una posizione che si avvicina al
+       bersaglio del dieci per cento per fotogramma arriva a un decimo di
+       punto e poi continua a muoversi di millesimi: riscrivere `left` e
+       `top` con lo stesso valore arrotondato e' lavoro di impaginazione
+       regalato al browser, per sempre, anche a scena ferma. Mezzo punto
+       e' meta' del piu' piccolo passo che uno schermo a due punti per
+       pixel sappia mostrare. */
+    const px = Math.round(a.x * 2) / 2, py = Math.round(a.y * 2) / 2;
+    if(px !== a.px){ a.px = px; el.style.left = px + "px"; }
+    if(py !== a.py){ a.py = py; el.style.top = py + "px"; }
   }
+}
+/* le carte si rimisurano quando cambiano davvero: nascono senza
+   fotografia e il provino arriva dopo, e quello e' l'unico momento in cui
+   l'altezza si muove. */
+let occhiCarte = null;
+function misuraCarte(){
+  if(!window.ResizeObserver) return;
+  if(!occhiCarte) occhiCarte = new ResizeObserver(voci => {
+    for(const v of voci){
+      const a = ancore.find(x => x.el === v.target);
+      if(a){ a.w = v.target.offsetWidth; a.h = v.target.offsetHeight; }
+    }
+  });
+  occhiCarte.disconnect();
+  for(const a of ancore){ a.w = undefined; occhiCarte.observe(a.el); }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -6129,7 +6494,7 @@ function isolaPezzo(){
      uguali. Senza occlusione le maglie del bracciale non hanno piu' la
      riga d'ombra che le separa e il pezzo diventa una sagoma piatta —
      proprio nel momento in cui lo si sta guardando da vicino. */
-  ao.enabled = !aoSpenta; ao.updateGtaoMaterial(ste ? AO_POSATO : AO_BANCO);
+  ao.enabled = aoAccesa; ao.updateGtaoMaterial(ste ? AO_POSATO : AO_BANCO);
   profondita(2);
   /* QUANTA LUCE SERVE LO DICE IL PEZZO, non il livello.
      Un metallo lucido non ha colore suo: fa vedere quello che gli sta
@@ -6217,7 +6582,7 @@ function mostraTutto(conVela){
      terra, che non c'entra niente con l'espositore. L'ordine conta: prima
      si riaccende tutto, poi si spegne quello che non va acceso. */
   for(const f of FAMIGLIE) (pose[f.id] || []).forEach(o => { if(o) o.visible = false; });
-  ao.enabled = !aoSpenta; ao.updateGtaoMaterial(AO_BANCO); profondita(livello);
+  ao.enabled = aoAccesa; ao.updateGtaoMaterial(AO_BANCO); profondita(livello);
   lampada.intensity = 0;
   scena.environmentIntensity = AMBIENTE;
   rend.shadowMap.enabled = true;
@@ -6625,6 +6990,24 @@ function misuraDita(){
           mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2};
 }
 
+/* ══════════════════════════════════════════════════════════════
+   IL DITO AGGIORNA UN VALORE, IL CICLO DISEGNA UNA VOLTA
+
+   Un telefono campiona il tocco piu' in fretta di quanto disegni: su un
+   iPhone il pannello legge a 120 Hz e lo schermo mostra 60 fotogrammi, e
+   `pointermove` arriva due volte per fotogramma — di piu' se il sistema
+   accumula. Fin qui ogni arrivo rifaceva TUTTO il lavoro del gesto:
+   in selezione la gomma, la posizione e `applicaPos`; sul pezzo l'intera
+   `inquadraPezzo`, che rimisura il quadro e proietta gli otto spigoli
+   della scatola fino a tre volte. Misurato col banco _F_ a due
+   `pointermove` per fotogramma: 90 eventi su 89 fotogrammi disegnati,
+   cioe' meta' di quel lavoro buttato via prima di diventare un pixel.
+   Adesso il dito scrive solo DOVE STA — e la velocita' media, che ha
+   bisogno di ogni campione — e alza una bandierina. Il ciclo la
+   raccoglie una volta per fotogramma, subito prima di muovere la
+   macchina. Quello che si vede e' identico, perche' quello che si vede
+   e' un fotogramma. */
+let gestoSporco = 0;
 stanza.addEventListener("pointerdown", e => {
   dita.set(e.pointerId, {x:e.clientX, y:e.clientY});
   // la cattura del puntatore serve perche' il dito possa uscire dal
@@ -6695,6 +7078,16 @@ stanza.addEventListener("pointermove", e => {
           + ((ultimoX - e.clientX) / (dt / 1000)) * 0.28;
   ultimoX = e.clientX; ultimoT = ora;
 
+  gestoSporco = 1;
+  sveglia();
+});
+
+/* il lavoro del gesto, una volta per fotogramma: lo chiama `gira` prima
+   di muovere la macchina, e il rilascio lo chiama un'ultima volta perche'
+   l'ultimo millimetro di dito non vada perso. */
+function passoDito(){
+  gestoSporco = 0;
+  if(!giu) return;
   if(livello === 0){
     const lim = Math.max(0, LARGO_BANCO/2 - 0.06);
     occhioObiettivo.x = Math.max(-lim, Math.min(lim, partenzaX - mosso*0.0016));
@@ -6753,8 +7146,7 @@ stanza.addEventListener("pointermove", e => {
     altP = Math.max(giu_, Math.min(su_, altGiu - mossoY * 0.0045));
     inquadraPezzo();
   }
-  sveglia();
-});
+}
 
 /* PIZZICARE ALL'INDIETRO E' USCIRE. Allargare le dita avvicina, stringerle
    allontana — e allontanarsi abbastanza vuol dire tornare al quadro di
@@ -6777,6 +7169,11 @@ function chiudiDito(e){
 }
 
 addEventListener("pointerup", e => {
+  /* l'ultimo millimetro di dito non si perde: se e' arrivato un
+     `pointermove` dopo l'ultimo fotogramma, lo si serve adesso — se no il
+     rilascio leggerebbe una posizione vecchia di un fotogramma, che a
+     ventisei punti di velocita' di punta sono ventisei punti di scarto. */
+  if(gestoSporco) passoDito();
   const eraPizzico = !!pizzico;
   const fermava = giu && giu.fermava;
   chiudiDito(e);
@@ -7179,12 +7576,42 @@ function gira(ora){
   // e non puo' mai essere NEGATIVO: l'orologio dei fotogrammi e' monotono,
   // ma il banco di prova pilota il moto a mano e li' un passo all'indietro
   // faceva TORNARE INDIETRO il colore a meta' passaggio
+  /* e il passo GREZZO — quello vero, senza tetto — e' il solo numero che
+     dica se un fotogramma e' andato lungo: e' quello che legge il
+     monitor, in fondo al ciclo. Il `dt` limitato serve alle molle, non
+     alla diagnosi. */
+  const grezzo = ultimoFrame ? ora - ultimoFrame : 0;
   const dt = ultimoFrame
     ? Math.max(0, Math.min(0.034, (ora - ultimoFrame) / 1000)) : 0.016;
   ultimoFrame = ora;
 
   // da quanto nessuno tocca: si somma qui, un fotogramma per volta
   if(giu || pizzico) etaFerma = 0; else etaFerma += dt;
+
+  /* IL GESTO SI SERVE QUI, e prima di tutto il resto: quello che il dito
+     ha scritto dall'ultimo fotogramma diventa il bersaglio della
+     macchina, una volta sola, e subito dopo la macchina ci si mette. */
+  if(gestoSporco) passoDito();
+
+  /* ── SOTTO IL DITO SI DISEGNA A MENO PIXEL ─────────────────────
+     Mentre il dito e' giu' — e finche' la molla del rilascio corre forte —
+     la tela scende a sette decimi di lato, cioe' a meta' dei pixel. Non
+     e' un compromesso sulla qualita': e' la stessa scelta che fa
+     qualunque visualizzatore 3D, perche' quello che si sta guardando in
+     quel momento si sta MUOVENDO, e su un'immagine in movimento la
+     nitidezza non si legge — la cadenza si'.
+     Si torna pieni in due fotogrammi, con un gradino in mezzo: un salto
+     unico da 0,7 a 1 su un'immagine ormai ferma si vede come uno scatto
+     di messa a fuoco. Il ciclo non si spegne finche' non ci e' tornato
+     (vedi `fermo`, in fondo), o l'ultimo fotogramma resterebbe sgranato. */
+  const inGesto = giu !== null || pizzico
+    || Math.abs(posV) > 0.9 || Math.abs(giroV) > 0.9;
+  if(inGesto){ gestoScala = scalaSottoIlDito(); ripresaGesto = 0; }
+  else if(gestoScala < 1){
+    ripresaGesto++;
+    gestoScala = ripresaGesto >= 2 ? 1 : (gestoScala + 1) / 2;
+  }
+  risoluzione();
 
   passoVela(dt);
   /* ── LA FINESTRA SI SEGUE, NON SI RINCORRE A SCATTI ────────────
@@ -7385,6 +7812,7 @@ function gira(ora){
   dipingi();
 
   const fermo = vesteT >= 1
+             && gestoScala >= 1
              && !velaVerso
              && !posaMobile
              && !seguiFinestra
@@ -7399,6 +7827,7 @@ function gira(ora){
      fotogrammi in quindici secondi di scena immobile. Il dondolo ha una
      vita, e quando e' finita il livello del pezzo si ferma come tutti
      gli altri — il prossimo tocco lo risveglia. */
+  monitor(ora, grezzo);
   if(!fermo || giu !== null || pizzico || (livello === 2 && dondoloVivo))
     vivo = requestAnimationFrame(gira);
   else { vivo = 0; pos = posMeta; posV = 0; ultimoFrame = 0; }
@@ -7490,7 +7919,9 @@ menoMoto.addEventListener("change", e => {
 
 addEventListener("resize", ()=>{
   rend.setSize(innerWidth, innerHeight);
-  passe.setSize(innerWidth, innerHeight);
+  /* e i bersagli delle passate li rimette `risoluzione`, che e' l'unico
+     posto dove si sa a quanti pixel si sta disegnando adesso */
+  risoluzione(true);
   camera.aspect = innerWidth/innerHeight;
   camera.updateProjectionMatrix();
   /* ── PRIMA L'IMPIANTO, POI L'INQUADRATURA ─────────────────────
@@ -7507,9 +7938,10 @@ addEventListener("resize", ()=>{
   /* e con lei la banda ferma del pezzo: uno schermo che cambia misura e'
      l'altro dei due momenti in cui la banda cambia per davvero */
   bandaPezzo = null;
+  scadeArea();
   const eraLarga = larga;
   larga = LARGO.matches;
-  if(larga !== eraLarga){ sistemaImpianto(); applicaCarta(); }
+  if(larga !== eraLarga){ sistemaImpianto(); applicaCarta(); scadeArea(); }
   adattaTitolo();
   if(livello === 0) vaiAlBanco(true);
   else if(livello === 1){ inquadraFamiglia(); applicaPos(false); }
