@@ -3,9 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>OK</title>
-  <meta name="description" content="L'universo OK. Presto qui." />
-  <meta name="robots" content="noindex" />
+  <title>OK — comunicazione, identità e insegne a San Severo</title>
+  <meta name="description" content="OK è la casa di comunicazione di Massimo Irmici a San Severo, in Capitanata: identità di marca, grafica, insegne LED, eventi e presenza digitale. Tu chiedi, OK risponde: OK." />
+  <!-- 13/09/2026 — qui c'era <meta name="robots" content="noindex">: diceva a
+       ogni motore e a ogni assistente di ignorare il sito. Su una pagina
+       «stiamo arrivando» sembra innocuo, ma è il motivo per cui OK non
+       esisteva per nessuno. Una cosa che esiste va lasciata trovare. -->
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://okmondo.com/" />
   <meta name="theme-color" content="#EDEDE6" />
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -16,6 +21,80 @@
   <meta property="og:description" content="L'universo OK. Presto qui." />
   <meta property="og:image" content="/og.png" />
   <meta property="og:type" content="website" />
+
+  <!-- La scheda che le persone non vedono e le macchine leggono. È lo
+       standard schema.org: lo leggono allo stesso modo Google, ChatGPT,
+       Claude e Perplexity. Senza, un assistente deve dedurre chi siamo dal
+       testo, e quando deduce sbaglia o tace. Ogni dato qui è vero. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "OK",
+    "legalName": "Hakuna Matata di Irmici Massimo",
+    "alternateName": "OK.mondo",
+    "description": "Casa di comunicazione a San Severo, in Capitanata: identità di marca, grafica, insegne LED al neon, organizzazione eventi, presenza digitale e siti. Risultati di livello senior resi possibili da un'infrastruttura di agenti AI.",
+    "url": "https://okmondo.com/",
+    "telephone": "+39 320 859 9301",
+    "email": "irmicimassimo2000@gmail.com",
+    "vatID": "IT04399620717",
+    "foundingDate": "2022-02-22",
+    "founder": { "@type": "Person", "name": "Massimo Irmici", "jobTitle": "Direttore creativo" },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "San Severo",
+      "addressRegion": "FG",
+      "addressCountry": "IT"
+    },
+    "areaServed": [
+      { "@type": "AdministrativeArea", "name": "Capitanata" },
+      { "@type": "AdministrativeArea", "name": "Provincia di Foggia" },
+      { "@type": "AdministrativeArea", "name": "Puglia" }
+    ],
+    "knowsLanguage": "it",
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Servizi",
+      "itemListElement": [
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Identità di marca e logo system" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Grafica per eventi e materiali di comunicazione" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Insegne LED al neon su misura" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Organizzazione e comunicazione di eventi" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Siti, landing page e software su misura" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Visibilità sugli assistenti AI" } }
+      ]
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Di cosa si occupa OK?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Identità di marca, grafica, insegne LED al neon, comunicazione e organizzazione di eventi, siti e software su misura. Tutto quello che serve a un'attività per farsi riconoscere e scegliere." }
+      },
+      {
+        "@type": "Question",
+        "name": "Dove si trova OK?",
+        "acceptedAnswer": { "@type": "Answer", "text": "A San Severo, in provincia di Foggia. Lavora in tutta la Capitanata e sul Gargano per le insegne e gli eventi; per il resto senza limiti di distanza." }
+      },
+      {
+        "@type": "Question",
+        "name": "Come si contatta OK?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Al numero +39 320 859 9301, anche su WhatsApp, oppure scrivendo a irmicimassimo2000@gmail.com." }
+      },
+      {
+        "@type": "Question",
+        "name": "Chi c'è dietro OK?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Massimo Irmici, direttore creativo. L'attività è aperta dal 22 febbraio 2022 come Hakuna Matata di Irmici Massimo, partita IVA 04399620717." }
+      }
+    ]
+  }
+  </script>
 
   <style>
     :root { --rosso:#E20612; --beige:#EDEDE6; --nero:#1A1A1A; --muto:#6b6b66; }
@@ -35,6 +114,11 @@
     }
     h1 { font-size:clamp(28px,6vw,46px); font-weight:800; letter-spacing:-1.5px; line-height:1.04; }
     p { font-size:clamp(15px,3.5vw,18px); color:var(--muto); max-width:32ch; line-height:1.5; }
+    .dice { font-size:clamp(13.5px,3vw,15px); max-width:44ch; line-height:1.62; }
+    .dice strong { color:var(--nero); font-weight:600; }
+    .dice a { color:var(--nero); text-decoration:none; border-bottom:1px solid rgba(26,26,26,.28); }
+    .dice a:hover, .dice a:focus-visible { border-bottom-color:var(--rosso); color:var(--rosso); }
+    :focus-visible { outline:2px solid var(--rosso); outline-offset:3px; }
     .dot { display:inline-block; width:8px; height:8px; border-radius:50%;
       background:var(--rosso); margin-right:9px; vertical-align:middle;
       animation:pulse 1.6s ease-in-out infinite; }
@@ -55,7 +139,20 @@
     </svg>
     <h1>Stiamo arrivando.</h1>
     <p><span class="dot"></span>L'universo OK, presto qui.</p>
+
+    <!-- Otto parole non bastano a nessuno: né a una persona che capita qui
+         per caso, né a un assistente a cui qualcuno chiede chi siamo. Il
+         tono resta quello, il contenuto c'è. -->
+    <p class="dice">
+      OK è la casa di comunicazione di <strong>Massimo Irmici</strong> a
+      <strong>San Severo</strong>, in Capitanata. Identità di marca, grafica,
+      insegne LED al neon, eventi, siti e presenza digitale.
+    </p>
+    <p class="dice">
+      Nel frattempo si lavora: <a href="tel:+393208599301">+39 320 859 9301</a>
+      &nbsp;·&nbsp; <a href="mailto:irmicimassimo2000@gmail.com">irmicimassimo2000@gmail.com</a>
+    </p>
   </main>
-  <div class="foot">okmondo.com</div>
+  <div class="foot">okmondo.com &nbsp;·&nbsp; San Severo (FG)</div>
 </body>
 </html>
