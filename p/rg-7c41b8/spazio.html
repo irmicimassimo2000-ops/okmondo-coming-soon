@@ -2095,7 +2095,25 @@ function sistemaImpianto(){
    una volta sola; il ridimensionamento la butta via, perche' dipende
    dalla tacca e la tacca coricando il telefono cambia lato. */
 let codaAlto = null;
-function areaUtile(){
+/* ── LA BANDA SI FERMA QUANDO LA MACCHINA PARTE ──────────────────
+   Il cartellino non cambia forma di scatto: `#fondo` transisce il suo
+   padding in 0,18 s e il blocco dei suggerimenti si ritira in 0,22 s.
+   Misurato al tocco di un pezzo (telefono 390): la banda finisce a 672,
+   subito dopo il tocco vale 652 e torna a 677 nel mezzo secondo dopo —
+   il suo CENTRO si sposta di dodici punti, e l'inquadratura del pezzo,
+   che si rifaceva a ogni fotogramma, lo inseguiva. E' uno dei due
+   secondi movimenti che il cliente vedeva: il gioiello si ferma, e poi
+   si sposta ancora.
+   Un volo si decide PRIMA di partire. Entrando nel pezzo la banda si
+   ferma sul valore che aveva al tocco e resta quella per tutta la
+   permanenza. Costa 5 punti di bordo contro la banda finale — 2,5 sul
+   centro, cioe' lo 0,4 per cento dell'altezza della banda, dove _I5
+   concede il 2 — e li costa FERMI, che e' tutta la differenza. La si
+   rilegge solo quando cambia per davvero: la scheda che si apre, lo
+   schermo che si ridimensiona. */
+let bandaPezzo = null;
+function areaUtile(){ return bandaPezzo || misuraArea(); }
+function misuraArea(){
   if(larga){
     const p = fondo.getBoundingClientRect();
     const m = document.getElementById("menu").getBoundingClientRect();
@@ -2160,7 +2178,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perche' il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova e' una correzione che non arriva. */
-const VERSIONE = "2026-09-13b";
+const VERSIONE = "2026-09-13d";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non e' zero, e' un ReferenceError, e un ReferenceError li'
@@ -3658,6 +3676,7 @@ function vaiAlBanco(subito){
   for(const f of FAMIGLIE) (banchi[f.id] || []).forEach(g => {
     if(CASA[f.id] !== undefined) g.position.x = CASA[f.id]; });
   livello = 0; attiva = null; scelto = -1;
+  voloAlPezzo = false; bandaPezzo = null;
   tocco(); if(!subito) lampo();
   mostraTutto();
   azzeraPizzico();
@@ -3694,6 +3713,7 @@ function entra(id){
   for(const f of FAMIGLIE) (banchi[f.id] || []).forEach(g => {
     if(CASA[f.id] !== undefined) g.position.x = CASA[f.id]; });
   livello = 1; attiva = id; indice = 0; scelto = -1;
+  voloAlPezzo = false; bandaPezzo = null;
   tocco(); lampo();
   pos = posMeta = posGiu = 0; posV = 0; velDito = 0;
   azzeraPizzico();
@@ -3862,6 +3882,13 @@ function inquadraFamiglia(){
    Non c'e' nessuna fotografia di mezzo. E' lo STESSO oggetto che stava sul
    mobile un istante fa, e si vede che e' lo stesso. */
 let giroP = 0, altP = 0.12, raggioP = 0.02;
+/* IL QUADRO DECISO AL TOCCO: la distanza e lo scarto della banda. Sono
+   il risultato di una MISURA (due passate largo, tre sulla banda
+   stretto) e si calcolano una volta sola, prima che la molla parta. */
+let quadroD = 0, quadroSc = 0;
+/* VERO DAL TOCCO FINO ALL'ARRIVO. Finche' e' vero il bersaglio non lo
+   sposta nessuno: niente correzioni ritardate, niente dondolo. */
+let voloAlPezzo = false;
 const boxP = new THREE.Box3();
 /* la scatola dell'espositore, riusata: si riscrive a ogni inquadratura di
    famiglia e non si alloca niente dentro un conto che il ridimensionamento
@@ -3879,6 +3906,16 @@ function apriPezzo(k){
   livello = 2; scelto = k;
   tocco(); lampo();
   azzeraPizzico();
+  /* ── DA QUI IL BERSAGLIO E' CHIUSO ─────────────────────
+     La banda si ferma PRIMA che il cartellino cambi testo e si ritiri
+     (vedi `areaUtile`), e `voloAlPezzo` chiude la porta a tutti: alla
+     riquadratura ritardata della scheda, al dondolo, a chiunque voglia
+     spostare la mira a volo iniziato. Meta' del verdetto del cliente —
+     «incoerenza fra la posizione di partenza e quella di fine» —
+     nasceva qui: il bersaglio cambiava mentre la molla volava. L'altra
+     meta' e' il pezzo che cambia POSA (vedi `avviaPosa`). */
+  bandaPezzo = misuraArea();
+  voloAlPezzo = true;
   /* DA CHE ALTEZZA SI GUARDA IL PEZZO DA SOLO. Un gioiello che sta in
      piedi lo si guarda quasi in faccia; uno STESO si guarda di SOPRA.
      Avevo scritto quaranta gradi per paura di appiattirlo, ed era il
@@ -3888,6 +3925,15 @@ function apriPezzo(k){
      «45 cm». A settanta gradi il seno vale 0,94 e il rapporto resta.
      E' anche l'alzata con cui i cataloghi fotografano una catena stesa:
      la posa serve a mostrare lo SVILUPPO. */
+  /* E QUESTO NON E' UNO SCATTO. `giroP` non e' la rotazione del pezzo a
+     schermo: e' l'azimut a cui la macchina si mettera' ATTORNO al pezzo,
+     cioe' il bersaglio. A zero vale «da davanti», che e' esattamente la
+     direzione da cui la macchina sta gia' guardando l'espositore — la
+     rotazione a schermo, quindi, non cambia di un grado nel fotogramma
+     del tocco. Il dondolo invece parte da fermo e resta fermo finche' il
+     volo non e' finito (vedi `voloAlPezzo` nel ciclo): misurato prima,
+     giroP saliva a 0,027 rad durante il volo e a 0,095 dopo due secondi
+     e mezzo, e quella deriva spostava il bersaglio a ogni fotogramma. */
   giroP = 0; dondolo = 0; giroBase = 0; giroV = 0;
   altP = stesa(attiva, k) ? 1.22 : 0.12;
   cartello.classList.add("pezzo");
@@ -3906,7 +3952,11 @@ function apriPezzo(k){
   raggioP = Math.max(0.004, b.getSize(new THREE.Vector3()).length() / 2);
   // qui il taglio netto E' giusto: le carte si rifanno due righe piu' giu'
   togliInsieme(true);
-  inquadraPezzo();
+  /* E QUI NON SI INQUADRA PIU'. Si inquadrava due volte — una adesso e
+     una dopo il cartellino — a qualche fotogramma di distanza: due
+     bersagli sono due voli, e il secondo parte da dove il primo stava
+     passando. Prima si scrive tutto quello da cui il quadro dipende, poi
+     lo si decide UNA volta, in fondo. */
   const r = RIPIANI[attiva][scelto] || ["", "", ""];
   /* E QUI LA RIGA DICEVA LA COSA SBAGLIATA. «tocca fuori per uscire»:
      l'unica istruzione data sul pezzo era come ANDARSENE, e non si
@@ -3922,12 +3972,20 @@ function apriPezzo(k){
   mostraInsieme();
   fondo.classList.add("apribile");
   scheda(true);
-  inquadraPezzo();
   accogli(dietro);
+  /* ── ADESSO, E UNA VOLTA SOLA ────────────────────────
+     Tutto quello da cui il quadro dipende e' gia' a posto: la posa, la
+     scatola del pezzo, il testo del cartellino, il tasto «indietro»
+     nella testata. Da questa riga fino all'arrivo il bersaglio e' quello
+     e basta. */
+  inquadraPezzo();
+  /* e la posa si stacca DOPO che il bersaglio esiste: viaggia con la
+     macchina, e per farlo deve sapere quanta strada la macchina ha */
+  avviaPosa(-1);
   sveglia();
 }
 
-function inquadraPezzo(){
+function inquadraPezzo(soloGiro){
   /* si inquadra sulla SFERA del pezzo, e sul lato PIU' STRETTO dello
      schermo: in verticale e' la larghezza a tagliare, e una creola da 18 mm
      inquadrata sull'altezza uscirebbe mozza ai fianchi. */
@@ -3989,6 +4047,20 @@ function inquadraPezzo(){
     const lt = scostaDiLato(dd, giroP);
     if(lt){ occhioObiettivo.add(lt); miraObiettivo.add(lt); }
   };
+  /* ── IL DONDOLO GIRA, NON RIQUADRA ─────────────────────
+     Chiamata con `soloGiro` la funzione non ridecide niente: rimette la
+     macchina attorno al pezzo con la distanza e lo scarto gia' decisi,
+     al giro di adesso. Serve al dondolo, che al livello del pezzo passa
+     di qui sessanta volte al secondo per dodici secondi.
+     Misurato prima di questa riga, col banco _T_: il bersaglio si
+     spostava di 0,0002-0,0003 metri a OGNI fotogramma, su tutte e cinque
+     le famiglie, per tutti i dodici secondi del dondolo — perche'
+     `centraSullaBanda` rifaceva il conto su un rettangolo che il giro
+     stava ruotando. Un bersaglio che non sta mai fermo non e' un
+     bersaglio. Il dondolo e' un'oscillazione della MACCHINA attorno al
+     soggetto: il soggetto non si deve muovere di un punto, e adesso fra
+     gli 800 ms e i due secondi e mezzo si sposta di 0,03-0,67 punti. */
+  if(soloGiro && quadroD){ piazza(quadroD, quadroSc); return; }
   piazza(d, scartoBase(d));
   /* ── E POI SI MISURA, INVECE DI FIDARSI ───────────────────
      Il conto qui sopra inquadra una SFERA, e per la posa stesa nemmeno
@@ -4019,7 +4091,10 @@ function inquadraPezzo(){
      larga quanto la tela (vedi `fetteUtili`) e il pezzo puo' stare in
      overlap sulle schede - quello che non puo' fare e' restare appeso in
      cima con mezzo schermo di crema sotto. */
-  centraSullaBanda(boxP, d, mezzoV, scartoBase(d), sc => piazza(d, sc));
+  const scFine = centraSullaBanda(boxP, d, mezzoV, scartoBase(d), sc => piazza(d, sc));
+  /* e il quadro si RICORDA: da qui in poi il dondolo lo riusa invece di
+     ricalcolarlo (vedi `soloGiro` qui sopra) */
+  quadroD = d; quadroSc = scFine === undefined ? scartoBase(d) : scFine;
 }
 
 /* ── IL SOGGETTO SI CENTRA SULLA BANDA, MISURANDO ──────────────
@@ -4602,20 +4677,15 @@ function apriCarta(fam, k){
   misuraCarta();
   inquadraNellaFinestra();
   rifaiFinestra();
-  /* ── E SI RIFA' QUANDO TUTTO SI E' POSATO ─────────────────────
-     L'inquadratura della finestra si calcola sul bersaglio della
-     macchina, e il bersaglio dipende dallo SCARTO, che si misura sul
-     cartellino: nei primi due decimi di secondo il cartellino si sta
-     ancora ritirando e l'altezza della carta si sta ancora assestando
-     (0,22 s di ritiro, 0,34 s di altezza). Misurato senza questa riga:
-     il pezzo restava 27 punti piu' in basso del centro della finestra —
-     dentro, ma non centrato. Due correzioni, a ritiro finito e ad
-     altezza finita, e non si vedono: spostano solo un bersaglio verso
-     cui la molla sta gia' andando. */
-  clearTimeout(apriCarta.__posa1); clearTimeout(apriCarta.__posa2);
-  apriCarta.__posa1 = setTimeout(inquadraNellaFinestra, 240);
-  apriCarta.__posa2 = setTimeout(() => { inquadraNellaFinestra();
-                                         rifaiFinestra(); }, 480);
+  /* ── E SI SEGUE FINCHE' NON SI E' POSATO ──────────────────────
+     L'inquadratura della finestra si calcola sul riquadro impaginato, e
+     nei primi mezzo secondo il riquadro si sta ancora impaginando: la
+     carta entra scalata, il cartellino si ritira in 0,22 s e l'altezza
+     si assesta in 0,34. Erano due correzioni ritardate, a 240 e a 480
+     ms — due strappi in mezzo a un volo. Adesso si segue il riquadro a
+     ogni fotogramma finche' si muove (vedi il ciclo): una strada sola,
+     dal punto in cui sta il pezzo al centro della finestra. */
+  seguiFinestra = SEGUI_S;
 }
 
 /* SI CHIUDE COME SI E' APERTA, PIU' IN FRETTA. Prima: `hidden = true`, e
@@ -4639,7 +4709,7 @@ function chiudiCarta(){
      invece si toglie subito: un velo che sta svanendo con un foro dentro
      lascia una macchia chiara per due decimi di secondo. */
   zoomMeta = 1; panMetaX = 0; panMetaY = 0;
-  clearTimeout(apriCarta.__posa1); clearTimeout(apriCarta.__posa2);
+  seguiFinestra = 0;
   veloCarta.style.clipPath = fronteCarta.style.clipPath = "";
   strisciaFoto.hidden = true;
   sveglia();
@@ -5052,6 +5122,13 @@ function quadroDelPezzo(){
 }
 
 const MARGINE_FINESTRA = 0.12;
+/* PER QUANTO SI SEGUE IL RIQUADRO. Mezzo secondo e' quanto ci mette la
+   piu' lenta delle tre cose che lo muovono (l'altezza della carta, 0,34
+   s) piu' il margine di un'impaginazione. Si conta in secondi di CICLO,
+   non con un orologio: il banco di prova pilota il tempo a mano, e un
+   `setTimeout` li' non scatterebbe mai. */
+const SEGUI_S = 0.52;
+let seguiFinestra = 0;
 function inquadraNellaFinestra(){
   /* largo non c'e' nessuna finestra in cui riquadrare (vedi
      `aggiornaFinestra`): il prestito si restituisce e si esce. Senza
@@ -5123,19 +5200,16 @@ function applicaCarta(){
   document.documentElement.dataset.carta = carta;
   if(!cartaPezzo.hidden){
     vestiStriscia();
-    clearTimeout(apriCarta.__posa1); clearTimeout(apriCarta.__posa2);
+    seguiFinestra = 0;
     if(carta === "foto"){ zoomMeta = 1; panMetaX = panMetaY = 0; }
     else {
       inquadraNellaFinestra();
       /* cambiando variante al volo la carta cambia forma — la finestra
          si stacca dal bordo, la striscia compare, l'altezza si rifa' — e
          per due o tre decimi di secondo il riquadro non e' ancora dove
-         sara'. Misurato senza queste due righe: il pezzo finiva 7 punti
-         SOTTO il bordo basso della finestra. Sono le stesse due
-         correzioni dell'apertura. */
-      apriCarta.__posa1 = setTimeout(inquadraNellaFinestra, 240);
-      apriCarta.__posa2 = setTimeout(() => { inquadraNellaFinestra();
-                                             rifaiFinestra(); }, 480);
+         sara'. Misurato senza questa riga: il pezzo finiva 7 punti SOTTO
+         il bordo basso della finestra. Si segue, come all'apertura. */
+      seguiFinestra = SEGUI_S;
     }
     misuraCarta();
   }
@@ -5797,8 +5871,14 @@ function seguiCarte(){
      programma: cambiata senza `needsUpdate` il materiale resta compilato
      come opaco e l'opacita' non si vede affatto.
    ══════════════════════════════════════════════════════════════ */
-const VELA_S = 0.42;                 // dura quanto il volo, non di piu'
-let velaLista = [], velaT = 1, velaVerso = 0;
+/* DURA MENO DEL VOLO, E DEVE. Erano 0,42 s: misurato, l'espositore
+   spariva a 433 ms su un volo che ne dura 600, cioe' al 72 per cento
+   della strada — il pezzo si «staccava» quando era gia' quasi arrivato,
+   e il mobile gli restava addosso per tutto il viaggio. A 0,30 sparisce
+   a 300 ms, cioe' a meta' volo: il gioiello si stacca MENTRE si avvicina,
+   che e' il gesto del gioielliere che lo tira fuori. */
+const VELA_S = 0.30;
+let velaLista = [], velaContro = [], velaT = 1, velaVerso = 0;
 
 // le mesh dell'espositore: tutto quello che e' acceso e NON e' il pezzo
 // che si sta portando davanti
@@ -5825,29 +5905,46 @@ function rendiMateriali(lista){
     o.renderOrder = 0;
   }
 }
-function avviaVela(lista, verso){
-  if(velaVerso) rendiMateriali(velaLista);
-  velaLista = lista; velaVerso = verso;
+/* le mesh di un oggetto solo: serve per la CONTROVELA, cioe' la posa */
+function mesiDi(o){
+  const out = [];
+  o.traverse(m => { if(m.isMesh && m.material) out.push(m); });
+  return out;
+}
+/* ── LA VELA HA DUE META' ────────────────────────────────────────
+   `lista` e' chi segue il verso, `contro` chi fa l'opposto nello stesso
+   istante. Serve per le famiglie con la posa: il busto si spegne e la
+   collana stesa si accende, sulla stessa curva e nello stesso tempo. Con
+   la posa accesa di colpo a opacita' piena — com'era — nel fotogramma
+   del tocco il gioiello compariva 354 punti piu' in basso di dov'era, e
+   quello e' il salto che il cliente ha visto. */
+function avviaVela(lista, verso, contro){
+  if(velaVerso){ rendiMateriali(velaLista); rendiMateriali(velaContro); }
+  velaLista = lista; velaContro = contro || []; velaVerso = verso;
   velaT = verso < 0 ? 1 : 0;
-  for(const o of lista){
+  for(const o of velaLista.concat(velaContro)){
     const m = o.material;
     if(m.__opBase === undefined){
       m.__opBase = m.opacity; m.__trBase = m.transparent; m.__dwBase = m.depthWrite;
     }
     if(!m.transparent){ m.transparent = true; m.needsUpdate = true; }
     m.depthWrite = false;
-    m.opacity = velaT;
     o.renderOrder = 2;
     o.visible = true;
   }
+  for(const o of velaLista) o.material.opacity = velaT;
+  for(const o of velaContro) o.material.opacity = controDi(velaT);
   if(ridotto) chiudiVela();          // meno movimento: si salta, non si vela
   sveglia();
 }
 function chiudiVela(){
   const spento = velaVerso < 0;
-  rendiMateriali(velaLista);
+  rendiMateriali(velaLista); rendiMateriali(velaContro);
   for(const o of velaLista) o.visible = !spento;
-  velaVerso = 0; velaLista = [];
+  /* la controvela e' l'altra meta' dello stesso gesto: quando
+     l'espositore si spegne, la posa resta accesa — e viceversa */
+  for(const o of velaContro) o.visible = spento;
+  velaVerso = 0; velaLista = []; velaContro = [];
   /* E QUI RITORNAVA IL PEZZO TOLTO. La riga sopra riaccende ogni mesh
      che la vela stava velando, e fra quelle c'e' anche la merce degli
      altri pezzi: misurato, il pezzo rimosso spariva e riappariva
@@ -5865,6 +5962,147 @@ function passoVela(dt){
   // scatto e non si ferma di scatto
   const e = velaT * velaT * (3 - 2 * velaT);
   for(const o of velaLista) if(o.material) o.material.opacity = e;
+  for(const o of velaContro) if(o.material) o.material.opacity = controDi(velaT);
+}
+/* ── LA META' CHE ENTRA NON ASPETTA LA META' CHE ESCE ───────────
+   In una dissolvenza incrociata simmetrica, per meta' del tempo non c'e'
+   un soggetto: ce ne sono due a meta' opacita'. Va benissimo quando i
+   due stanno nello stesso posto — il ritorno, dove la posa scivola sul
+   pezzo indossato — e va male all'andata, dove il busto se ne vola via
+   con la macchina mentre la posa scende: per un terzo di secondo l'occhio
+   non sa piu' quale dei due sta guardando.
+   Quindi all'ANDATA la posa diventa solida nel primo 40 per cento della
+   vela (120 ms sui 300), cioe' finche' e' ancora vicina a dov'era il
+   pezzo: da li' in poi c'e' un soggetto solo, e fa una strada sola. Al
+   RITORNO la dissolvenza resta simmetrica, perche' li' i due si
+   incontrano invece di separarsi. */
+function controDi(t){
+  const e = t * t * (3 - 2 * t);
+  return velaVerso < 0 ? Math.min(1, (1 - e) / 0.40) : 1 - e;
+}
+
+/* ── LA POSA NON APPARE ALTROVE: SI STACCA DAL PEZZO ─────────────
+   Per il busto e per la rampa il pezzo cambia POSA quando lo si prende:
+   la collana indossata lascia il posto alla collana stesa, che sta sul
+   ripiano, mezzo schermo piu' in basso. Misurato: 354 punti per il
+   busto, 154 per la rampa, percorsi in UN fotogramma, prima che la
+   macchina si fosse mossa di un millimetro. E' il salto vero del
+   verdetto — il pezzo parte da un punto, ricompare in un altro, e solo
+   dopo il volo lo riporta indietro.
+   Provate tutte e due le strade chieste, e misurate:
+   · mirare a un punto che passa con continuita' dall'una all'altra non
+     toglie niente, perche' a saltare non e' la MIRA: e' l'oggetto;
+   · far ENTRARE la posa dove sta quella indossata azzera il salto (0
+     punti contro 354), e in piu' racconta una cosa vera — il gioiello
+     si stacca dal busto e si posa mentre la macchina si avvicina.
+   Si sceglie la seconda. La posa parte dal centro del pezzo indossato,
+   si accende con la controvela mentre l'espositore si spegne, e scivola
+   a casa sua CON LA MACCHINA: la frazione di strada che ha fatto la
+   molla e' la stessa frazione che ha fatto lei. Un tempo suo sarebbe un
+   secondo movimento, ed e' esattamente quello che si sta togliendo. */
+/* ── E LA STRADA SI DISEGNA SULLO SCHERMO, NON NEL MONDO ────────
+   Primo tentativo, misurato: si spostava la posa nel MONDO, dal centro
+   del pezzo indossato a casa sua, con la stessa frazione di strada fatta
+   dalla macchina. Sulla carta e' una strada sola; a schermo no. La
+   macchina all'inizio corre (una molla critica fa il trenta per cento
+   del cammino nei primi due decimi) e si tira dietro tutto verso l'alto,
+   mentre la posa scende piano: misurata, la collana saliva da 264 a 187
+   punti e poi tornava giu' a 362 — una inversione, cioe' di nuovo due
+   movimenti.
+   Quindi la strada si scrive dove il cliente la guarda: SULLO SCHERMO.
+   Due punti fissi — dov'era il pezzo indossato al tocco, e dove la posa
+   si fermera' (proiettata con la macchina ARRIVATA, che si conosce gia'
+   perche' il bersaglio e' chiuso) — e in mezzo una curva sola. A ogni
+   fotogramma si guarda dove cadrebbe la posa a casa sua, si vede di
+   quanti punti manca, e si sposta di quei punti. All'arrivo lo scarto e'
+   zero per costruzione, e la posa e' esattamente a casa. */
+let posaMobile = null, posaVia = 0;
+const posaA = new THREE.Vector3(), posaS0 = new THREE.Vector2(),
+      posaS1 = new THREE.Vector2(),
+      _pBox = new THREE.Box3(), _pCw = new THREE.Vector3(),
+      _pCp = new THREE.Vector3(), _pInv = new THREE.Matrix4(),
+      _pZero = new THREE.Vector3(), _pPro = new THREE.Vector3(),
+      _pDes = new THREE.Vector3(), _pAsse = new THREE.Vector3();
+/* dove cade un punto del mondo, con la macchina ARRIVATA: `_camMisura`
+   e' gia' apparecchiata sul bersaglio da `riquadroSulBersaglio` */
+function schermoArrivo(punto, fuori){
+  _camMisura.fov = camera.fov; _camMisura.aspect = camera.aspect;
+  _camMisura.near = camera.near; _camMisura.far = camera.far;
+  _camMisura.up.copy(camera.up);
+  _camMisura.position.copy(occhioObiettivo);
+  _camMisura.lookAt(miraObiettivo);
+  _camMisura.updateMatrixWorld(true);
+  _camMisura.updateProjectionMatrix();
+  _pPro.copy(punto).project(_camMisura);
+  return fuori.set((_pPro.x * 0.5 + 0.5) * innerWidth,
+                   (-_pPro.y * 0.5 + 0.5) * innerHeight);
+}
+function fermaPosa(){
+  /* SI TORNA SEMPRE A CASA, anche al ritorno: la posa e' un oggetto del
+     modello, e lasciarla spostata vorrebbe dire trovarla fuori posto la
+     volta dopo. Al ritorno e' trasparente da un pezzo, e non si vede. */
+  if(posaMobile) posaMobile.position.copy(posaA);
+  posaMobile = null; posaVia = 0;
+}
+function avviaPosa(verso){
+  fermaPosa();
+  const ste = stesa(attiva, scelto), ind = (merci[attiva] || [])[scelto];
+  if(!ste || !ind || ridotto) return;
+  scena.updateMatrixWorld(true);
+  _pBox.setFromObject(ind); if(_pBox.isEmpty()) return; _pBox.getCenter(_pCw);
+  _pBox.setFromObject(ste); if(_pBox.isEmpty()) return; _pBox.getCenter(_pCp);
+  posaA.copy(ste.position);          // casa sua, sul ripiano
+  /* i due capi della strada, in punti di schermo. All'andata si parte da
+     dove sta il pezzo indossato ADESSO e si arriva dove la posa cadra'
+     con la macchina arrivata; al ritorno esattamente al contrario. */
+  if(verso < 0){
+    _pPro.copy(_pCw).project(camera);
+    posaS0.set((_pPro.x * 0.5 + 0.5) * innerWidth,
+               (-_pPro.y * 0.5 + 0.5) * innerHeight);
+    schermoArrivo(_pCp, posaS1);
+  } else {
+    _pPro.copy(_pCp).project(camera);
+    posaS0.set((_pPro.x * 0.5 + 0.5) * innerWidth,
+               (-_pPro.y * 0.5 + 0.5) * innerHeight);
+    schermoArrivo(_pCw, posaS1);
+  }
+  _pInv.copy(ste.parent.matrixWorld).invert();
+  _pZero.set(0, 0, 0).applyMatrix4(_pInv);
+  posaMobile = ste;
+  posaVia = occhio.distanceTo(occhioObiettivo);
+  passoPosa();                       // in posto subito, senza un fotogramma di scarto
+  sveglia();
+}
+function passoPosa(){
+  if(!posaMobile) return;
+  /* la frazione di volo gia' fatta dalla macchina: e' lei l'orologio.
+     Un tempo suo sarebbe un secondo movimento, ed e' quello che si sta
+     togliendo. Sotto un millimetro di strada non c'e' niente da
+     accompagnare. */
+  const q = posaVia > 0.001
+    ? Math.max(0, Math.min(1, 1 - occhio.distanceTo(occhioObiettivo) / posaVia)) : 1;
+  const e = q * q * (3 - 2 * q);
+  const xd = posaS0.x + (posaS1.x - posaS0.x) * e;
+  const yd = posaS0.y + (posaS1.y - posaS0.y) * e;
+  /* dove cadrebbe se stesse gia' a casa, con la macchina di ADESSO */
+  _pPro.copy(_pCp).project(camera);
+  const sx = (_pPro.x * 0.5 + 0.5) * innerWidth;
+  const sy = (-_pPro.y * 0.5 + 0.5) * innerHeight;
+  /* quanti metri vale un punto di schermo sul piano del pezzo */
+  const perPunto = 2 * camera.position.distanceTo(_pCp)
+                 * Math.tan(camera.fov * Math.PI / 360) / innerHeight;
+  _pDes.set(0, 0, 0);
+  _pAsse.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
+  _pDes.addScaledVector(_pAsse, (xd - sx) * perPunto);
+  _pAsse.setFromMatrixColumn(camera.matrixWorld, 1).normalize();
+  _pDes.addScaledVector(_pAsse, -(yd - sy) * perPunto);
+  /* lo scarto si misura nel MONDO e si scrive nel PADRE: il gruppo di
+     una famiglia «scambia» viene traslato dallo swipe, e sommare un
+     vettore di mondo a una posizione locale sarebbe giusto per caso */
+  _pDes.applyMatrix4(_pInv).sub(_pZero);
+  posaMobile.position.copy(posaA).add(_pDes);
+  posaMobile.updateMatrixWorld(true);
+  if(q > 0.995) fermaPosa();
 }
 
 function isolaPezzo(){
@@ -5882,7 +6120,8 @@ function isolaPezzo(){
   const tieni = ste || p;
   const vela = mesiEspositore(g, tieni);
   tieni.traverse(o => { if(o.isMesh) o.visible = true; });
-  avviaVela(vela, -1);
+  /* e la posa ENTRA mentre l'espositore esce (vedi `avviaVela`) */
+  avviaVela(vela, -1, ste ? mesiDi(ste) : []);
   /* L'OCCLUSIONE RESTA ACCESA. La spegnevo entrando nel pezzo, e insieme
      al faro era meta' del guaio: misurato sullo stesso fotogramma, il
      Tulum stava a 123,8 di luce al banco e a 162,6 in selezione, e i due
@@ -5947,6 +6186,10 @@ function isolaPezzo(){
 }
 
 function mostraTutto(conVela){
+  /* e la posa torna a casa sua prima di tutto: se e' rimasta a meta'
+     strada di uno scivolamento, tutto quello che segue la misurerebbe
+     dove non sta */
+  fermaPosa();
   /* SI RIENTRA COME SI E' USCITI. Se la vela e' ancora in corsa va chiusa
      prima, o i suoi materiali resterebbero trasparenti sotto quelli
      riaccesi qui sotto. */
@@ -5986,8 +6229,11 @@ function mostraTutto(conVela){
      dentro solo le mesh che erano rimaste accese. */
   if(conVela && attiva && banchi[attiva] && scelto >= 0){
     const g = bancoDi(scelto);
-    const tieni = stesa(attiva, scelto) || (merci[attiva] || [])[scelto];
-    avviaVela(mesiEspositore(g, tieni), +1);
+    const ste = stesa(attiva, scelto);
+    const tieni = ste || (merci[attiva] || [])[scelto];
+    /* la posa esce mentre l'espositore rientra: la stessa dissolvenza
+       incrociata dell'andata, letta al contrario */
+    avviaVela(mesiEspositore(g, tieni), +1, ste ? mesiDi(ste) : []);
   }
   /* PER ULTIMO, quello che e' uscito dal cofanetto. Va per forza in
      fondo: qui sopra un `traverse` riaccende ogni mesh del gruppo, e un
@@ -6013,10 +6259,17 @@ function indietro(){
     livello = 1;
     tocco();
     lampo();
+    /* il quadro del pezzo non vale piu' niente: la banda torna quella
+       vera e il volo verso il pezzo non e' piu' in corso */
+    voloAlPezzo = false; bandaPezzo = null;
     mostraTutto(true);
     azzeraPizzico();
     inquadraFamiglia();
     applicaPos(false);
+    /* e la posa torna dove il pezzo stava sull'espositore, con la stessa
+       legge dell'andata: viaggia con la macchina, non con un tempo suo.
+       Si chiama DOPO `inquadraFamiglia`, che e' chi decide la strada. */
+    avviaPosa(+1);
     mostraScheda();
     sveglia();
   } else if(livello === 1) vaiAlBanco();
@@ -6074,7 +6327,19 @@ function scheda(ritirata){
   segnaSugg();
   adattaTitolo();
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    if(livello === 2) inquadraPezzo();
+    /* ── E NON MENTRE LA MACCHINA VOLA ──────────────────────────
+       Entrando nel pezzo e' `apriPezzo` a chiamare questa funzione, e
+       due fotogrammi dopo il volo e' gia' partito: rifare il quadro qui
+       vuol dire cambiare il bersaglio in corsa — la «correzione
+       ritardata» che il verdetto del cliente descrive. Il quadro del
+       pezzo lo decide `apriPezzo`, in fondo, una volta sola. */
+    if(voloAlPezzo){ sveglia(); return; }
+    if(livello === 2){
+      /* la scheda che si apre o si chiude cambia la banda DAVVERO, ed e'
+         l'unico momento in cui la si rilegge */
+      bandaPezzo = misuraArea();
+      inquadraPezzo();
+    }
     else if(livello === 1) inquadraFamiglia();
     sveglia();
   }));
@@ -6897,7 +7162,16 @@ const _dir = new THREE.Vector3(), _destra = new THREE.Vector3(),
       _mira = new THREE.Vector3();
 
 function gira(ora){
-  vivo = 0;
+  /* IL FOTOGRAMMA E' «IN CORSO», NON «SPENTO». Qui stava `vivo = 0`, e
+     una `sveglia()` chiamata DENTRO il fotogramma — la finestra della
+     carta la chiama a ogni passo mentre segue il riquadro — trovava il
+     ciclo spento e ne apriva un secondo. Due cicli chiamano due
+     `sveglia()`, quattro ne chiamano quattro: misurato con la carta
+     aperta, 4.096 → 8.192 → 16.384 → 32.768 richieste al secondo, e la
+     pagina si pianta. Con un valore che dice «sto disegnando», la sveglia
+     dentro il fotogramma non fa nulla, ed e' la coda del fotogramma a
+     decidere se ce n'e' un altro. */
+  vivo = -1;
   /* IL PASSO DI TEMPO SI MISURA E SI LIMITA: legata ai fotogrammi, la
      stessa molla e' due volte piu' veloce su uno schermo a 120 Hz; e se la
      scheda torna in primo piano dopo un minuto, un dt enorme fa esplodere
@@ -6913,6 +7187,21 @@ function gira(ora){
   if(giu || pizzico) etaFerma = 0; else etaFerma += dt;
 
   passoVela(dt);
+  /* ── LA FINESTRA SI SEGUE, NON SI RINCORRE A SCATTI ────────────
+     Con `?carta=finestra` il ritaglio nel cartoncino si misura sul
+     riquadro impaginato, e il riquadro nei primi mezzo secondo si sta
+     ancora impaginando: la carta entra scalata di 3,5 centesimi, il
+     cartellino si ritira in 0,22 s e l'altezza si assesta in 0,34.
+     Prima c'erano due CORREZIONI ritardate, a 240 e a 480 ms: due
+     strappi su un bersaglio verso cui la molla stava gia' andando, cioe'
+     lo stesso difetto del volo al pezzo, un livello piu' su. Adesso il
+     bersaglio segue il riquadro a ogni fotogramma finche' il riquadro si
+     muove: e' un tragitto solo, e finisce dove il riquadro si ferma. */
+  if(seguiFinestra > 0){
+    seguiFinestra = Math.max(0, seguiFinestra - dt);
+    inquadraNellaFinestra();
+    if(!seguiFinestra) rifaiFinestra();
+  }
 
   if(vesteT < 1){
     vesteT = Math.min(1, vesteT + dt / 0.45);
@@ -6952,7 +7241,13 @@ function gira(ora){
      Qualunque tocco lo risveglia, perche' `tocco()` azzera il contatore. */
   const DONDOLO_VITA = 12, DONDOLO_SPEGNI = 1.2;
   const dondoloVivo = !ridotto && etaFerma < DONDOLO_VITA;
-  if(livello === 2 && !giu && !pizzico){
+  /* ── E NON MENTRE LA MACCHINA STA ANCORA ARRIVANDO ─────────────
+     Il dondolo e' il minimo movimento di una cosa tenuta in mano, e una
+     cosa la si tiene in mano quando ce l'hai. Partendo dall'istante del
+     tocco oscillava DURANTE il volo — misurato: 0,027 radianti a meta'
+     strada — e siccome il giro entra nel conto del bersaglio, il
+     bersaglio si spostava a ogni fotogramma. Comincia all'arrivo. */
+  if(livello === 2 && !giu && !pizzico && !voloAlPezzo){
     /* E RESTA DOVE LO LASCI. Per un po' il dondolo era un BERSAGLIO e la
        macchina ci tornava sempre: l'avevo fatto perche' il piano del
        fondale copriva solo i primi dieci gradi e girando si perdeva la
@@ -6978,7 +7273,8 @@ function gira(ora){
       giroV = 0;
       giroP = giroBase;      // posato: da qui in poi non c'e' piu' niente da disegnare
     }
-    inquadraPezzo();
+    /* SOLO IL GIRO: distanza e scarto sono quelli decisi al tocco */
+    inquadraPezzo(true);
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -7024,6 +7320,14 @@ function gira(ora){
       mira[c] = b[0]; miraV[c] = b[1];
     }
   }
+  /* ── QUANDO IL VOLO E' FINITO ─────────────────────────
+     Non a tempo: a DISTANZA. Tre millimetri su un volo che ne fa da
+     trecento a seicento valgono meno di due punti di schermo, ed e' li'
+     che il dondolo puo' cominciare senza che si legga un cambio di
+     rotta. A movimento ridotto la macchina si trova gia' arrivata, e il
+     volo finisce nello stesso fotogramma in cui e' cominciato. */
+  if(voloAlPezzo && (ridotto || occhio.distanceTo(occhioObiettivo) < 0.003))
+    voloAlPezzo = false;
   if(!pizzico){
     const z = molla(zoom, zoomV, zoomMeta, 150, dt); zoom = z[0]; zoomV = z[1];
     const px = molla(panX, panVX, panMetaX, 150, dt); panX = px[0]; panVX = px[1];
@@ -7043,6 +7347,14 @@ function gira(ora){
   _mira.copy(mira).add(_spost);
   camera.position.copy(_mira).addScaledVector(_dir, dist / zoom);
   camera.lookAt(_mira);
+  /* ── E LA POSA SI METTE A POSTO CON QUESTA MACCHINA, NON CON
+     QUELLA DI PRIMA ─────────────────────────────────────────────
+     La sua strada e' scritta in punti di schermo, e i punti di schermo
+     li fa la macchina: chiamata in cima al ciclo userebbe quella del
+     fotogramma precedente, e a ventisei punti di velocita' di punta un
+     fotogramma di scarto e' un salto di ventisei punti. */
+  camera.updateMatrixWorld(true);
+  passoPosa();
 
   /* IL PIANO NON LAMPEGGIA PIU'. Avevo provato a tenerlo anche sul pezzo,
      dissolvendolo quando la rotazione ne avrebbe mostrato il bordo: e la
@@ -7074,6 +7386,8 @@ function gira(ora){
 
   const fermo = vesteT >= 1
              && !velaVerso
+             && !posaMobile
+             && !seguiFinestra
              && occhio.distanceTo(occhioObiettivo) < 0.0003
              && mira.distanceTo(miraObiettivo) < 0.0003
              && Math.abs(pos - posMeta) < 0.0015 && Math.abs(posV) < 0.004
@@ -7087,7 +7401,7 @@ function gira(ora){
      gli altri — il prossimo tocco lo risveglia. */
   if(!fermo || giu !== null || pizzico || (livello === 2 && dondoloVivo))
     vivo = requestAnimationFrame(gira);
-  else { pos = posMeta; posV = 0; ultimoFrame = 0; }
+  else { vivo = 0; pos = posMeta; posV = 0; ultimoFrame = 0; }
 }
 
 /* Il collaudo pilota il moto A MANO. In una scheda non visibile
@@ -7190,13 +7504,16 @@ addEventListener("resize", ()=>{
      la tacca coricando lo schermo cambia lato: la misura si butta via e
      `areaUtile` la riprende alla prima richiesta */
   codaAlto = null;
+  /* e con lei la banda ferma del pezzo: uno schermo che cambia misura e'
+     l'altro dei due momenti in cui la banda cambia per davvero */
+  bandaPezzo = null;
   const eraLarga = larga;
   larga = LARGO.matches;
   if(larga !== eraLarga){ sistemaImpianto(); applicaCarta(); }
   adattaTitolo();
   if(livello === 0) vaiAlBanco(true);
   else if(livello === 1){ inquadraFamiglia(); applicaPos(false); }
-  else inquadraPezzo();
+  else { bandaPezzo = misuraArea(); inquadraPezzo(); }
   /* e la striscia si ricentra: trascinando il bordo della finestra il
      pannello compare e sparisce, e con lui il centro della scena */
   centraToast();

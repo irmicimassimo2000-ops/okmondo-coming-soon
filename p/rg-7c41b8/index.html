@@ -17,8 +17,28 @@
   insieme, con la barra che le tiene.
   Ogni sezione e' una pagina sua dentro una cornice: il banco pesa dieci
   mega di modelli e non si carica finche' non lo si apre, e le altre tre
-  restano leggere. La barra sta SOTTO la cornice, non sopra: appoggiata
-  sopra coprirebbe il menu delle famiglie del banco, che e' dove si tocca.
+  restano leggere.
+
+  ══════════════════════════════════════════════════════════════════
+  LA BARRA — tre impianti, si sceglie.
+  Verdetto di Massimo: «strutturiamo una navigation bar piu' identitaria e
+  innovativa, sia l'estetica che l'animazione». Quella di prima erano
+  quattro parole in maiuscoletto con quattro simboli presi dal carattere
+  di sistema (◆ ○ ✦ ●): funzionante e anonima — poteva stare in qualunque
+  applicazione, che e' esattamente il test che si fallisce.
+  Qui la scelta non la fa l'esecutore: tre barre STRUTTURALMENTE diverse,
+  costruite sul materiale vero, e si sceglie.
+    · A · IL CABOCHON — barra agganciata, l'attiva sta su una pietra
+          turchese che scivola e si stira come una goccia.
+    · B · LA CATENA  — un filo corre da bordo a bordo, le voci sono charm
+          appesi, e sotto l'attiva il filo si incurva.
+    · C · LA PILLOLA — barra staccata dal bordo, materia crema col velo,
+          l'attiva si allarga in una capsula turchese.
+  Si attivano con `?nav=a|b|c`, da console con `window.__nav("b")`, e la
+  scelta resta in `localStorage["rj.nav"]`. Di serie: A.
+  I segni sono disegnati a filo in SVG 22×22, nello spessore dei segni
+  del banco (1.15, capi tondi): nessuna emoji, nessuna libreria.
+  ══════════════════════════════════════════════════════════════════
 -->
 <style>
 @font-face{font-family:Bodoni;src:url("font/bodoni.woff2") format("woff2");font-weight:400 500}
@@ -27,51 +47,355 @@
 html,body{height:100%;overflow:hidden;background:#14110E}
 body{display:flex;flex-direction:column;
      font:400 15px/1.5 Inter,system-ui,sans-serif;color:#EDE7DF}
+
+:root{
+  --notte:#14110E;      /* il fondo della barra agganciata */
+  --vano:#1C1813;
+  --carta:#FAF8F5;      /* il fondo del cofanetto: la fascia di C lo copia */
+  --cipria:#F4EBE6;
+  --luce:#EDE7DF;       /* i nomi sul fondo scuro: 15,4:1 */
+  --tenue:#8A7E70;      /* i segni spenti sul fondo scuro: 4,75:1 */
+  --voce:#6E5F57;       /* i segni spenti sulla pillola chiara: 5,0-5,8:1 */
+  --firma:#106068;      /* il turchese di Regina */
+  --firma-fuoco:#3E9AA1;/* il turchese che si vede sul nero: per il fuoco */
+  --filo:rgba(255,240,215,.10);
+  /* LA MOLLA E' UNA SOLA, e sta scritta una volta. 0,5 s, smorzamento
+     0,825: si posa senza rimbalzare. La curva qui sotto e' la sua
+     approssimazione per le transizioni che il CSS puo' reggere da solo. */
+  --molla:cubic-bezier(.22,1,.36,1);
+  --tocco:100ms;
+}
+
+/* ── LA CORNICE ─────────────────────────────────────────────────
+   Il cambio di sezione non e' solo una dissolvenza: la pagina nuova
+   sale di 10 px sulla curva della molla. Dodici sarebbe gia' un
+   movimento; dieci e' un respiro. */
 #dentro{flex:1 1 auto;position:relative;min-height:0}
 #dentro iframe{position:absolute;inset:0;width:100%;height:100%;border:0;
-  background:#14110E;opacity:0;transition:opacity .28s ease;pointer-events:none}
-#dentro iframe.qui{opacity:1;pointer-events:auto}
-nav{flex:0 0 auto;display:flex;background:#14110E;
-    border-top:1px solid rgba(255,240,215,.10);
-    padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1 1 0;min-width:0;border:0;background:none;cursor:pointer;
-  padding:11px 4px 12px;color:#8A7E70;
-  font:600 9.5px/1 Inter,system-ui,sans-serif;letter-spacing:.11em;
-  text-transform:uppercase;white-space:nowrap;
-  transition:color .2s ease}
-nav button b{display:block;font:400 19px/1 Bodoni,Didot,Georgia,serif;
-  letter-spacing:0;text-transform:none;margin-bottom:5px;font-weight:400}
-nav button[aria-current]{color:#EDE7DF}
-nav button[aria-current] b{color:#EDE7DF}
+  background:#14110E;opacity:0;pointer-events:none;
+  transform:translateY(10px);
+  transition:opacity .28s ease, transform .42s var(--molla)}
+#dentro iframe.qui{opacity:1;pointer-events:auto;transform:none}
+
+/* ── LA FASCIA RISERVATA (solo per C) ───────────────────────────
+   La pillola galleggia SOPRA, e sopra il banco ci sta il menu delle
+   cinque famiglie: e' li' che si tocca. Quindi la cornice non passa
+   sotto la pillola — questa fascia le sta sotto e si colora come il
+   fondo della sezione attiva, cosi' la pillola galleggia su una
+   materia coerente senza coprire niente. */
+#fascia{flex:0 0 auto;height:0;background:var(--notte);
+  transition:background .28s ease}
+body[data-nav="c"] #fascia{height:calc(88px + env(safe-area-inset-bottom))}
+#fascia[data-sez="cofanetto"]{background:var(--carta)}
+
 #velo{position:absolute;inset:0;display:grid;place-items:center;z-index:2;
   background:#14110E;color:#8A7E70;font-size:13px;letter-spacing:.06em;
   transition:opacity .3s ease}
 #velo[hidden]{opacity:0;pointer-events:none;display:grid}
+
+/* ══ LA BARRA — il tronco comune ══════════════════════════════ */
+nav{flex:0 0 auto;position:relative;display:flex;isolation:isolate}
+nav button{flex:1 1 0;min-width:0;border:0;background:none;cursor:pointer;
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform var(--tocco) var(--molla)}
+nav button:active{transform:scale(.94)}
+nav button:focus-visible{outline:2px solid var(--firma-fuoco);outline-offset:-3px;
+  border-radius:10px}
+.segno{width:22px;height:22px;display:block;flex:none;
+  transition:stroke .22s ease, transform .22s var(--molla)}
+.segno path,.segno circle{fill:none;stroke:currentColor;stroke-width:1.15;
+  stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.nm{display:block;white-space:nowrap}
+
+/* ══ A · IL CABOCHON ══════════════════════════════════════════
+   La barra resta agganciata, da bordo a bordo, col filetto caldo
+   sopra. L'attiva sta su una pietra: una pastiglia ellittica col
+   suo lume dentro, come la pietra dell'anello — un gradiente
+   contenuto, non un neon. Durante il tragitto si stira come una
+   goccia (scaleX cresce con la velocita', scaleY cala) e all'arrivo
+   si ricompone.
+   Le voci spente mostrano SOLO il segno: il nome in Bodoni e' l'altra
+   meta' dell'evento, e quattro nomi accesi tutti insieme lo
+   spengono. Il nome di ciascuna resta nell'`aria-label`.
+   Altezza dichiarata: 70 px + safe-area. */
+nav[data-nav="a"]{height:70px;background:var(--notte);
+  border-top:1px solid var(--filo);
+  padding-bottom:env(safe-area-inset-bottom)}
+nav[data-nav="a"] button{justify-content:flex-start;padding:9px 4px 0;
+  color:var(--tenue)}
+nav[data-nav="a"] .pos{height:34px;display:grid;place-items:center}
+nav[data-nav="a"] .nm{height:16px;
+  font:400 16px/16px Bodoni,Didot,Georgia,serif;color:var(--luce);
+  opacity:0;transition:opacity .16s ease}
+nav[data-nav="a"] button[aria-current] .nm{opacity:1;transition:opacity .22s ease .1s}
+nav[data-nav="a"] button[aria-current]{color:var(--notte)}
+
+#gemma{position:absolute;left:0;top:9px;width:46px;height:30px;z-index:0;
+  border-radius:999px;pointer-events:none;opacity:0;
+  transform-origin:50% 50%;
+  background:radial-gradient(118% 150% at 50% 26%,
+    #4FAAB1 0%, #1B7178 46%, #0C4C52 100%);
+  box-shadow:0 1px 0 rgba(255,240,215,.13) inset,
+             0 3px 8px rgba(12,76,82,.34);
+  transition:opacity .2s ease}
+body[data-nav="a"] #gemma{opacity:1}
+
+/* ══ B · LA CATENA ════════════════════════════════════════════
+   Un filo di 1 px corre per tutta la larghezza, e le quattro voci
+   sono charm appesi. Sotto l'attiva il filo si INCURVA, il charm
+   sale di 6 px dentro la curva e prende un lume caldo.
+   La curva non e' un morphing fra quattro tracciati disegnati a mano:
+   il tracciato si GENERA da un solo numero — il centro della conca —
+   e quel numero e' la molla. Interpolare un parametro e' esatto;
+   interpolare due path e' un'approssimazione. Misurato: nessun
+   bisogno di cross-fade.
+   Qui le voci spente PORTANO il nome, in Inter 9,5 px maiuscoletto:
+   una collana si legge se i pendenti sono pari, e l'attiva si
+   distingue salendo e passando al Bodoni.
+   Altezza dichiarata: 72 px + safe-area. */
+nav[data-nav="b"]{height:72px;background:var(--notte);
+  padding-bottom:env(safe-area-inset-bottom)}
+#catena{position:absolute;left:0;top:0;width:100%;height:20px;z-index:0;
+  display:none;pointer-events:none}
+body[data-nav="b"] #catena{display:block}
+#catena path{fill:none;stroke:rgba(237,231,223,.34);stroke-width:1;
+  stroke-linecap:round}
+nav[data-nav="b"] button{justify-content:flex-start;padding:18px 4px 0;
+  color:var(--tenue)}
+nav[data-nav="b"] .pos{position:relative;height:26px;display:grid;place-items:center}
+nav[data-nav="b"] .alone{position:absolute;width:46px;height:46px;
+  border-radius:50%;opacity:0;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,226,178,.22) 0%,rgba(255,226,178,0) 68%);
+  transition:opacity .26s ease}
+nav[data-nav="b"] .nm{height:15px;
+  font:600 9.5px/15px Inter,system-ui,sans-serif;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--tenue);
+  transition:opacity .14s ease}
+nav[data-nav="b"] button[aria-current]{color:var(--luce)}
+nav[data-nav="b"] button[aria-current] .segno{transform:translateY(-6px)}
+nav[data-nav="b"] button[aria-current] .alone{opacity:1;transform:translateY(-6px)}
+nav[data-nav="b"] button[aria-current] .nm{
+  font:400 16px/15px Bodoni,Didot,Georgia,serif;letter-spacing:0;
+  text-transform:none;color:var(--luce)}
+
+/* ══ C · LA PILLOLA FLOTTANTE ═════════════════════════════════
+   Staccata dal bordo — 16 px dal fondo piu' la safe-area — larga il
+   92%, raggio pieno, materia crema col velo. L'attiva si allarga in
+   una capsula turchese che scopre il nome in Bodoni; le altre si
+   chiudono sul solo segno (e' la capsula stessa il meccanismo
+   dell'etichetta: se le altre tenessero il nome non ci sarebbe spazio
+   dove allargarsi).
+   Il velo e' al 93%, non al 78%: misurato, a 78 i segni spenti
+   davano 3,59:1 contro le sezioni scure — sopra la soglia dei segni
+   ma troppo vicino. A 93 restano fra 5,0 e 5,8:1 su tutte e quattro.
+   Qui la ridistribuzione e' `flex-grow` in transizione — 300 ms in
+   entrata, 250 in uscita, curva enfatica — non la molla a rAF: il
+   container transform vuole una durata dichiarata, e il browser fa
+   il layout meglio di quanto lo facciamo noi fotogramma per fotogramma.
+   Altezza dichiarata: pillola 56 px; fascia riservata 88 px + safe-area. */
+nav[data-nav="c"]{position:fixed;z-index:5;left:4%;width:92%;
+  bottom:calc(16px + env(safe-area-inset-bottom));
+  height:56px;padding:5px;gap:4px;border-radius:999px;
+  background:rgba(250,248,245,.93);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:0 0 0 1px rgba(26,22,20,.10), 0 10px 26px rgba(0,0,0,.30)}
+nav[data-nav="c"] button{flex-direction:row;justify-content:center;
+  align-items:center;gap:7px;overflow:hidden;
+  height:46px;border-radius:999px;color:var(--voce);flex-grow:1;
+  transition:flex-grow .25s var(--molla), background .25s ease,
+             color .25s ease, transform var(--tocco) var(--molla)}
+nav[data-nav="c"] button[aria-current]{flex-grow:2.7;
+  background:var(--firma);color:var(--carta);
+  transition:flex-grow .3s var(--molla), background .3s ease, color .3s ease}
+nav[data-nav="c"] button:focus-visible{outline-color:var(--firma)}
+nav[data-nav="c"] button[aria-current]:focus-visible{outline-color:var(--carta)}
+nav[data-nav="c"] .nm{max-width:0;opacity:0;overflow:hidden;
+  font:400 16px/1 Bodoni,Didot,Georgia,serif;
+  transition:max-width .25s var(--molla), opacity .16s ease}
+nav[data-nav="c"] button[aria-current] .nm{max-width:110px;opacity:1;
+  transition:max-width .3s var(--molla), opacity .18s ease .1s}
+
+/* ── LA MANO CHE PASSA, dove esiste davvero una mano che passa ── */
+@media (hover:hover){
+  nav[data-nav="a"] button:hover:not([aria-current]),
+  nav[data-nav="b"] button:hover:not([aria-current]){color:#B3A795}
+  nav[data-nav="c"] button:hover:not([aria-current]){background:rgba(26,22,20,.055)}
+}
+
+/* ── CHI HA CHIESTO MENO MOVIMENTO ──────────────────────────────
+   Non «un po' meno»: solo dissolvenze, e non oltre 120 ms. La molla
+   in JS si spegne da sola (vedi RIDOTTO piu' sotto), qui si spengono
+   le transizioni che il CSS fa per conto suo. */
+@media (prefers-reduced-motion: reduce){
+  #dentro iframe{transform:none;transition:opacity .12s linear}
+  nav button, nav button:active, .segno, .nm, #gemma,
+  nav[data-nav="b"] .alone, nav[data-nav="c"] button, nav[data-nav="c"] .nm{
+    transition-duration:.12s !important;transition-timing-function:linear !important;
+    transition-delay:0s !important}
+  nav button:active{transform:none}
+}
 </style>
+
 <div id="dentro"><div id="velo">apparecchio il banco…</div></div>
-<nav id="barra"></nav>
+<div id="fascia"></div>
+<nav id="barra" data-nav="a"></nav>
+
 <script>
+/* ── I SEGNI ───────────────────────────────────────────────────
+   Disegnati qui, a filo, 22×22, nello spessore dei segni del banco.
+   Cofanetto = uno scrigno col coperchio alzato. Vetrina = l'arcata
+   della vetrina col traverso e il davanzale. Per te = la stella a
+   quattro punte, di contorno e non piena. Profilo = l'anello col
+   suo solitario: e' una gioielleria, la persona e' il suo anello. */
+const SEGNI = {
+  cofanetto:
+    '<path d="M3.6 11.2h14.8v6.2a1.1 1.1 0 0 1-1.1 1.1H4.7a1.1 1.1 0 0 1-1.1-1.1z"/>'+
+    '<path d="M3.6 11.2 6.3 6.2l11.2 1.2.9 3.8"/>'+
+    '<path d="M11 11.2v2.3"/>',
+  vetrina:
+    '<path d="M4.3 18.4V9.9a6.7 6.7 0 0 1 13.4 0v8.5"/>'+
+    '<path d="M4.3 13.1h13.4"/>'+
+    '<path d="M2.4 18.4h17.2"/>',
+  perte:
+    '<path d="M11 3 c.9 5.4 2.6 7.1 8 8 -5.4.9-7.1 2.6-8 8 -.9-5.4-2.6-7.1-8-8 5.4-.9 7.1-2.6 8-8z"/>',
+  profilo:
+    '<circle cx="11" cy="13.2" r="5.8"/>'+
+    '<path d="M11 3.9l2.3 2.3-2.3 2.3-2.3-2.3z"/>',
+};
+
 const SEZIONI = [
-  {id:"cofanetto", nome:"Cofanetto", segno:"\u25C6", dove:"spazio.html"},
-  {id:"vetrina",   nome:"Vetrina",   segno:"\u25CB", dove:"vetrina.html"},
-  {id:"perte",     nome:"Per te",    segno:"\u2726", dove:"perte.html"},
-  {id:"profilo",   nome:"Profilo",   segno:"\u25CF", dove:"profilo.html"},
+  {id:"cofanetto", nome:"Cofanetto", dove:"spazio.html"},
+  {id:"vetrina",   nome:"Vetrina",   dove:"vetrina.html"},
+  {id:"perte",     nome:"Per te",    dove:"perte.html"},
+  {id:"profilo",   nome:"Profilo",   dove:"profilo.html"},
 ];
 /* «Cofanetto» apre il banco in tre dimensioni; la scheda cofanetto.html
-   costruita a parte resta come vista d'elenco e la si raggiunge da dentro.
-   Qui la sezione e' lo SPAZIO, perche' e' quello il cofanetto. */
-/* E OGNI SEZIONE PORTA LA SUA VERSIONE.
-   Le schermate sono file statici da dieci megabyte: il browser se li tiene,
-   e una correzione appena pubblicata poteva non arrivare mai a chi aveva
-   gia' aperto il link. Con la versione nell'indirizzo il telaio chiede un
-   file nuovo, e questa riga si alza a ogni pubblicazione. */
-const VERSIONE = "2026-09-13b";
+   costruita a parte resta come vista d'elenco e la si raggiunge da dentro. */
+/* E OGNI SEZIONE PORTA LA SUA VERSIONE. */
+const VERSIONE = "2026-09-13d";
+
 const dentro = document.getElementById("dentro");
-const barra = document.getElementById("barra");
-const velo = document.getElementById("velo");
-const telai = {};
+const barra  = document.getElementById("barra");
+const velo   = document.getElementById("velo");
+const fascia = document.getElementById("fascia");
+const telai  = {};
 let attiva = null;
 
+const RIDOTTO = matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ── LA MOLLA ──────────────────────────────────────────────────
+   Una sola, e sta qui. 0,5 s di assestamento, smorzamento 0,825:
+   l'oscillazione smorzata sorpassa il bersaglio dell'1,3% e si posa.
+   Non e' un rimbalzo, e' il peso di una cosa che si appoggia. */
+const OMEGA = 14.0, ZETA = 0.825;
+function Molla(x0){ this.x = x0; this.v = 0; this.meta = x0; this.viva = false; }
+Molla.prototype.passo = function(dt){
+  const a = -OMEGA*OMEGA*(this.x - this.meta) - 2*ZETA*OMEGA*this.v;
+  this.v += a*dt; this.x += this.v*dt;
+  if(Math.abs(this.x - this.meta) < .4 && Math.abs(this.v) < 3){
+    this.x = this.meta; this.v = 0; this.viva = false;
+  }
+  return this.x;
+};
+
+/* ── LA BARRA SI COSTRUISCE ────────────────────────────────────
+   Un solo impianto di marcatura per tutte e tre: cambia il foglio di
+   stile, non la struttura. Cosi' una voce vale una voce, ovunque. */
+barra.innerHTML =
+  '<span id="gemma"></span>' +
+  '<svg id="catena" aria-hidden="true" viewBox="0 0 390 20"><path d=""/></svg>' +
+  SEZIONI.map(s =>
+    '<button type="button" data-id="'+s.id+'" aria-label="'+s.nome+'">'+
+      '<span class="pos"><span class="alone"></span>'+
+        '<svg class="segno" viewBox="0 0 22 22" aria-hidden="true">'+SEGNI[s.id]+'</svg>'+
+      '</span>'+
+      '<span class="nm">'+s.nome+'</span>'+
+    '</button>').join("");
+
+const gemma  = document.getElementById("gemma");
+const catena = document.getElementById("catena");
+const filoPath = catena.querySelector("path");
+const tasti = [...barra.querySelectorAll("button")];
+tasti.forEach(b => b.onclick = () => apri(b.dataset.id));
+
+/* ── QUALE BARRA ───────────────────────────────────────────────
+   `?nav=a|b|c` decide e resta; senza, l'ultima scelta; senza neanche
+   quella, A. `window.__nav("b")` per provarle in sequenza. */
+function quale(){
+  const q = new URLSearchParams(location.search).get("nav");
+  if(q && "abc".includes(q)){ try{ localStorage.setItem("rj.nav", q); }catch(_){} return q; }
+  try{ const m = localStorage.getItem("rj.nav"); if(m && "abc".includes(m)) return m; }catch(_){}
+  return "a";
+}
+let NAV = quale();
+function vestiLaBarra(v){
+  NAV = v; barra.dataset.nav = v; document.body.dataset.nav = v;
+  try{ localStorage.setItem("rj.nav", v); }catch(_){}
+  document.querySelector('meta[name=theme-color]')
+    .setAttribute("content", v === "c" && attiva === "cofanetto" ? "#FAF8F5" : "#14110E");
+  posa(true);
+}
+window.__nav = vestiLaBarra;
+
+/* ── IL TRAGITTO (A e B) ───────────────────────────────────────
+   FLIP vero: si MISURANO le posizioni e si anima la trasformazione.
+   Mai `left` in transizione — quello ricalcola il layout a ogni
+   fotogramma e su un telefono si vede. */
+const molla = new Molla(0);
+let ultimo = 0, girando = false, xPrec = 0;
+
+function centro(id){
+  const b = tasti.find(t => t.dataset.id === id);
+  if(!b) return 0;
+  const r = b.getBoundingClientRect(), n = barra.getBoundingClientRect();
+  return r.left - n.left + r.width/2;
+}
+
+function disegna(x, vel){
+  if(NAV === "a"){
+    /* la goccia si stira: lo scaleX cresce con la velocita', e lo
+       scaleY cala della meta' — il volume della pietra non cambia */
+    const s = Math.min(Math.abs(vel)/3200, 1) * 0.34;
+    gemma.style.transform =
+      "translateX(" + (x - 23).toFixed(2) + "px) scale(" +
+      (1 + s).toFixed(3) + "," + (1 - s*0.5).toFixed(3) + ")";
+  } else if(NAV === "b"){
+    filoPath.setAttribute("d", tracciaFilo(barra.clientWidth, x, 9));
+  }
+}
+/* il filo: una retta con UNA conca, generata dal centro della conca */
+function tracciaFilo(W, cx, prof){
+  const y = 6, w = 46, f = (n) => n.toFixed(1);
+  return "M0 "+y+" H"+f(cx-w)+
+         " C"+f(cx-w*0.44)+" "+y+" "+f(cx-w*0.40)+" "+f(y+prof)+" "+f(cx)+" "+f(y+prof)+
+         " C"+f(cx+w*0.40)+" "+f(y+prof)+" "+f(cx+w*0.44)+" "+y+" "+f(cx+w)+" "+y+
+         " H"+f(W);
+}
+
+function giro(t){
+  const dt = Math.min((t - ultimo)/1000, 1/30); ultimo = t;
+  const x = molla.passo(dt);
+  disegna(x, (x - xPrec)/(dt || 1/60)); xPrec = x;
+  if(molla.viva) requestAnimationFrame(giro); else girando = false;
+}
+
+function posa(subito){
+  if(NAV === "c"){ return; }             /* C si muove in CSS */
+  if(!attiva) return;
+  catena.setAttribute("viewBox", "0 0 " + barra.clientWidth + " 20");
+  const meta = centro(attiva);
+  molla.meta = meta;
+  if(subito || RIDOTTO.matches){
+    molla.x = meta; molla.v = 0; molla.viva = false; xPrec = meta;
+    disegna(meta, 0); return;
+  }
+  molla.viva = true;
+  if(!girando){ girando = true; ultimo = performance.now(); requestAnimationFrame(giro); }
+}
+
+/* ── SI APRE UNA SEZIONE ───────────────────────────────────────── */
 function apri(id){
   if(attiva === id) return;
   const s = SEZIONI.find(x => x.id === id);
@@ -80,22 +404,26 @@ function apri(id){
     t.src = s.dove + "?v=" + VERSIONE;
     t.title = s.nome;
     t.loading = "eager";
-    // il banco e' l'unico che deve poter chiedere lo schermo intero
-    if(id === "cofanetto") t.allow = "fullscreen";
+    if(id === "cofanetto") t.allow = "fullscreen";   /* solo il banco chiede lo schermo intero */
     dentro.appendChild(t);
     telai[id] = t;
     t.addEventListener("load", () => { if(id === "cofanetto") velo.hidden = true; });
   } else if(id === "cofanetto") velo.hidden = true;
   for(const k in telai) telai[k].classList.toggle("qui", k === id);
-  for(const b of barra.children) b.toggleAttribute("aria-current", b.dataset.id === id);
+  for(const b of tasti){
+    if(b.dataset.id === id) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
+  }
   if(id !== "cofanetto") velo.hidden = true;
+  const primo = attiva === null;
   attiva = id;
-  try { location.hash = id; } catch(_) {}
+  fascia.dataset.sez = id;
+  document.querySelector('meta[name=theme-color]')
+    .setAttribute("content", NAV === "c" && id === "cofanetto" ? "#FAF8F5" : "#14110E");
+  posa(primo);
+  try { history.replaceState(null, "", "#" + id); } catch(_) {}
 }
 
-barra.innerHTML = SEZIONI.map(s =>
-  `<button data-id="${s.id}"><b>${s.segno}</b>${s.nome}</button>`).join("");
-for(const b of barra.children) b.onclick = () => apri(b.dataset.id);
 /* e il tasto indietro del telefono cambia sezione invece di uscire
    dall'app: senza, chi tornava indietro dal profilo si ritrovava fuori */
 function daIndirizzo(){
@@ -103,5 +431,10 @@ function daIndirizzo(){
   apri(SEZIONI.some(s => s.id === c) ? c : "cofanetto");
 }
 addEventListener("hashchange", daIndirizzo);
+addEventListener("resize", () => posa(true));
+RIDOTTO.addEventListener && RIDOTTO.addEventListener("change", () => posa(true));
+
+vestiLaBarra(NAV);
 daIndirizzo();
+posa(true);
 </script>
