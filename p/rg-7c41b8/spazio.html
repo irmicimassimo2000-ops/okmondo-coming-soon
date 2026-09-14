@@ -2236,7 +2236,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perche' il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova e' una correzione che non arriva. */
-const VERSIONE = "2026-09-14c";
+const VERSIONE = "2026-09-14d";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non e' zero, e' un ReferenceError, e un ReferenceError li'
@@ -7244,7 +7244,28 @@ const CODA_MS = 0.3323;      // secondi: lambda/(1-lambda)/1000, lambda 0,997
    pur avendo un tetto di tre. Due e' il budget dell'intero gesto — ma non
    puo' MAI riportare la fila dietro a dove il dito l'ha gia' portata:
    quello sarebbe disfare il trascinamento. */
-const TETTO_SALTO = 2;
+/* E POI: «lo swipe deve essere meno sensibile». Con l'uno a uno e il tetto
+   a due, una passata di pollice sugli anelli (108 px a stazione) portava
+   via due pezzi sotto il dito e un terzo con la coda. Tre leve, tutte
+   dichiarate: il tetto torna a UNO (la regola di sempre, «un lancio vale
+   un pezzo», ora con la decelerazione vera); la scena segue il dito con un
+   GUADAGNO sotto l'unita' (0,72: per una stazione servono 150 px di dito
+   invece di 108), uguale sotto il dito e nella proiezione, cosi' il moto
+   resta continuo al rilascio; e sotto il dito la corsa si ferma a una
+   stazione e un quarto dal punto di partenza con la stessa gomma dei
+   capi della fila. `?sens=` e `window.__sens` la cambiano al volo. */
+const TETTO_SALTO = 1;
+const CORSA_DITO = 1.25;
+let GUADAGNO = (() => { const s = parseFloat(q.get("sens")); return (s > 0.3 && s <= 1.5) ? s : 0.72; })();
+Object.defineProperty(window, "__sens", { get: () => GUADAGNO,
+  set: v => { const s = parseFloat(v); if(s > 0.3 && s <= 1.5) GUADAGNO = s; } });
+/* la gomma della corsa: lineare fino a `lim`, poi ogni stazione in piu'
+   costa sempre di piu' — la stessa legge dei capi della fila */
+function corsaMorbida(x, lim){
+  const a = Math.abs(x); if(a <= lim) return x;
+  const oltre = a - lim;
+  return Math.sign(x) * (lim + oltre / (1 + oltre / OLTRE));
+}
 /* ══════════════════════════════════════════════════════════════
    DOPO IL RILASCIO LA VELOCITA' SCENDE E BASTA
 
@@ -7598,7 +7619,7 @@ function passoDito(){
   if(!giu) return;
   if(livello === 0){
     const lim = Math.max(0, LARGO_BANCO/2 - 0.06);
-    occhioObiettivo.x = Math.max(-lim, Math.min(lim, partenzaX - mosso*0.0016));
+    occhioObiettivo.x = Math.max(-lim, Math.min(lim, partenzaX - mosso*0.0016*GUADAGNO));
     miraObiettivo.x = occhioObiettivo.x;
     partenzaBanco = occhioObiettivo.x;
     segnaVicino(occhioObiettivo.x);
@@ -7612,7 +7633,7 @@ function passoDito(){
        L'unica resistenza resta ai CAPI della fila (`gomma`): li' non c'e'
        niente da mostrare, e la gomma dice che la fila e' finita senza
        chiudere una porta in faccia. */
-    pos = gomma(posGiu - mosso / PASSO_DITO, 0, limiteN());
+    pos = gomma(posGiu - corsaMorbida(mosso * GUADAGNO / PASSO_DITO, CORSA_DITO), 0, limiteN());
     posMeta = pos; posV = 0;
     applicaPos(true);
   } else if(livello === 2){
@@ -7748,7 +7769,7 @@ addEventListener("pointerup", e => {
        — fino a tre. Nessuna soglia: c'e' solo un arrotondamento, e
        l'arrotondamento e' continuo nella velocita'. */
     const n = limiteN();
-    const velStaz = velDito / PASSO_DITO;         // stazioni al secondo
+    const velStaz = velDito * GUADAGNO / PASSO_DITO;   // stazioni al secondo, con lo stesso guadagno del dito
     /* IL BUDGET DEL GESTO SI CONTA DA DOVE IL DITO E' SCESO. Ma il tetto
        non puo' riportare la fila DIETRO a dove il trascinamento l'ha gia'
        portata: `Math.round(pos)` e' il pavimento (o il soffitto) in quella
@@ -7794,7 +7815,7 @@ addEventListener("pointerup", e => {
     const PER_PX = 0.0016;
     const lim = Math.max(0, LARGO_BANCO/2 - 0.06);
     const qui = occhioObiettivo.x;
-    const v = velDito * PER_PX;                   // metri al secondo
+    const v = velDito * PER_PX * GUADAGNO;        // metri al secondo, con lo stesso guadagno del dito
     const punto = Math.max(-lim, Math.min(lim, qui + v * CODA_MS));
     const ord = FAMIGLIE.filter(f => gruppi[f.id])
                         .map(f => gruppi[f.id].position.x)
