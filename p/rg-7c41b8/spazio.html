@@ -2236,7 +2236,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perche' il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova e' una correzione che non arriva. */
-const VERSIONE = "2026-09-14b";
+const VERSIONE = "2026-09-14c";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non e' zero, e' un ReferenceError, e un ReferenceError li'
@@ -3527,6 +3527,7 @@ if(DIAG){
       " · ombre " + (rend.shadowMap.enabled
         ? (rend.shadowMap.autoUpdate ? "auto" : "cache") + " " + sole.shadow.mapSize.x
         : "off") +
+      "\nversione " + VERSIONE +
       "\ndraw " + i.calls + " · tri " + i.triangles +
       "\nlivello " + livello + (attiva ? " · " + attiva : "");
     if(t !== ultimo){ ultimo = t; d.textContent = t; }

@@ -2,6 +2,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#14110E">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <!-- NESSUNA ICONA, e di proposito. Il canone del marchio dice che il
      marchio completo e' l'unico marchio: un favicon e' un marchio ridotto,
      e non e' stato chiesto. `href="data:,"` dichiara «nessuna icona» e
@@ -403,7 +404,7 @@ const SEZIONI = [
 /* «Cofanetto» apre il banco in tre dimensioni; la scheda cofanetto.html
    costruita a parte resta come vista d'elenco e la si raggiunge da dentro. */
 /* E OGNI SEZIONE PORTA LA SUA VERSIONE. */
-const VERSIONE = "2026-09-14b";
+const VERSIONE = "2026-09-14c";
 
 const dentro = document.getElementById("dentro");
 const barra  = document.getElementById("barra");
@@ -582,4 +583,30 @@ RIDOTTO.addEventListener && RIDOTTO.addEventListener("change", () => posa(true))
 vestiLaBarra(NAV);
 daIndirizzo();
 posa(true);
+
+/* IL TELAIO SI CONTROLLA DA SOLO. Le sezioni portano ?v=VERSIONE, ma il
+   telaio no: Safari lo tiene in cache anche dopo «ricarica» e anche
+   chiudendo il browser, e un telaio vecchio chiede sezioni vecchie — con
+   il loro ?v= vecchio, che la cache serve volentieri. Massimo ha
+   ricaricato piu' volte e vedeva sempre la versione di prima. Appena
+   aperto, il telaio chiede se stesso con un timbro che nessuna cache ha
+   mai visto, legge la VERSIONE che sta online, e se e' diversa dalla
+   propria si rimpiazza. Costa cinque kilobyte, una volta. */
+fetch(location.pathname + "?t=" + Date.now(), {cache:"no-store"})
+  .then(r => r.text())
+  .then(t => {
+    const m = t.match(/const VERSIONE = "([^"]+)"/);
+    if(m && m[1] !== VERSIONE && !sessionStorage.getItem("rj.rimpiazzo." + m[1])){
+      sessionStorage.setItem("rj.rimpiazzo." + m[1], "1");
+      location.replace(location.pathname + "?r=" + Date.now() + location.hash);
+    }
+  }).catch(() => {});
+/* e con ?diag=1 la versione si legge anche sul telaio */
+if(new URLSearchParams(location.search).get("diag")){
+  const v = document.createElement("div");
+  v.textContent = "telaio " + VERSIONE;
+  v.style.cssText = "position:fixed;left:8px;top:8px;z-index:9;padding:4px 7px;" +
+    "background:rgba(20,17,14,.7);color:#8FE3C9;font:11px/1.3 ui-monospace,monospace";
+  document.body.appendChild(v);
+}
 </script>
