@@ -2236,7 +2236,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perche' il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova e' una correzione che non arriva. */
-const VERSIONE = "2026-09-14a";
+const VERSIONE = "2026-09-14b";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non e' zero, e' un ReferenceError, e un ReferenceError li'
@@ -7201,12 +7201,99 @@ function adattaTitolo(){
    dopo gli stessi quarantasei pixel, in tutte e cinque. */
 let PASSO_DITO = 108;        // pixel di dito per una stazione: lo riscrive
                              // inquadraFamiglia, famiglia per famiglia
-const CENNO_PX = 46;         // quanti pixel di scena si lascia tirare, al piu'
-/* e la VELOCITA' si misura in PIXEL al secondo, non in stazioni al secondo.
-   Dividendola per il passo, la stessa spinta del pollice valeva 0,85
-   stazioni su una famiglia e 2,4 su un'altra: la soglia del lancio
-   scattava a velocita' diverse a seconda di dove ti trovavi. */
-const LANCIO_PX = 320;       // pixel al secondo che valgono un lancio
+/* QUI STAVA IL FRENO, E IL FRENO ERA IL DIFETTO. `CENNO_PX = 46` con una
+   tangente iperbolica: la scena rispondeva all'80 per cento a 22 pixel di
+   dito, al 44 per cento a 40, e a 46 si fermava — misurato sugli anelli
+   1,026 · 0,981 · 0,840 · 0,563 · 0,299 pixel di scena per pixel di dito a
+   10 · 20 · 40 · 80 · 160. Cioe' la scena si muoveva SOLO sotto il dito e
+   solo per un centimetro e mezzo, poi si incollava, e dove si andava lo
+   decideva il rilascio. E' esattamente il verdetto del cliente: «si muove
+   solo quando il dito e' appoggiato, non dando il senso di rallentamento
+   della visuale».
+   Adesso sotto il dito e' UNO A UNO, senza freno, in tutte e cinque le
+   famiglie — il passo per stazione lo da' gia' `PASSO_DITO` — e l'unica
+   resistenza e' la gomma AI BORDI della fila, come in ogni lista di iOS.
+   Anche nei modi «salta» e «scambia», dove un espositore intero entra ed
+   esce: li' una stazione vale 367 pixel invece di 108, e uno a uno vuol
+   dire «una passata di schermo, un espositore» — che e' la paginazione di
+   iOS, non un difetto. Il freno li' non serve, e infatti non c'e' piu'.
+   Spariti con lui: `LANCIO_PX` (la soglia del lancio) e la regola della
+   STRADA percorsa. Dove si va non e' piu' una soglia: e' la PROIEZIONE
+   della velocita'. */
+/* -- LA PROIEZIONE, E LA DECELERAZIONE CHE PARTE DAL DITO --------
+   Il modello e' quello di UIScrollView con la paginazione «a bersaglio»:
+   si proietta dove il dito sarebbe arrivato se lo scorrimento avesse
+   continuato da solo, e la stazione piu' vicina a quel punto e' il
+   bersaglio. La proiezione e' la formula di iOS — lo scorrimento decade
+   di un fattore lambda a ogni millisecondo, e la distanza che resta da
+   fare vale v/1000 · lambda/(1-lambda). Con lambda 0,998 quel rapporto
+   fa 499, cioe' mezzo secondo di velocita' corrente. */
+/* LAMBDA E' 0,997, NON 0,998. Con 0,998 la proiezione vale mezzo secondo
+   di velocita' corrente — giusto su una lista di pixel, troppo su una
+   fila di cinque anelli dove una stazione e' 108 pixel: misurato, un
+   lancio medio da 600 px/s ne scavalcava QUATTRO. A 0,997 la coda vale
+   un terzo di secondo e lo stesso lancio ne fa due. */
+const CODA_MS = 0.3323;      // secondi: lambda/(1-lambda)/1000, lambda 0,997
+/* E UN LANCIO NON PUO' SCAVALCARE TUTTO IL COFANETTO. Su cinque pezzi un
+   lancio forte ne proietta otto: si arriverebbe in fondo senza aver visto
+   niente in mezzo, e chi guarda perde il posto.
+   IL TETTO SI CONTA DA DOVE IL GESTO E' COMINCIATO, non da dove il dito
+   si e' alzato: fra i due c'e' tutto il trascinamento uno a uno, e
+   contando dal rilascio un lancio medio arrivava a quattro stazioni
+   pur avendo un tetto di tre. Due e' il budget dell'intero gesto — ma non
+   puo' MAI riportare la fila dietro a dove il dito l'ha gia' portata:
+   quello sarebbe disfare il trascinamento. */
+const TETTO_SALTO = 2;
+/* ══════════════════════════════════════════════════════════════
+   DOPO IL RILASCIO LA VELOCITA' SCENDE E BASTA
+
+   Qui c'era una MOLLA verso il bersaglio, e una molla e' un motore: se il
+   bersaglio e' piu' lontano di quanto la velocita' del dito porterebbe da
+   sola, la molla TIRA. Misurato: 142-176 per cento della velocita' del
+   dito al primo fotogramma, con punte fino al 247 a meta' corsa. Si
+   lasciava andare e la scena spingeva. E' l'opposto del «senso di
+   rallentamento» che si sta cercando: una decelerazione si riconosce
+   perche' ogni fotogramma e' piu' lento del precedente, sempre.
+   Adesso non c'e' piu' nessuna forza. C'e' UNA SOLA legge, quella dello
+   scorrimento di iOS: la velocita' decade di un fattore lambda a ogni
+   millisecondo, e la strada che resta da fare vale sempre
+   v/1000 · lambda/(1-lambda). Scelto il bersaglio, si RISOLVE il lambda
+   che rende quella strada esattamente la distanza al bersaglio:
+       R = 1000·d/v        lambda' = R/(1+R)
+   Con quel lambda la coda parte esatta alla velocita' del dito, scende in
+   modo monotono, e finisce esattamente sulla stazione. Niente spinta,
+   niente sorpasso: sono la stessa cosa, e spariscono insieme.
+   ══════════════════════════════════════════════════════════════ */
+const LAM_PAVIMENTO = 0.990;   // coda ~100 ms: sotto, il moto e' un urto
+/* IL TETTO DICHIARATO E' 0,998 (coda 0,4995 s), ma tagliarci sopra lascia
+   il bersaglio IRRAGGIUNGIBILE: a 150 px/s con 88 pixel da fare serve una
+   coda di 588 ms, e una da 499 ne copre 75 — la fila si pianterebbe a
+   tredici pixel dalla stazione a cui il gesto puntava. Coprire quei
+   tredici pixel richiede piu' velocita' di quella che la coda ha in quel
+   momento, cioe' una spinta: esattamente la cosa che si sta togliendo.
+   L'unico modo monotono di arrivarci e' una coda piu' lunga, e 0,9992
+   (1,25 s) e' il punto oltre il quale non si parla piu' di lancio: li'
+   sotto ci pensa l'AGGANCIO. */
+const LAM_TETTO = 0.9992;
+/* piu' lento di cosi' non e' un lancio, e' un dito che si stacca: la fila
+   si aggancia alla stazione con la molla di sempre. Una molla che parte
+   da ferma ACCELERA — non c'e' altro modo di partire da fermi — ma li'
+   non c'e' nessuna velocita' del dito da tradire. */
+const TAU_LANCIO = 1.25;       // secondi: la coda piu' lunga che si accetti
+/* sotto un pixel non c'e' piu' niente da mostrare, e un asintoto che non
+   finisce e' un ciclo di disegno che non si spegne. Era 0,3: con la legge
+   di iOS presa alla lettera un colpetto lento con una stazione da coprire
+   restava in moto sub-pixel per un secondo intero (aggancio a 3.317 ms
+   sugli anelli a 150 px/s). A un pixel la coda visibile e' la stessa e
+   il ciclo si spegne ~700 ms prima. */
+const AGGANCIO_PX = 1.0;
+/* da d e v (stesse unita') il lambda che fa finire la coda ESATTAMENTE
+   sul bersaglio, e con lui 1/tau — che e' quello che serve al ciclo */
+function codaDi(d, v){
+  const R = 1000 * d / Math.abs(v);
+  const lam = Math.min(LAM_TETTO, Math.max(LAM_PAVIMENTO, R / (1 + R)));
+  return {lam, unSuTau: -1000 * Math.log(lam)};
+}
 /* LA MOLLA E' PIU' MORBIDA DI PRIMA. A 210 arrivava in due decimi di
    secondo: giusta quando il dito portava la scena quasi a destinazione e
    alla molla restava solo l'ultimo pezzo di strada. Adesso che il dito si
@@ -7217,10 +7304,55 @@ const LANCIO_PX = 320;       // pixel al secondo che valgono un lancio
    non supera il bersaglio e non torna mai indietro (sforamento 0 in tutte
    e cinque le prove). */
 const K_POS = 130;
+/* la rigidita' dell'AGGANCIO: vale quando non c'e' una coda in corso —
+   rotella, frecce, tocco su un pezzo lontano, freno, e i rilasci troppo
+   lenti per essere un lancio. */
+let kPos = K_POS;
+/* LA CODA IN CORSO. `coda` e' 0 quando la fila si aggancia con la molla e
+   1 quando sta decelerando da sola; `codaTau` e' 1/tau del decadimento
+   scelto per QUEL lancio. Si spegne da se' all'aggancio, e la spegne
+   qualunque comando che riassegni il bersaglio. */
+let coda = 0, codaTau = 0;
+function fermaCoda(){ coda = 0; kPos = K_POS; }
 let pos = 0, posV = 0, posMeta = 0, posGiu = 0;
 let giu = null, mosso = 0, mossoY = 0, partenzaX = 0;
 let giroGiu = 0, altGiu = 0.12, dondolo = 0, giroBase = 0, giroV = 0;
 let ultimoX = 0, ultimoT = 0, velDito = 0;
+/* -- LA VELOCITA' DEL DITO SI LEGGE SU UNA FINESTRA ---------------
+   Era un filtro esponenziale a 0,72/0,28 su ogni `pointermove`: comodo,
+   ma la sua memoria dipende da QUANTI eventi arrivano, e un pannello a
+   120 Hz e uno a 60 gli danno due costanti di tempo diverse. Peggio: un
+   dito che si ferma e poi si alza lascia nel filtro la velocita' di
+   prima, e la scena parte da sola dopo che il gesto era gia' finito.
+   Adesso e' una media pesata sugli ultimi novanta millisecondi veri, col
+   peso che cresce verso il rilascio, e al rilascio si aggiunge un
+   campione all'istante dell'alzata: se il dito e' stato fermo per un
+   decimo di secondo, la finestra e' tutta ferma e la velocita' e' zero.
+   I campioni stanno in un array piatto (tempo, x, tempo, x): un oggetto
+   per `pointermove` a 120 Hz e' spazzatura che il raccoglitore viene a
+   prendere in mezzo a un gesto. */
+const FINESTRA_VEL = 90;
+const campioni = [];
+function campiona(t, x){
+  campioni.push(t, x);
+  while(campioni.length > 4 && t - campioni[0] > FINESTRA_VEL) campioni.splice(0, 2);
+}
+/* positiva quando il dito va a SINISTRA, come `velDito` di prima: e' il
+   verso in cui la posizione logica cresce */
+function velFinestra(){
+  if(campioni.length < 4) return 0;
+  const fine = campioni[campioni.length - 2];
+  let peso = 0, somma = 0;
+  for(let i = 2; i < campioni.length; i += 2){
+    const dt = campioni[i] - campioni[i-2];
+    if(dt <= 0) continue;
+    const w = dt * (1 - (fine - campioni[i]) / FINESTRA_VEL);
+    if(w <= 0) continue;
+    somma += (campioni[i-1] - campioni[i+1]) / (dt / 1000) * w;
+    peso += w;
+  }
+  return peso > 0 ? somma / peso : 0;
+}
 const raggio = new THREE.Raycaster(), schermo = new THREE.Vector2();
 
 /* ══════════════════════════════════════════════════════════════
@@ -7257,7 +7389,13 @@ const MOTI = {
   b:{tetto:1.572, tau:0.4995},  // iPhone, tagliata a 45 gradi: 0,785 rad
   c:{tetto:4.5,   tau:0.38}     // quella di oggi: 1,71 rad, cioe' 98 gradi
 };
-const MOTO_DI_SERIE = "c";
+/* DI SERIE E' (b), DAL 14/09. E' la STESSA FISICA del rilascio della fila
+   e del banco — proiezione con lambda 0,998, cioe' una costante di 0,4995
+   secondi — con la coda tagliata a 45 gradi perche' un gioiello che si
+   rivolta da solo di un quarto di giro non si sta piu' esaminando. La (c),
+   tarata a mano, faceva 102 gradi di coda: era il carattere di un altro
+   oggetto. (a) e (c) restano scegliibili con `?moto=a|c`. */
+const MOTO_DI_SERIE = "b";
 window.__moto = (() => {
   const m = (q.get("moto") || MOTO_DI_SERIE).toLowerCase();
   return MOTI[m] ? m : MOTO_DI_SERIE;
@@ -7265,6 +7403,11 @@ window.__moto = (() => {
 
 function inMoto(){
   if(velaVerso) return true;
+  /* e la coda del banco e' un moto anche se la macchina e' ATTACCATA al
+     suo bersaglio: durante il lancio i due coincidono per costruzione
+     (vedi `bancoVola` nel ciclo), quindi la distanza qui sotto e' zero e
+     senza questa riga un tocco in corsa non varrebbe come freno. */
+  if(bancoVola) return true;
   if(occhio.distanceTo(occhioObiettivo) > 0.004) return true;
   if(livello === 1) return Math.abs(pos - posMeta) > 0.004 || Math.abs(posV) > 0.02;
   if(livello === 2) return Math.abs(giroV) > 0.02;
@@ -7272,6 +7415,38 @@ function inMoto(){
 }
 
 function limiteN(){ return attiva ? stazioni(attiva).length - 1 : 0; }
+
+/* -- CHI E' DAVANTI, AL BANCO ------------------------------------
+   Stava dentro il trascinamento. Ma adesso il banco ha anche una CODA —
+   il lancio prosegue dopo che il dito si e' alzato — e in quella coda le
+   famiglie continuano a scorrere: il titolo deve cambiare li' come
+   cambiava sotto il dito, o si arriva davanti agli orologi con scritto
+   «Bracciali».
+   SOLO FRA QUELLE CHE SONO GIA' SUL BANCO: con le famiglie caricate a
+   tappe `gruppi[f.id]` puo' non esserci ancora. */
+function segnaVicino(x){
+  let vicino = null;
+  for(const f of FAMIGLIE){
+    if(!gruppi[f.id]) continue;
+    if(!vicino || Math.abs(gruppi[f.id].position.x - x)
+                < Math.abs(gruppi[vicino.id].position.x - x)) vicino = f;
+  }
+  if(vicino && vicino.id !== davanti){ davanti = vicino.id; segnaMenu();
+    scritte(vicino.nome, "", stazioni(vicino.id).length + " in vetrina",
+            "trascina per scorrere · tocca per entrare"); }
+}
+
+/* -- IL LANCIO DEL BANCO ------------------------------------------
+   Al livello 0 il rilascio non faceva NIENTE: misurato, la macchina si
+   fermava esattamente dove il dito l'aveva lasciata — velocita' al primo
+   fotogramma dopo il rilascio 0,0 px/s — e restava anche a meta' fra due
+   famiglie (36,9 pixel dal centro di «Bracciali» dopo un lancio da 600
+   px/s). E' lo stesso difetto del livello 1, in una stanza piu' grande.
+   Qui le stazioni sono le famiglie e l'unita' e' il METRO, ma la fisica e'
+   identica: proiezione, bersaglio, molla che eredita la velocita'. */
+let bancoVola = false, bancoV = 0, bancoMeta = 0, bancoK = K_POS;
+let bancoCoda = 0, bancoTau = 0;
+function fermaBanco(){ bancoVola = false; bancoCoda = 0; bancoV = 0; }
 /* LA GOMMA NON E' UNA FRAZIONE, E' UN ASINTOTO. Con un terzo fisso il dito
    porta la scena tre pezzi oltre l'ultimo, e c'e' uno spigolo sul capo:
    dentro il dito vale 1, fuori 0,32, e quel gradino si sente. Qui la
@@ -7355,6 +7530,9 @@ stanza.addEventListener("pointerdown", e => {
   tocco();
   stanza.classList.add("tira");
   giu = {x:e.clientX, y:e.clientY, fermava}; mosso = 0; mossoY = 0;
+  /* il banco si pianta DOVE STA, come la fila: la coda del lancio non ha
+     piu' un bersaglio da raggiungere, e il trascinamento riparte da qui */
+  if(fermava && livello === 0){ fermaBanco(); partenzaBanco = occhioObiettivo.x; }
   if(fermava && livello === 1){
     /* la fila si pianta DOVE STA, come una lista che si scorre: la molla
        non ha piu' un bersaglio lontano da raggiungere */
@@ -7370,7 +7548,11 @@ stanza.addEventListener("pointerdown", e => {
   giroGiu = giroP; altGiu = altP; giroV = 0;
   partenzaX = occhioObiettivo.x;
   posGiu = pos; posV = 0; velDito = 0;
+  /* e la coda di prima finisce qui: il dito e' tornato, e da adesso
+     comanda lui */
+  fermaCoda();
   ultimoX = e.clientX; ultimoT = performance.now();
+  campioni.length = 0; campiona(ultimoT, ultimoX);
 });
 
 stanza.addEventListener("pointermove", e => {
@@ -7394,12 +7576,13 @@ stanza.addEventListener("pointermove", e => {
   if(!giu) return;
   tocco();
   mosso = e.clientX - giu.x; mossoY = e.clientY - giu.y;
-  /* LA VELOCITA' SI MISURA CON UNA MEDIA MOBILE. Un solo campione fra due
-     fotogrammi e' rumore, e un flick misurato male manda il pezzo tre
-     posizioni piu' in la' senza che nessuno l'abbia chiesto. */
-  const ora = performance.now(), dt = Math.max(8, ora - ultimoT);
-  velDito = velDito * 0.72
-          + ((ultimoX - e.clientX) / (dt / 1000)) * 0.28;
+  /* LA VELOCITA' SI MISURA SU UNA FINESTRA DI TEMPO: vedi `velFinestra`.
+     Un solo campione fra due fotogrammi e' rumore, e un flick misurato
+     male manda il pezzo tre posizioni piu' in la' senza che nessuno
+     l'abbia chiesto. */
+  const ora = performance.now();
+  campiona(ora, e.clientX);
+  velDito = velFinestra();
   ultimoX = e.clientX; ultimoT = ora;
 
   gestoSporco = 1;
@@ -7417,32 +7600,19 @@ function passoDito(){
     occhioObiettivo.x = Math.max(-lim, Math.min(lim, partenzaX - mosso*0.0016));
     miraObiettivo.x = occhioObiettivo.x;
     partenzaBanco = occhioObiettivo.x;
-    /* SOLO FRA QUELLE CHE SONO GIA' SUL BANCO. Con le famiglie a tappe
-       `gruppi[f.id]` puo' non esserci ancora, e questa riga la chiama un
-       trascinamento qualunque. */
-    let vicino = null;
-    for(const f of FAMIGLIE){
-      if(!gruppi[f.id]) continue;
-      if(!vicino || Math.abs(gruppi[f.id].position.x - occhioObiettivo.x)
-                  < Math.abs(gruppi[vicino.id].position.x - occhioObiettivo.x)) vicino = f;
-    }
-    if(vicino && vicino.id !== davanti){ davanti = vicino.id; segnaMenu();
-      scritte(vicino.nome, "", stazioni(vicino.id).length + " in vetrina",
-              "trascina per scorrere · tocca per entrare"); }
+    segnaVicino(occhioObiettivo.x);
   } else if(livello === 1){
-    /* IN SELEZIONE IL DITO ACCENNA, NON SCORRE. Prima la scena seguiva il
-       dito uno a uno: e' giusto per una lista che scorre, ma qui uno swipe
-       deve valere UN cambio di visuale, netto. Se la scena segue tutto il
-       trascinamento, a meta' gesto ci si trova a meta' fra due espositori e
-       il cambio non e' piu' un cambio, e' uno scorrimento che a un certo
-       punto si ferma.
-       Quindi il dito muove la scena uno a uno finche' il movimento e'
-       piccolo, poi la resistenza cresce e si ferma a un terzo di stazione:
-       si vede che l'espositore accanto c'e' e che il gesto e' stato preso,
-       ma dove si va lo decide il RILASCIO. */
-    const accennoPx = CENNO_PX * Math.tanh(-mosso / CENNO_PX);
-    pos = gomma(posGiu + accennoPx / PASSO_DITO, 0, limiteN());
-    posMeta = pos;
+    /* SOTTO IL DITO LA SCENA E' IL DITO. Uno a uno, senza freno: il
+       trascinamento non decide piu' NIENTE — dove si va lo decide la
+       proiezione al rilascio — e quindi non ha piu' bisogno di trattenere
+       niente. Con il freno la scena si muoveva per quarantasei pixel e poi
+       si incollava: e' quella la cosa che il cliente ha visto e chiamato
+       «si muove solo quando il dito e' appoggiato».
+       L'unica resistenza resta ai CAPI della fila (`gomma`): li' non c'e'
+       niente da mostrare, e la gomma dice che la fila e' finita senza
+       chiudere una porta in faccia. */
+    pos = gomma(posGiu - mosso / PASSO_DITO, 0, limiteN());
+    posMeta = pos; posV = 0;
     applicaPos(true);
   } else if(livello === 2){
     /* AL PEZZO IL DITO NON SCORRE, GIRA. Il gioiello e' li' davanti: la
@@ -7516,6 +7686,7 @@ addEventListener("pointerup", e => {
   if(fermava && Math.abs(dx) < 8 && Math.abs(dy) < 8){
     if(livello === 1){
       posMeta = Math.max(0, Math.min(limiteN(), Math.round(pos)));
+      fermaCoda();                  // un aggancio, non un lancio
       mostraScheda();
     }
     sveglia();
@@ -7561,38 +7732,91 @@ addEventListener("pointerup", e => {
   }
 
   if(livello === 1){
-    /* LA LEGGE DELLO SFOGLIO. Proiettare la velocita' e arrotondare e' la
-       legge di una lista lunga, non di cinque pezzi: un accompagnamento di
-       poco piu' di una stazione ne scorreva due. Si parte dalla stazione su
-       cui il dito e' SCESO, un lancio ne vale UNO, e solo un lancio molto
-       deciso ne scavalca di piu'. */
-    /* UNO SWIPE, UNA STAZIONE. Mai due, per quanto forte sia il lancio:
-       qui non si sfoglia una lista lunga, si cambia visuale. Un lancio che
-       ne scavalca tre lascia chi guarda senza sapere dove e' finito, e su
-       cinque anelli non serve a niente.
-       Si decide sul gesto, non sulla posizione: se il dito ha percorso
-       abbastanza strada o e' partito abbastanza in fretta, si va avanti di
-       uno; altrimenti si torna dov'eravamo. */
-    const n = limiteN(), base = Math.round(posGiu);
-    const STRADA = 30;                       // pixel di dito percorsi
-    let passo = 0;
-    if(Math.abs(velDito) > LANCIO_PX) passo = Math.sign(velDito);
-    else if(Math.abs(dx) > STRADA) passo = -Math.sign(dx);
-    posMeta = Math.max(0, Math.min(n, base + passo));
+    /* -- IL BERSAGLIO SI PROIETTA, NON SI CONTA --------------------
+       Stava scritto «uno swipe, una stazione», deciso su due soglie: 320
+       px/s di velocita' oppure 30 px di strada. Due soglie sono due
+       gradini, e un gradino e' esattamente cio' che si sente come «non
+       fluido»: sotto la soglia non succede niente, sopra succede tutto, e
+       in mezzo il gesto non ha peso. Peggio, la stazione di partenza era
+       `Math.round(posGiu)` — DOVE IL DITO ERA SCESO — quindi un dito che
+       aveva gia' portato la fila a meta' strada tornava indietro.
+       Adesso il gesto ha peso ovunque: si proietta dove lo scorrimento
+       sarebbe arrivato da solo e si prende la stazione piu' vicina a quel
+       punto. Un colpetto appena sopra mezza stazione va alla prossima, uno
+       appena sotto torna indietro, un lancio forte ne scavalca piu' d'una
+       — fino a tre. Nessuna soglia: c'e' solo un arrotondamento, e
+       l'arrotondamento e' continuo nella velocita'. */
+    const n = limiteN();
+    const velStaz = velDito / PASSO_DITO;         // stazioni al secondo
+    /* IL BUDGET DEL GESTO SI CONTA DA DOVE IL DITO E' SCESO. Ma il tetto
+       non puo' riportare la fila DIETRO a dove il trascinamento l'ha gia'
+       portata: `Math.round(pos)` e' il pavimento (o il soffitto) in quella
+       direzione, e disfare il lavoro del dito non e' un tetto, e' un
+       rimbalzo. */
+    const ancora = Math.round(posGiu), qui = Math.round(pos);
+    const su = Math.max(ancora + TETTO_SALTO, qui);
+    const giuu = Math.min(ancora - TETTO_SALTO, qui);
+    let meta = Math.round(pos + velStaz * CODA_MS);
+    posMeta = Math.max(0, Math.min(n, Math.max(giuu, Math.min(su, meta))));
     mostraScheda();
-    /* LA MOLLA EREDITA LA VELOCITA' DEL DITO, ma non piu' di quanta ne
-       possa assorbire senza superare il bersaglio, e solo se punta verso di
-       esso: al capo della fila il dito spinge ancora in fuori mentre la
-       meta e' indietro. */
+    /* -- E DA QUI IN POI NON C'E' PIU' NESSUNA FORZA ---------------
+       Si risolve il lambda che fa finire la coda esattamente qui (vedi
+       `codaDi`) e si lascia decadere. Due casi restano alla molla:
+       il bersaglio DIETRO al verso del dito — un colpetto che non e'
+       bastato, e che torna indietro — e il rilascio troppo lento perche'
+       si possa chiamarlo lancio: in tutti e due non c'e' velocita' da
+       onorare, e una molla che parte da ferma e' la cosa giusta. */
+    const d = Math.abs(posMeta - pos);
     const verso = Math.sign(posMeta - pos);
-    const w = Math.sqrt(K_POS) * Math.abs(pos - posMeta);
-    // la molla eredita la velocita' in STAZIONI al secondo: quella del
-    // dito e' in pixel, e il cambio di unita' lo fa il passo della famiglia
-    const velStaz = velDito / PASSO_DITO;
-    posV = Math.sign(velDito) === verso
-         ? Math.max(-w, Math.min(w, velStaz)) : 0;
+    const lancio = verso !== 0 && Math.sign(velStaz) === verso
+                && Math.abs(velStaz) * TAU_LANCIO > d;
+    if(lancio){
+      const c = codaDi(d, velStaz);
+      codaTau = c.unSuTau; coda = 1;
+      posV = velStaz;
+    } else {
+      coda = 0; kPos = K_POS;
+      posV = 0;
+    }
     sveglia();
     if(Math.abs(dx) > 8 || Math.abs(dy) > 8) return;
+  }
+
+  if(livello === 0){
+    /* -- LO STESSO MODELLO, CON LE FAMIGLIE COME STAZIONI ----------
+       Un pixel di dito vale 0,0016 metri di banco (lo fissa `passoDito`),
+       quindi la velocita' in metri al secondo e' la stessa moltiplicazione.
+       Si proietta, si prende la famiglia piu' vicina al punto proiettato —
+       ma senza uscire dal banco — e si lascia correre la stessa molla.
+       IL TETTO E' LO STESSO: tre famiglie. Su cinque, un lancio che ne
+       scavalca quattro porta da un capo all'altro della vetrina. */
+    const PER_PX = 0.0016;
+    const lim = Math.max(0, LARGO_BANCO/2 - 0.06);
+    const qui = occhioObiettivo.x;
+    const v = velDito * PER_PX;                   // metri al secondo
+    const punto = Math.max(-lim, Math.min(lim, qui + v * CODA_MS));
+    const ord = FAMIGLIE.filter(f => gruppi[f.id])
+                        .map(f => gruppi[f.id].position.x)
+                        .sort((a, b) => a - b);
+    if(ord.length){
+      const vicina = x => ord.reduce((m, y, i) =>
+        Math.abs(y - x) < Math.abs(ord[m] - x) ? i : m, 0);
+      // il budget si conta da dove il dito e' SCESO, come nella fila
+      const iVia = vicina(partenzaX), iQui = vicina(qui);
+      const su = Math.max(iVia + TETTO_SALTO, iQui);
+      const giuu = Math.min(iVia - TETTO_SALTO, iQui);
+      const iMeta = Math.max(giuu, Math.min(su, vicina(punto)));
+      bancoMeta = Math.max(-lim, Math.min(lim, ord[iMeta]));
+      const d = Math.abs(bancoMeta - qui);
+      const verso = Math.sign(bancoMeta - qui);
+      if(verso !== 0 && Math.sign(v) === verso && Math.abs(v) * TAU_LANCIO > d){
+        bancoTau = codaDi(d, v).unSuTau; bancoCoda = 1; bancoV = v;
+      } else {
+        bancoCoda = 0; bancoK = K_POS; bancoV = 0;
+      }
+      bancoVola = d > 1e-5;
+      sveglia();
+    }
   }
 
   /* UN GESTO, UN COMANDO. Il trascinamento verso il basso torna indietro —
@@ -7657,6 +7881,7 @@ addEventListener("wheel", e => {
   rotellaSomma = 0;
   if(livello === 1){
     posMeta = Math.max(0, Math.min(limiteN(), Math.round(posMeta) + passo));
+    fermaCoda();                    // un passo di rotella non e' un lancio
     mostraScheda();
   } else if(livello === 0){
     // al banco si cammina di famiglia in famiglia: e' l'unica misura che
@@ -7673,6 +7898,7 @@ addEventListener("wheel", e => {
    trascinamento */
 function vaiDavantiA(id){
   if(!gruppi[id]) return;
+  fermaBanco();
   partenzaBanco = gruppi[id].position.x;
   occhioObiettivo.x = partenzaBanco; miraObiettivo.x = partenzaBanco;
   if(davanti !== id){
@@ -7711,6 +7937,7 @@ addEventListener("keydown", e => {
       inquadraPezzo();
     } else if(livello === 1){
       posMeta = Math.max(0, Math.min(limiteN(), Math.round(posMeta) + d));
+      fermaCoda();                  // una freccia non e' un lancio
       mostraScheda();
     } else {
       const i = Math.max(0, Math.min(FAMIGLIE.length - 1,
@@ -7860,7 +8087,7 @@ function tocca(e){
        di colpo da lontano salterebbe un passaggio, e il cliente perde il
        filo di dove si trova. */
     const dove = stazioni(attiva).findIndex(g => g.indexOf(k) >= 0);
-    if(dove >= 0){ posMeta = dove; mostraScheda(); sveglia(); }
+    if(dove >= 0){ posMeta = dove; fermaCoda(); mostraScheda(); sveglia(); }
     return;
   }
   if(livello === 0){
@@ -7956,7 +8183,10 @@ function gira(ora){
      di messa a fuoco. Il ciclo non si spegne finche' non ci e' tornato
      (vedi `fermo`, in fondo), o l'ultimo fotogramma resterebbe sgranato. */
   const inGesto = giu !== null || pizzico
-    || Math.abs(posV) > 0.9 || Math.abs(giroV) > 0.9;
+    || Math.abs(posV) > 0.9 || Math.abs(giroV) > 0.9
+    /* e la coda del banco e' la stessa cosa: un lancio fra famiglie muove
+       tutta la vetrina, ed e' il fotogramma piu' largo che ci sia */
+    || (bancoVola && Math.abs(bancoV) > 0.02);
   if(inGesto){ gestoScala = scalaSottoIlDito(); ripresaGesto = 0; }
   else if(gestoScala < 1){
     ripresaGesto++;
@@ -7994,10 +8224,76 @@ function gira(ora){
   }
 
   if(!giu && livello === 1){
-    if(ridotto){ pos = posMeta; posV = 0; }
-    else { const r = molla(pos, posV, posMeta, K_POS, dt); pos = r[0]; posV = r[1]; }
+    if(ridotto){ pos = posMeta; posV = 0; coda = 0; }
+    else if(coda){
+      /* -- LA CODA: SOLO DECADIMENTO --------------------------------
+         Una riga, ed e' tutta la fisica: la velocita' e' SEMPRE la strada
+         che resta diviso tau. E' la stessa identica cosa di «decade del
+         fattore lambda a ogni millisecondo» — in un decadimento
+         esponenziale velocita' e strada residua sono proporzionali — ma
+         scritta cosi' si corregge da sola.
+         PERCHE' NON `v *= lambda^ms`: provato, e la fila si piantava un
+         pixel e due decimi prima della stazione. Sommando la velocita'
+         DOPO il decadimento, fotogramma per fotogramma, il totale vale
+         v0·(tau - dt/2) invece di v0·tau: mezzo fotogramma di strada che
+         non si fa mai, e con una soglia di aggancio a tre decimi di pixel
+         quel residuo non si chiude piu'. Misurato: coda ferma a 1,2 px
+         dal bersaglio, ciclo che non si spegne.
+         Legata alla strada residua, invece, la coda finisce esattamente
+         dove deve, resta monotona (la strada scende, quindi la velocita'
+         scende) e non puo' superare il bersaglio: un passo vale
+         resta·dt/tau, e dt e' sempre molto meno di tau.
+         Il `min` con la velocita' di prima e' la garanzia scritta che
+         nessun fotogramma sia piu' veloce del precedente — serve quando il
+         PAVIMENTO ha allungato la coda oltre la strada disponibile, e li'
+         il primo fotogramma taglia la velocita' invece di alzarla. */
+      const resta = Math.abs(posMeta - pos), verso = Math.sign(posMeta - pos);
+      const agg = AGGANCIO_PX / PASSO_DITO;
+      if(resta < agg){ pos = posMeta; posV = 0; coda = 0; }
+      else {
+        posV = verso * Math.min(resta * codaTau, Math.abs(posV));
+        pos += posV * dt;
+        if(Math.abs(posMeta - pos) < agg){ pos = posMeta; posV = 0; coda = 0; }
+      }
+    }
+    else { const r = molla(pos, posV, posMeta, kPos, dt); pos = r[0]; posV = r[1]; }
     applicaPos(false);
   }
+
+  /* -- LA CODA DEL BANCO -----------------------------------------
+     Stessa molla della fila, in metri invece che in stazioni. Il
+     bersaglio della macchina si muove da solo, e la macchina ci sta
+     ATTACCATA: la molla dei voli, piu' avanti, aggiungerebbe un secondo
+     ritardo sopra questo — una molla dentro una molla — e il lancio si
+     leggerebbe molle esattamente come il difetto che stiamo togliendo. */
+  if(bancoVola && livello === 0 && !giu && !pizzico){
+    if(ridotto){ occhioObiettivo.x = bancoMeta; bancoV = 0; bancoVola = false; }
+    else {
+      // tre decimi di pixel di dito, in metri: la stessa soglia della fila
+      const agg = AGGANCIO_PX * 0.0016;
+      const resta = Math.abs(bancoMeta - occhioObiettivo.x);
+      const verso = Math.sign(bancoMeta - occhioObiettivo.x);
+      if(resta < agg){ occhioObiettivo.x = bancoMeta; bancoV = 0; bancoVola = false; }
+      else if(bancoCoda){
+        // vedi la coda della fila: la velocita' e' la strada che resta
+        // diviso tau, e il min con quella di prima la tiene non crescente
+        bancoV = verso * Math.min(resta * bancoTau, Math.abs(bancoV));
+        occhioObiettivo.x += bancoV * dt;
+        if(Math.abs(bancoMeta - occhioObiettivo.x) < agg){
+          occhioObiettivo.x = bancoMeta; bancoV = 0; bancoVola = false; bancoCoda = 0;
+        }
+      } else {
+        const r = molla(occhioObiettivo.x, bancoV, bancoMeta, bancoK, dt);
+        occhioObiettivo.x = r[0]; bancoV = r[1];
+        if(Math.abs(occhioObiettivo.x - bancoMeta) < agg && Math.abs(bancoV) < 0.004){
+          occhioObiettivo.x = bancoMeta; bancoV = 0; bancoVola = false;
+        }
+      }
+    }
+    miraObiettivo.x = occhioObiettivo.x;
+    partenzaBanco = occhioObiettivo.x;
+    segnaVicino(occhioObiettivo.x);
+  } else if(bancoVola) fermaBanco();
 
   /* AL PEZZO LA MACCHINA NON STA MAI FERMA DEL TUTTO. Un oggetto in mano lo
      si muove sempre un po', e quel minimo di movimento e' quello che dice
@@ -8087,7 +8383,10 @@ function gira(ora){
      essere su un gioiello — un rimbalzo elastico su una collana e' un
      giocattolo. */
   const K_VOLO = 148;
-  if(giu && !pizzico){
+  /* e durante la CODA del banco vale la stessa regola del dito giu': la
+     decelerazione e' gia' una molla, e metterne un'altra in fila le
+     sommerebbe i ritardi */
+  if((giu || bancoVola) && !pizzico){
     occhio.copy(occhioObiettivo); mira.copy(miraObiettivo);
     occhioV.set(0, 0, 0); miraV.set(0, 0, 0);
   } else if(ridotto){
@@ -8182,7 +8481,7 @@ function gira(ora){
      finiti TUTTI. Un quarto di secondo: e' il tempo in cui una mano si
      ferma davvero, ed e' sotto la soglia in cui un ritorno di fuoco si
      legge come un ripensamento. */
-  const muove = inGesto || voloAlPezzo || velaVerso || posaMobile
+  const muove = inGesto || voloAlPezzo || velaVerso || posaMobile || bancoVola
     || seguiFinestra > 0 || vesteT < 1
     || occhio.distanceTo(occhioObiettivo) > 0.0012
     || Math.abs(pos - posMeta) > 0.002;
@@ -8206,6 +8505,7 @@ function gira(ora){
   const fermo = vesteT >= 1
              && gestoScala >= 1
              && !velaVerso
+             && !bancoVola
              && !posaMobile
              && !seguiFinestra
              && occhio.distanceTo(occhioObiettivo) < 0.0003
@@ -8286,8 +8586,28 @@ window.__apriCarta = (fam, k) => {
   apriCarta(fam, k);
   ferma();
 };
-window.__sonda = () => ({pos:+pos.toFixed(4), posMeta:+posMeta.toFixed(3),
+/* SEI DECIMALI SU `pos`, NON QUATTRO. Un decimillesimo di stazione e'
+   un centesimo di pixel, e a quattro decimi la differenza fra due
+   fotogrammi di coda lenta e' fatta di pochi quanti: il banco leggeva
+   risalite di velocita' che non esistono, dentro un decadimento che e'
+   monotono per costruzione. */
+window.__sonda = () => ({pos:+pos.toFixed(6), posMeta:+posMeta.toFixed(3),
   posV:+posV.toFixed(3), vel:+velDito.toFixed(2), giu:!!giu, zoom:+zoom.toFixed(3),
+  /* il passo del dito e' quello che traduce una stazione in pixel di
+     schermo: senza, il banco non sa dire se la scena ha seguito il dito
+     uno a uno, e ogni numero resta in unita' che cambiano da famiglia a
+     famiglia. */
+  passo:+PASSO_DITO.toFixed(1),
+  /* la rigidita' scelta per il lancio in corso e la velocita' che la
+     molla ha EREDITATO: senza queste due il banco misura la velocita'
+     sul primo fotogramma, che e' gia' un fotogramma di decelerazione —
+     al 13 per cento su un lancio forte — e la scambia per un salto. */
+  k:+kPos.toFixed(1), bancoV:+bancoV.toFixed(4), bancoVola,
+  /* la coda in corso: il lambda risolto per QUESTO lancio, ricavato da
+     1/tau. Il banco misura che sia davvero quello che il rilascio ha
+     scelto, e non un numero fisso travestito. */
+  coda, lam: coda ? +Math.exp(-codaTau / 1000).toFixed(5) : null,
+  bancoLam: bancoCoda ? +Math.exp(-bancoTau / 1000).toFixed(5) : null,
   indice, scelto, livello, attiva,
   /* giroBase e' il giro SENZA il dondolo: serve al banco per misurare la
      coda di un rilascio, che altrimenti si legge sommata a 0,11 radianti
