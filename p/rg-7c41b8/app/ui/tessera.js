@@ -40,14 +40,17 @@
    la metà del giro è FISSATA nel tempo, così la faccia cambia
    esattamente quando la carta è di taglio e non si vede mai il retro
    in trasparenza. Chi ha chiesto meno movimento non ha un giro più
-   corto: ha una dissolvenza incrociata da 250 (corpus 49 §10, formula
+   corto: ha una dissolvenza incrociata da 200 (corpus 49 §10, formula
    E — il grado della celebrazione scende di uno, non sparisce).
    ═══════════════════════════════════════════════════════════════════ */
 import { e, annuncia } from "app/ui/dom.js";
 import { RIDOTTO } from "app/moto.js";
 
 export const GIRO = 600;          /* 2 x --d-ct-in, keyframe a 300     */
-export const GIRO_RIDOTTO = 250;  /* la dissolvenza, non il giro       */
+export const GIRO_RIDOTTO = 200;  /* la dissolvenza, non il giro       */
+/* 200 e non 250: il tetto del movimento ridotto e' 200 ms (SISTEMA-DESIGN
+   regola 4, «dissolvenze 150-200»), e una dissolvenza che lo sfonda e'
+   movimento che chi ne ha chiesto meno riceve lo stesso. */
 
 /* ── IL CODICE A BARRE ──────────────────────────────────────────────
    Rettangolare, mai quadrato (HIG Wallet). 52 barre di tre larghezze,

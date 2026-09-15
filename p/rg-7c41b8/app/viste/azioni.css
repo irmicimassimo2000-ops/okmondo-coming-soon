@@ -260,7 +260,7 @@ body[data-carta] #barra{visibility:hidden}
 
 /* ═══ CHI HA CHIESTO MENO MOVIMENTO ═════════════════════════════════
    La scala si abbassa di un grado: la scena grande diventa una
-   dissolvenza di 250 col frame finale già tutto in posto. Non si salta
+   dissolvenza di 200 col frame finale già tutto in posto. Non si salta
    niente — cambia il modo, non il contenuto. */
 @media (prefers-reduced-motion: reduce){
   .az-regia > *{transition-duration:150ms;transition-timing-function:linear;

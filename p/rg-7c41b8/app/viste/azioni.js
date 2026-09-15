@@ -1004,7 +1004,7 @@ export function monta(store){
      sotto i due secondi (carta psicologica).
      LA SCENA RESTA LA PAGINA: alla fine non c'è un «OK» da premere,
      c'è la carta ferma col suo tasto. Con meno movimento la scena non
-     si salta — cambia il modo: dissolvenza 250 col frame finale già
+     si salta — cambia il modo: dissolvenza 200 col frame finale già
      tutto in posto. */
   const REGIA = [
     {chi:"marchio", a:0},
@@ -1084,9 +1084,9 @@ export function monta(store){
     if(RIDOTTO.matches){
       for(const k in parti) parti[k].classList.add("az-in");
       coda.classList.add("az-in");
-      dentro.animate([{opacity:0},{opacity:1}], {duration:250, easing:"linear"});
+      dentro.animate([{opacity:0},{opacity:1}], {duration:200, easing:"linear"});
       for(const b of REGIA) tempi[b.chi] = 0;
-      tempi.inizio = 0; tempi.fine = 250;
+      tempi.inizio = 0; tempi.fine = 200;
       annuncia("Un regalo da " + mittente + ": " + nomeDi(es) + ".");
       return;
     }

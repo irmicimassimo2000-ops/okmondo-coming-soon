@@ -75,7 +75,8 @@ export const CERIMONIA = {
   testi: { da: 1250, a: 1500 },
   etichetta: 1400,                     /* «Apri» diventa «Continua» */
   fine: 1600,
-  ridotto: 250                         /* dissolvenza incrociata */
+  ridotto: 200                         /* dissolvenza incrociata (tetto
+                                          del ridotto: 150-200) */
 };
 
 /* ── IL CODICE ─────────────────────────────────────────────────────

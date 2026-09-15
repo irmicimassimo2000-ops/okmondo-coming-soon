@@ -919,7 +919,7 @@ export function monta(el, store){
      contro il vuoto post-premio misurato da Kivetz 2006.
      I tempi sono quelli scritti: stagger 120, molla 400 con smorzamento
      0,8, premio a +1,0 s, fine a 1,5 s. Movimento ridotto: una
-     dissolvenza di 250 e basta. */
+     dissolvenza di 200 e basta (il tetto del ridotto e' 150-200). */
   function schermoChiusura(id, dove){
     const d = dati();
     const c = d.collezioni.find((x) => x.id === id) || d.mie[0];
@@ -1005,8 +1005,9 @@ export function monta(el, store){
       tempi.t0 = t0;
 
       if(RIDOTTO.matches){
+        /* 200, non 250: il tetto del ridotto (SISTEMA-DESIGN regola 4). */
         anim.push(pagina.animate([{opacity: 0}, {opacity: 1}],
-          {duration: 250, easing: "linear", fill: "backwards"}));
+          {duration: 200, easing: "linear", fill: "backwards"}));
       } else {
         nodi.forEach((n, i) => anim.push(n.animate(
           [{opacity: 0, transform: "translateY(10px) scale(.92)"},

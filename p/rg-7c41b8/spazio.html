@@ -836,7 +836,17 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
 #attesa{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
         background:var(--carta);transition:opacity .6s;font:400 15px/1 Inter,sans-serif;
         color:var(--incisa)}  /* --incisa su carta 5,4:1; --quieto faceva 2,8 e Bodoni sotto 22 e' vietato */
-#attesa[hidden]{opacity:0;pointer-events:none;display:flex}
+#attesa[hidden]{opacity:0;pointer-events:none;display:flex;visibility:hidden;
+                transition:opacity .6s,visibility 0s .6s}
+/* E IL VELO SPARISCE ANCHE DALL'ALBERO. `opacity:0` con `display:flex`
+   lo toglieva agli occhi e lo lasciava a tutto il resto: a VoiceOver,
+   al fuoco della tastiera e a chi misura - il banco dei contrasti
+   leggeva «le collane...» a 1,53:1 sopra la scena, cioe' un testo che
+   nessuno vede. `visibility:hidden` arriva a dissolvenza finita (0s di
+   durata, 0,6 s di ritardo: la stessa della opacita'), quindi il velo
+   si spegne come prima e poi smette di esistere per davvero. Il
+   `display` resta, perche' e' quello che permette alla dissolvenza di
+   girare (vedi IL CONGEDO piu' sopra). */
 /* IL VELO DICE COSA STA ARRIVANDO. Non una percentuale — un numero che
    sale non è un'informazione, è un orologio — ma il NOME della cosa:
    «le collane…», «gli orecchini…». La riga sotto è alta un pixel: è un
@@ -1401,10 +1411,10 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
 
 /* ── E SE SI È CHIESTO MENO MOVIMENTO ────────────────────────────
    La giravolta della carta smette di essere una rotazione e diventa una
-   DISSOLVENZA di 250 ms: è quello che il sistema prescrive («tessera che
+   DISSOLVENZA di 200 ms: è quello che il sistema prescrive («tessera che
    si gira → crossfade fronte→retro 250, nessuna rotazione»). Il blocco
    generale qui sopra porta ogni transizione a 120 ms; questo, che viene
-   dopo e ha la stessa forza, rimette i 250 dove il sistema li vuole.
+   dopo e ha la stessa forza, rimette i 200 dove il sistema li vuole.
    Le due facce non possono più nascondersi con la faccia posteriore
    (non c'è più una faccia posteriore): si sovrappongono e si passano
    l'opacita', e il retro sta sopra quando è il suo turno. */
@@ -1413,7 +1423,9 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
     transition:height .15s linear !important}
   #foglio .faccia{backface-visibility:visible;
     -webkit-backface-visibility:visible;
-    transition:opacity .25s linear !important}
+    /* 200, non 250: il tetto del movimento ridotto e' 200 ms (SISTEMA-DESIGN
+       regola 4, «dissolvenze 150-200») e il banco lo misura. */
+    transition:opacity .2s linear !important}
   #foglio .retro{transform:none;opacity:0;z-index:1}
   #foglio.girata .retro{opacity:1;z-index:2}
   #foglio.girata .fronte{opacity:0}
@@ -2959,7 +2971,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perché il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova è una correzione che non arriva. */
-const VERSIONE = "2026-09-15e";
+const VERSIONE = "2026-09-15f";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non è zero, è un ReferenceError, e un ReferenceError lì
@@ -10740,6 +10752,11 @@ function vassoioDi(fam, k){
    il vano resta. Poi il pezzo torna al suo posto spento — così l'annulla
    non deve ricordarsi dove stava. */
 const ESCE_MS = 350, ESCE_GIU = 0.02;
+/* LA DURATA DEL RAMO RIDOTTO E' UNA SOLA, E STA SOTTO IL TETTO. Chi ha
+   chiesto meno movimento ha una dissolvenza di 200 ms — il tetto del
+   sistema e' 150-200 (SISTEMA-DESIGN, regola 4) e 250 lo sfondava in
+   tre riti diversi, ognuno col suo numero scritto a mano. */
+const RIDOTTA_MS = 200;
 function esciDalVano(fam, k, poi){
   const o = (merci[fam] || [])[k];
   /* GIÀ FUORI? NIENTE SCENA. La visibilita' sta sulle MESH figlie, non
@@ -10748,7 +10765,7 @@ function esciDalVano(fam, k, poi){
   if(!o || cTolto(fam, k)){ if(poi) poi(); return; }
   const y0 = o.position.y;
   const v = velaMerce(o);
-  const durata = ridotto ? 250 : ESCE_MS;
+  const durata = ridotto ? RIDOTTA_MS : ESCE_MS;
   const giu = ridotto ? 0 : ESCE_GIU;
   rito(durata, ms => {
     const e = Math.min(1, ms / durata);
@@ -10766,7 +10783,7 @@ function rientraNelVano(fam, k){
   if(!o) return;
   const y0 = o.position.y;
   const v = velaMerce(o);
-  const durata = ridotto ? 250 : ESCE_MS;
+  const durata = ridotto ? RIDOTTA_MS : ESCE_MS;
   const giu = ridotto ? 0 : ESCE_GIU;
   v.set(0);
   rito(durata, ms => {
@@ -10876,7 +10893,7 @@ function eseguiRimozione(fam, k, motivo){
      1000-1250 il CARTELLINO arriva col nome e «Tuo da oggi».
    Poi resta la pagina. Nessun modale, nessuna stella, nessun suono: il
    picco è il pezzo che entra, la fine è la pagina che rimane.
-   Reduce Motion: una dissolvenza di 250 e il cartellino. Un grado sotto,
+   Reduce Motion: una dissolvenza di 200 e il cartellino. Un grado sotto,
    come vuole la carta psicologica.
    ══════════════════════════════════════════════════════════════ */
 const RITO = {vassoio:[0, 500], pezzo:[500, 900], luce:[500, 1000],
@@ -10914,12 +10931,12 @@ function avviaRitoEntra(fam, k){
 
   if(ridotto){
     const v = velaMerce(o); v.set(0);
-    entraStato = {t:0, fine:250, vassoio:0, pezzo:0, luce:0, cartellino:0,
+    entraStato = {t:0, fine:RIDOTTA_MS, vassoio:0, pezzo:0, luce:0, cartellino:0,
                   ridotto:true, fam:fam, k:k};
-    rito(250, ms => { const e = Math.min(1, ms / 250); v.set(e);
+    rito(RIDOTTA_MS, ms => { const e = Math.min(1, ms / RIDOTTA_MS); v.set(e);
                       entraStato.t = ms; entraStato.pezzo = e; },
          () => { v.fine(); cartellinoNuovo(nome);
-                 entraStato.t = 250; entraStato.cartellino = 1; sveglia(); });
+                 entraStato.t = RIDOTTA_MS; entraStato.cartellino = 1; sveglia(); });
     return;
   }
 
