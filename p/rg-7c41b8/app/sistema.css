@@ -796,3 +796,12 @@ nav[data-nav="c"] button:focus-visible{outline:2px solid var(--acceso);
     transition-delay:0s !important}
   nav button:active{transform:none}
 }
+
+/* IL TITOLO CHE RICEVE IL FUOCO NON E' UN COMANDO. Al cambio di vista il
+   fuoco va sull'h1 (tabindex -1) perche' VoiceOver annunci dove si e'
+   arrivati; ma un pozzo di fuoco non e' un tasto, e l'anello turchese
+   attorno a «Profilo» sul velluto e' esattamente il box attorno al
+   wordmark che il canone vieta — il critic l'ha bocciato al primo
+   sguardo. L'anello resta sui comandi veri (celle, tasti, campi). Stessa
+   cosa per il titolo del foglio. */
+.titolone:focus-visible,#foglio h2:focus-visible{outline:none}
