@@ -1,0 +1,312 @@
+/* ═══════════════════════════════════════════════════════════════════
+   app/viste/profilo.css — LE MISURE DEL «PROFILO» (F6).
+
+   Perché esiste. `sistema.css` porta le regole di TUTTA l'app — i
+   ruoli, la scala, la lista raggruppata, i tre tasti, la tessera di S3.
+   Questo file porta le misure di SEI schermate: la tessera 361 x 220
+   che si gira, la scala dei quattro livelli, il filo di 2 punti, le
+   quattro capsule della fodera a passo 88, l'interruttore 51 x 31.
+   Sono i numeri del documento di F6, non del sistema: se domani cambia
+   l'impaginazione del profilo, cambia questo file e basta.
+
+   Tre regole, riga per riga:
+   · NESSUN HEX. Ogni colore è un ruolo (`--testo`, `--piano`,
+     `--accento`, `--errore`) o un token di materia (`--firma`,
+     `--vassoio`, `--fodera-bianco`, `--fodera-avorio`). Un hex qui
+     sarebbe un colore che non sa in quale tema si trova.
+   · NESSUNA DURATA NUOVA. Sei durate e due curve stanno in `:root`.
+     L'unica misura di tempo scritta qui è 600 ms — la girata della
+     tessera — e non è una durata nuova: è 2 x `--d-ct-in`, ed è
+     lockata dal corpus (49 §10, formula E) perché il keyframe al 50 %
+     deve cadere a 300.
+   · NESSUN BERSAGLIO SOTTO 44. Dove il sistema disegna un oggetto più
+     piccolo (il chip a 36, il segmento a 32, l'interruttore a 31) il
+     bersaglio è uno SCAVALCO TRASPARENTE da 44 — la stessa soluzione
+     già usata in `sistema.css` per «Annulla» dentro la pillola da 36.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── LE MISURE DICHIARATE ──────────────────────────────────────────
+   I numeri del documento, scritti una volta, in un posto solo. */
+.vista[data-vista="profilo"],
+.strato.spinto,
+#foglio{
+  /* la tessera (361 x 220) ha le sue misure in `sistema.css`, dove
+     vive il componente: qui non si ridichiarano.                     */
+  --f6-capsula: 44px;         /* R3: quattro capsule da 44...           */
+  --f6-passo: 88px;           /*     ...a passo 88                      */
+  --f6-cofanetto: 260px;      /* R3: lo stesso cofanetto di F1 S1       */
+  --f6-filo: 2px;             /* R1: il filo del progresso              */
+  --f6-int-l: 51px;           /* R4: l'interruttore di sistema          */
+  --f6-int-h: 31px;
+}
+
+/* ══ R0 · LA TESTA ══════════════════════════════════════════════════
+   Il titolo grande lo fa `schermo()`. Sotto, il nome inciso in Bodoni
+   28 e la riga di servizio in Inter 15: due righe, non un blocco. */
+.f6-inciso{display:block;margin:2px 0 0;color:var(--testo)}
+.f6-servizio{display:block;margin:4px 0 0;color:var(--testo-2)}
+
+/* ══ LA TESSERA ═════════════════════════════════════════════════════
+   LE REGOLE DELLA CARTA SE NE SONO ANDATE NEL SISTEMA (`sistema.css`,
+   blocco FINITURA), insieme alla carta: dal 15/09 la disegna
+   `app/ui/tessera.js` e la usano S3, questa vista e il foglio del
+   livello. Un componente che vive in tre posti non può avere le misure
+   in uno solo dei tre — l'ingresso non carica questo foglio.
+   Qui resta l'unica cosa che è DI QUESTA VISTA: quanta aria le sta
+   intorno nella pagina del profilo. */
+.tessera-scena{margin:18px 0 22px}
+
+/* ══ R0 · IL PIE' ═══════════════════════════════════════════════════ */
+.f6-pie{display:block;margin:6px 0 10px;text-align:center;color:var(--testo-2)}
+
+/* la riga in accento dentro una lista raggruppata: «Aggiungi una data»
+   non è uno stato, è un'azione, e nelle liste di iOS le azioni si
+   dicono in colore. */
+.f6-azione .testo b{color:var(--accento)}
+.f6-pericolo .testo b{color:var(--errore)}
+
+/* ══ R1 · IL CREDITO ════════════════════════════════════════════════
+   La somma NON si ripete sotto il titolo: la somma È il titolo grande
+   (Bodoni 34, cifre tabulari — `html{font-feature-settings:"tnum"}` le
+   accende in tutta l'app). Scriverla due volte sarebbe due volte lo
+   stesso numero a otto punti di distanza. */
+/* UNA FIRMA SOLA. C'era una riga in Inter — «Credito, firmato Regina»
+   — e sotto la stessa firma in Bodoni corsivo: la stessa frase detta
+   due volte, una in parole e una col gesto. Il critic l'ha chiamata
+   firma doppia, ed è quello che era. Resta il gesto, che è quello che
+   firma davvero; il mittente lo ripete comunque ogni riga del registro
+   («da Regina»). La classe `.f6-firmato` non esiste più.
+   LA FIRMA. Non c'è nessun SVG di firma nella cartella del progetto
+   (cercato il 15/09/2026: `assets/`, `font/`, `pezzi/` — niente), e una
+   firma disegnata a mano da noi sarebbe una firma inventata a nome di
+   Stefano Regina. Finché non arriva il file vero, la firma è la
+   parola «Regina» in Bodoni CORSIVO — il corsivo è l'unica faccia
+   della famiglia che porta il gesto della mano, ed è già in casa
+   (`font/bodoni-it.woff2`, dichiarata in sistema.css come
+   `Bodoni` italic). L'alias "Bodoni Moda" non ha il corsivo: qui la
+   famiglia si nomina per esteso apposta, altrimenti il browser
+   inclinerebbe il tondo (oblique sintetico) e si vedrebbe. */
+.f6-firma{display:block;margin:6px 0 26px;font:var(--t-1);
+  font-family:Bodoni,Didot,serif;font-style:italic;
+  letter-spacing:var(--ls-display);color:var(--testo)}
+/* L'OCCHIELLO DEL LIVELLO apre la seconda metà dello schermo — il
+   registro è finito, comincia la spiegazione — e si stacca dal gruppo
+   di sopra come si staccano due gruppi di lista (30). */
+.f6-occhiello-livello{display:block;margin:30px 0 7px 4px;color:var(--accento)}
+
+/* LA SCALA DEI LIVELLI. Quattro righe di lista, e tre stati:
+   · passato  — il gradino SOTTO, visibile e attenuato (Dreze & Nunes:
+                il gradino sotto è cio' che fa sentire il livello);
+   · qui      — l'attuale, in accento;
+   · avanti   — i successivi, testo normale con la soglia a destra. */
+.f6-liv .testo b{font:var(--t-body)}
+.f6-liv.passato .testo b,.f6-liv.passato .coda{color:var(--testo-2)}
+.f6-liv.qui .testo b{color:var(--accento)}
+.f6-liv.qui .coda{color:var(--accento)}
+
+/* IL PROGRESSO IN PAROLE, E IL FILO. Il filo non è mai vuoto: chi ha
+   comprato un pezzo solo da 89 € è a 89 su 300, e quel primo pezzo si
+   vede. La quota la scrive la vista in `--quota`. */
+/* il filo è la chiusura di un blocco, non l'inizio del prossimo:
+   sotto ci vuole l'aria che separa due gruppi (22), non quella che
+   tiene insieme una riga e la sua etichetta (7). */
+.f6-avanzamento{margin:14px 0 24px}
+.f6-parole{display:block;color:var(--testo)}
+.f6-filo{display:block;height:var(--f6-filo);margin:9px 0 0;
+  border-radius:var(--r-capsula);background:var(--incavo);overflow:hidden}
+.f6-filo > i{display:block;height:100%;width:var(--quota,8%);
+  background:var(--accento);border-radius:inherit}
+
+/* «Come funziona»: tre righe che non si toccano, non una lista di
+   celle — sono una regola scritta, e una regola si legge di seguito. */
+.f6-regola{margin:0;padding:12px var(--margine) 13px;
+  border-radius:var(--r-lista);background:var(--piano)}
+.f6-regola p{margin:0;color:var(--testo)}
+.f6-regola p + p{margin-top:7px}
+
+/* I MOVIMENTI. L'importo a destra in cifre tabulari: una colonna di
+   numeri che ballano non è una colonna. Il segno meno va in secondario
+   (è un'uscita, non un allarme). */
+.f6-mov .coda{font:var(--t-body);color:var(--testo)}
+.f6-mov.meno .coda{color:var(--testo-2)}
+
+/* ══ R2 · LA DATA ═══════════════════════════════════════════════════
+   Il foglio a mezza altezza. I chip in fila che va a capo: quattro
+   parole lunghe su 361 non ci stanno in una riga sola, e una riga che
+   scorre di lato dentro un foglio è un gesto in conflitto con quello
+   che chiude il foglio. */
+/* IL FOGLIO DEVE STARE NEL FERMO DI MEZZA ALTEZZA, «Fine» compreso.
+   È un vincolo di misura, non di gusto: il primario di un foglio che
+   si raggiunge solo scorrendo non è un primario, e il fermo medio di
+   `#foglio` è 50dvh meno gli 84 della testata. Da qui i passi stretti
+   (14 invece di 18) e i chip che stanno su UNA riga. */
+.f6-foglio{display:flex;flex-direction:column;gap:14px;padding-bottom:6px}
+.f6-eti{display:block;color:var(--testo-2);margin:0 0 6px}
+
+.f6-chips{display:flex;flex-wrap:wrap;gap:6px 6px;margin:0 0 -6px}
+/* LO SCAVALCO. Il chip si VEDE 36 (reference 48 R2) e si TOCCA 44:
+   il bottone è alto 44 e trasparente, la capsula sta dentro. */
+.f6-chip{display:inline-flex;align-items:center;justify-content:center;
+  min-height:var(--tocco-min);padding:0;border:0;background:none;
+  cursor:pointer;-webkit-tap-highlight-color:transparent}
+/* 36 di capsula come dice il documento; dentro, Footnote (13) e non
+   Subhead (15): a 15 le quattro parole misurano 370 e vanno a capo, e
+   due righe di chip mandano «Fine» fuori dal fermo. */
+.f6-chip > span{display:inline-flex;align-items:center;height:36px;
+  padding:0 12px;border-radius:var(--r-capsula);
+  background:var(--incavo);color:var(--testo);font:var(--t-foot);
+  box-shadow:inset 0 0 0 1px var(--linea);
+  transition:background var(--d-tocco) var(--ios),color var(--d-tocco) var(--ios)}
+.f6-chip[aria-pressed="true"] > span{background:var(--accento);
+  color:var(--accento-testo);box-shadow:none}
+.f6-chip:active > span{transform:scale(.96)}
+.f6-chip:focus-visible > span{outline:2px solid var(--accento);outline-offset:2px}
+
+/* IL SEGMENTED. Stessa legge: 32 a vedersi (`--seg`, lockato), 44 a
+   toccarsi. Le quattro etichette sono corte per stare su 361 senza
+   andare a capo; la frase intera sta nell'etichetta accessibile e nella
+   riga che nasce dalla data. */
+.f6-seg{display:flex;align-items:center;padding:2px;border-radius:9px;
+  background:var(--incavo);box-shadow:inset 0 0 0 1px var(--linea)}
+.f6-seg > button{flex:1 1 0;min-width:0;min-height:var(--tocco-min);
+  display:flex;align-items:center;justify-content:center;
+  padding:0 2px;border:0;background:none;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.f6-seg > button > span{display:flex;align-items:center;justify-content:center;
+  width:100%;height:var(--seg);border-radius:7px;
+  color:var(--testo);font:var(--t-foot);white-space:nowrap;
+  transition:background var(--d-tocco) var(--ios),color var(--d-tocco) var(--ios)}
+.f6-seg > button[aria-pressed="true"] > span{background:var(--accento);
+  color:var(--accento-testo)}
+.f6-seg > button:focus-visible > span{outline:2px solid var(--accento);
+  outline-offset:2px}
+
+/* il campo data: quello di sistema, alto 44 come ogni campo. Su iOS
+   apre la ruota; su desktop il calendario del browser. */
+.f6-data{font:var(--t-body);color:var(--testo);
+  -webkit-appearance:none;appearance:none}
+.f6-data::-webkit-calendar-picker-indicator{opacity:.7;cursor:pointer}
+
+/* la riga dell'elenco date: 52 con il «Togli» a filo, che è un
+   bersaglio suo — dentro una cella che non si tocca. */
+.f6-data-riga{min-height:52px}
+.f6-togli{flex:none;margin-left:auto;min-height:var(--tocco-min);
+  padding:0 2px 0 10px;border:0;background:none;cursor:pointer;
+  color:var(--accento);font:var(--t-sub);
+  -webkit-tap-highlight-color:transparent}
+.f6-togli:active{opacity:.55}
+.f6-togli:focus-visible{outline:2px solid var(--accento);outline-offset:-2px;
+  border-radius:6px}
+
+/* ══ R3 · LA FODERA ═════════════════════════════════════════════════
+   Il cofanetto è lo STESSO disegno di F1 S1 (`.f1-cof*` in
+   sistema.css): stessi strati, stessa fodera, stessa ombra di contatto.
+   Lì è posato in assoluto a 400 dal bordo alto perché lì è una
+   scena a schermo pieno; qui sta in colonna, e le uniche righe che
+   servono sono quelle che lo rimettono nel flusso. */
+.f6-cofanetto{display:flex;justify-content:center;
+  margin:52px 0 44px;padding-bottom:14px}
+.f6-cofanetto .f1-cof{position:relative;left:auto;top:auto;
+  transform:none;width:var(--f6-cofanetto);height:180px}
+/* IL COPERCHIO STA APERTO, ed è l'unica cosa che qui non si copia da
+   S1. Un cofanetto CHIUSO nella schermata che serve a scegliere la
+   FODERA non mostra nulla di cio' che si sta scegliendo: si toccano
+   quattro capsule e l'oggetto sopra resta identico. Si ferma perciò
+   sul fotogramma finale della cerimonia — gli stessi -105 gradi sulla
+   cerniera in alto di `CERIMONIA.coperchio.gradi` — e il vano con la
+   sua materia resta in vista. Nessuna animazione: è uno STATO. */
+.f6-cofanetto .f1-cof-coperchio{transform:rotateX(-105deg)}
+/* IL MARCHIO È STAMPATO FUORI. A coperchio aperto si guarda la faccia
+   INTERNA, che è liscia: lasciandolo, il marchio si legge ROVESCIATO —
+   in F1 non si nota perché lì il coperchio si dissolve subito, ma qui
+   è uno stato fermo, e un marchio a specchio è la prima cosa che
+   l'occhio trova. Il canone dice che il marchio è uno solo: meglio
+   nessuno che uno riflesso. */
+.f6-cofanetto .f1-cof-marchio{display:none}
+/* la luce che entra dal coperchio alzato: c'è, ma non sbianca la
+   materia che si sta scegliendo. */
+.f6-cofanetto .f1-cof-luce{opacity:.3}
+
+/* IL PASSO È 88, E LO TIENE IL BERSAGLIO, NON L'ARIA. Con `gap:44` fra
+   quattro capsule da 44 il passo esce giusto solo finché i NOMI stanno
+   dentro 44 — e «Turchese» a 13 px ne misura 52, cioè il passo
+   diventava 96 e le quattro capsule non erano più in griglia. Ogni
+   voce occupa perciò una colonna larga esattamente 88 (4 x 88 = 352,
+   dentro i 358 che i margini lasciano su 390) con la capsula da 44
+   centrata dentro: il passo è una MISURA, non un avanzo. */
+.f6-fodere{display:flex;justify-content:center;align-items:flex-start;gap:0}
+.f6-fodera{display:flex;flex-direction:column;align-items:center;gap:7px;
+  width:var(--f6-passo);min-height:var(--tocco-min);
+  padding:0;border:0;background:none;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.f6-pastiglia{display:block;width:var(--f6-capsula);height:var(--f6-capsula);
+  border-radius:var(--r-capsula);background:var(--f6-tinta,var(--piano));
+  box-shadow:inset 0 0 0 1px var(--linea);
+  transition:box-shadow var(--d-tastiera) var(--ios)}
+.f6-fodera[aria-pressed="true"] .f6-pastiglia{
+  box-shadow:0 0 0 2px var(--accento),0 0 0 4px var(--fondo)}
+.f6-fodera > b{font:var(--t-foot);font-weight:400;color:var(--testo)}
+.f6-fodera[aria-pressed="true"] > b{color:var(--accento)}
+.f6-fodera:active .f6-pastiglia{transform:scale(.96)}
+.f6-fodera:focus-visible .f6-pastiglia{outline:2px solid var(--accento);
+  outline-offset:3px}
+.f6-nota{display:block;margin:22px 0 0;text-align:center;color:var(--testo-2)}
+
+/* ══ R4 · L'INTERRUTTORE ════════════════════════════════════════════
+   51 x 31, le misure di iOS. Il bersaglio è tutta la riga: è così
+   anche in Impostazioni, dove si tocca il nome e l'interruttore
+   risponde. La transizione è `--d-alert` (200): è lo scatto di un
+   controllo, non un movimento di pagina. */
+.f6-int-riga{min-height:52px}
+.f6-int{position:relative;flex:none;width:var(--f6-int-l);height:var(--f6-int-h);
+  border-radius:var(--r-capsula);background:var(--incavo);
+  box-shadow:inset 0 0 0 1px var(--linea);
+  transition:background var(--d-alert) var(--ios)}
+.f6-int > i{position:absolute;top:2px;left:2px;width:27px;height:27px;
+  border-radius:var(--r-capsula);background:var(--carta);
+  box-shadow:var(--ombra-1);
+  transition:transform var(--d-alert) var(--ios)}
+[aria-checked="true"] > .f6-int{background:var(--accento);box-shadow:none}
+[aria-checked="true"] > .f6-int > i{transform:translateX(20px)}
+@media (prefers-reduced-motion:reduce){
+  .f6-int,.f6-int > i{transition-duration:150ms;transition-timing-function:linear}
+}
+
+/* ══ R4 · AIUTO ═════════════════════════════════════════════════════
+   Le cinque domande sono `<details>` veri — l'apertura la fa il
+   browser, la sa fare la tastiera, la annuncia VoiceOver — vestiti come
+   celle. Il segno di apertura è il chevron del sistema, ruotato. */
+.f6-faq{background:var(--piano);border-radius:var(--r-lista);overflow:hidden}
+.f6-faq > details + details{border-top:1px solid var(--linea)}
+.f6-faq summary{display:flex;align-items:center;gap:12px;
+  min-height:var(--cella);padding:11px var(--margine);
+  font:var(--t-body);color:var(--testo);cursor:pointer;
+  list-style:none;-webkit-tap-highlight-color:transparent}
+.f6-faq summary::-webkit-details-marker{display:none}
+.f6-faq summary > span{flex:1 1 auto;min-width:0}
+.f6-faq summary .segno-filo{flex:none;color:var(--testo-2);
+  transform:rotate(90deg);transition:transform var(--d-alert) var(--ios)}
+.f6-faq details[open] summary .segno-filo{transform:rotate(-90deg)}
+.f6-faq summary:active{background:color-mix(in srgb,var(--testo) 6%,transparent)}
+.f6-faq summary:focus-visible{outline:2px solid var(--accento);outline-offset:-3px}
+.f6-faq p{margin:0;padding:0 var(--margine) 15px;
+  font:var(--t-sub);color:var(--testo-2)}
+@media (prefers-reduced-motion:reduce){
+  .f6-faq summary .segno-filo{transition-duration:150ms;transition-timing-function:linear}
+}
+
+/* ══ «COSA SAPPIAMO DI TE» ══════════════════════════════════════════ */
+.f6-dati-testa{margin:0 0 18px;color:var(--testo)}
+.f6-pie-gruppo{display:block;margin:-14px 0 22px 4px;color:var(--testo-2)}
+
+/* ══ IL FOGLIO «SEI AL SECONDO.» ════════════════════════════════════
+   Mezza altezza, la tessera piccola che si gira e cambia nome, la riga
+   firmata, un tasto. Nessun coriandolo: la carta psicologica lo vieta,
+   e comunque a girarsi è la cosa che conta — la tessera. */
+.f6-salita{display:flex;flex-direction:column;align-items:center;
+  gap:14px;padding:2px 0 6px;text-align:center}
+.f6-salita .tessera-scena{margin:4px 0 2px;width:100%}
+.f6-salita .tessera-carta{max-width:280px;height:170px}
+.f6-salita-titolo{color:var(--testo)}
+.f6-salita-riga{color:var(--testo-2)}
+.f6-salita .tasto{margin-top:4px}

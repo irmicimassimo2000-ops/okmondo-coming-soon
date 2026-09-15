@@ -1,22 +1,22 @@
 /* ═══════════════════════════════════════════════════════════════════
    app/rotta.js — LA NAVIGAZIONE, nella lingua di iOS.
 
-   Due movimenti, e non si somigliano, perche' non dicono la stessa cosa:
+   Due movimenti, e non si somigliano, perché non dicono la stessa cosa:
 
-   · IL CAMBIO DI TAB e' un INCROCIO di 200 ms con la entrante che si
+   · IL CAMBIO DI TAB è un INCROCIO di 200 ms con la entrante che si
      apre da 0,98 a 1. Nessuna traslazione laterale: le quattro sezioni
      sono PARI, non in fila, e farle scorrere racconterebbe un percorso
      che non esiste. Ogni tab tiene la sua pila e la sua posizione di
      scorrimento: si torna dove si era.
-   · IL PUSH e' una vista che ENTRA DA DESTRA in 350 ms mentre quella
+   · IL PUSH è una vista che ENTRA DA DESTRA in 350 ms mentre quella
      sotto scivola del -30% sotto un velo allo 0,3. Quella si' racconta
      un percorso, e infatti si torna indietro dal bordo.
 
-   L'INDIRIZZO e' la verita': `#/vetrina`, `#/vetrina/pezzo/rg-fl-004`.
+   L'INDIRIZZO è la verita': `#/vetrina`, `#/vetrina/pezzo/rg-fl-004`.
    Il cambio di tab lo RIMPIAZZA (replaceState): quattro tab non sono
    quattro passi di cronologia, e chi torna indietro dal profilo deve
    uscire dall'app, non fare il giro delle sezioni. Il push invece
-   AGGIUNGE (pushState), perche' li' un passo c'e' stato davvero.
+   AGGIUNGE (pushState), perché lì un passo c'è stato davvero.
    ═══════════════════════════════════════════════════════════════════ */
 
 import { invia, leggi } from "app/stato.js";
@@ -43,7 +43,7 @@ let suCambio = () => {};
 export function registraTab(id, sezione, radice){
   sezioni[id] = sezione; radici[id] = radice;
 }
-/* uno SCHERMO e' cio' che un push mostra. Si registra per tipo:
+/* uno SCHERMO è cio' che un push mostra. Si registra per tipo:
    registraSchermo("pezzo", (id, el) => …) risponde a #/vetrina/pezzo/<id> */
 export function registraSchermo(tipo, fn){ schermi.set(tipo, fn); }
 
@@ -69,9 +69,9 @@ function scriviHash(t, pila, modo){
 }
 
 /* ── IL FUOCO E LA VOCE ────────────────────────────────────────────
-   Al cambio di vista il fuoco va sul titolo della vista che e'
+   Al cambio di vista il fuoco va sul titolo della vista che è
    arrivata. Senza, chi naviga da tastiera o con VoiceOver resta col
-   fuoco su un tasto della barra e non sa che la pagina e' cambiata. */
+   fuoco su un tasto della barra e non sa che la pagina è cambiata. */
 function inCima(t = tab){
   const p = pile[t];
   return p.length ? p[p.length-1].el : radici[t];
@@ -87,7 +87,7 @@ function prendiIlFuoco(el){
 function incrocia(da, a){
   const vA = sezioni[a], vD = sezioni[da];
   vA.hidden = false;
-  /* un fotogramma per far esistere la vista, uno perche' il browser la
+  /* un fotogramma per far esistere la vista, uno perché il browser la
      misuri: senza, la classe arriva insieme al display e la transizione
      non parte mai. */
   requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -100,7 +100,7 @@ function incrocia(da, a){
 export function vaiA(nuovo, opz = {}){
   if(!TABS.includes(nuovo)) return;
   if(nuovo === tab){
-    /* tap sul tab ATTIVO: si torna alla radice di quel tab. E' la
+    /* tap sul tab ATTIVO: si torna alla radice di quel tab. È la
        scorciatoia di iOS, e chi la conosce la cerca. */
     if(pile[tab].length) history.go(-pile[tab].length);
     return;
@@ -166,7 +166,7 @@ export async function spingi(rotta, opz = {}){
 }
 
 /* il ritorno: `torna()` chiede alla cronologia, la cronologia chiama
-   popstate, popstate chiama `stacca()`. Una via sola, cosi' il tasto
+   popstate, popstate chiama `stacca()`. Una via sola, così il tasto
    indietro del telefono e il gesto dal bordo finiscono nello stesso
    posto. */
 export function torna(){ history.back(); }
@@ -200,8 +200,8 @@ async function stacca(opz = {}){
 
 /* ══ IL GESTO DAL BORDO ═════════════════════════════════════════════
    Parte solo entro 20 px dal bordo sinistro; i caroselli partono da 24
-   in poi (vedi CAROSELLO_DA). Segue il dito 1:1 — non e' una soglia che
-   fa partire un'animazione, e' la vista ATTACCATA al dito — e decide
+   in poi (vedi CAROSELLO_DA). Segue il dito 1:1 — non è una soglia che
+   fa partire un'animazione, è la vista ATTACCATA al dito — e decide
    con la proiezione: non «dove sei», ma «dove stavi andando». */
 function armaIlGesto(dentro){
   let attivo = false, x0 = 0, W = 1, sopra = null, sotto = null;
@@ -219,7 +219,7 @@ function armaIlGesto(dentro){
     sopra = p[p.length-1].el;
     sotto = p.length > 1 ? p[p.length-2].el : radici[tab];
     sopra.classList.remove("anima"); if(sotto) sotto.classList.remove("anima");
-    /* il dito e' nostro: i caroselli e lo scroller non lo vedono piu' */
+    /* il dito è nostro: i caroselli e lo scroller non lo vedono più */
     try{ dentro.setPointerCapture(id); }catch(_){}
   }, {passive:true});
 
@@ -238,7 +238,7 @@ function armaIlGesto(dentro){
     try{ dentro.releasePointerCapture(id); }catch(_){}
     const x = Math.max(0, ultimoX - x0);
     const proiettato = x + proietta(vel);
-    const va = proiettato > W/2;          /* oltre meta', o lanciato oltre meta' */
+    const va = proiettato > W/2;          /* oltre metà, o lanciato oltre metà */
     const elS = sopra, elG = sotto;
     occupato = true;
     molla(x, va ? W : 0, {
@@ -247,7 +247,7 @@ function armaIlGesto(dentro){
       fine: () => {
         occupato = false;
         if(va){
-          /* il disegno e' gia' a destinazione: la cronologia deve solo
+          /* il disegno è già a destinazione: la cronologia deve solo
              mettersi in pari, e popstate non deve rianimare. */
           daGesto = true;
           stacca({gia:true}).then(() => { history.back(); });
@@ -270,7 +270,7 @@ export function avviaRotta(opz = {}){
   armaIlGesto(dentro);
 
   addEventListener("popstate", async () => {
-    if(daGesto){ daGesto = false; return; }   /* il gesto ha gia' fatto tutto */
+    if(daGesto){ daGesto = false; return; }   /* il gesto ha già fatto tutto */
     const m = leggiHash();
     if(m.tab !== tab){
       const da = tab; tab = m.tab;
@@ -295,7 +295,7 @@ export function avviaRotta(opz = {}){
   invia("nav/tab", {tab}, {locale:true});
   suCambio(tab);
   /* le pile non si ricostruiscono all'avvio: aprire l'app dentro una
-     scheda di prodotto senza mai aver visto l'elenco e' un vicolo cieco
+     scheda di prodotto senza mai aver visto l'elenco è un vicolo cieco
      con un tasto «indietro» che non torna da nessuna parte. Si apre la
      radice del tab, e l'eventuale pila dell'indirizzo si spinge dopo. */
   if(m.pila.length) setTimeout(() => {

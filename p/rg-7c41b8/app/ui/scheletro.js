@@ -1,13 +1,13 @@
 /* app/ui/scheletro.js — IL REDATTO.
-   Non e' una rotella. Una rotella dice «aspetta»; il redatto dice
-   «aspetta, e sara' fatto cosi'» — e quando il contenuto arriva non
-   salta niente, perche' occupava gia' quel posto.
+   Non è una rotella. Una rotella dice «aspetta»; il redatto dice
+   «aspetta, e sarà fatto così» — e quando il contenuto arriva non
+   salta niente, perché occupava già quel posto.
    MONOCROMO E FERMO: la regola 5 vieta lo shimmer. Una luce che scorre
-   sopra qualcosa che non esiste ancora e' l'unica animazione dell'app
+   sopra qualcosa che non esiste ancora è l'unica animazione dell'app
    che non porta informazione — e sotto movimento ridotto andrebbe
-   spenta comunque, cioe' e' una cosa che a volte c'e' e a volte no.
+   spenta comunque, cioè è una cosa che a volte c'è e a volte no.
    `aria-hidden`: a chi ascolta non si legge la forma di cio' che non
-   c'e'; glielo dice `#annunci` quando c'e'. */
+   c'è; glielo dice `#annunci` quando c'è. */
 import { e } from "app/ui/dom.js";
 
 export const osso = (w, h, opz = {}) =>

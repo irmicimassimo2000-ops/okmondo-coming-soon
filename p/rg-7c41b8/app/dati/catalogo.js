@@ -1,31 +1,31 @@
 /* ═══════════════════════════════════════════════════════════════════════
    IL CATALOGO — gli ARTICOLI di Regina Jewels.
 
-   Un ARTICOLO e' il modello: «Anello Cabochon». Ce ne possono essere venti
-   uguali in cassetto. Un ESEMPLARE (vedi `seme.js`) e' UNO di quei venti,
-   quello che e' stato venduto a una persona in una data. Il gestionale
+   Un ARTICOLO è il modello: «Anello Cabochon». Ce ne possono essere venti
+   uguali in cassetto. Un ESEMPLARE (vedi `seme.js`) è UNO di quei venti,
+   quello che è stato venduto a una persona in una data. Il gestionale
    tiene i due su due tabelle diverse, e qui si rispetta la stessa linea:
-   confonderli e' l'errore che fa dire all'app «hai gia' questo pezzo»
+   confonderli è l'errore che fa dire all'app «hai già questo pezzo»
    quando invece ne ha comprato un secondo per la sorella.
 
    DA DOVE VENGONO I NUMERI
    ────────────────────────
    I primi 22 articoli (`in_3d: true`) sono la VERITA' della scena 3D:
    nome, materia e prezzo sono copiati alla lettera da `const RIPIANI` in
-   `spazio.html`. Se cambia un prezzo li', cambia qui — e viceversa il
-   ponte si rompe. L'indice `k` e' la POSIZIONE nel ripiano del modello:
-   e' quello che il 3D usa per sapere quale mesh illuminare.
+   `spazio.html`. Se cambia un prezzo lì, cambia qui — e viceversa il
+   ponte si rompe. L'indice `k` è la POSIZIONE nel ripiano del modello:
+   è quello che il 3D usa per sapere quale mesh illuminare.
 
    Gli altri 12 (`in_3d: false`) sono inventati da noi per dare al catalogo
    una profondita' credibile — una gioielleria non ha ventidue referenze.
    Restano dentro la fascia reale di Regina (22–89 €) e dentro i materiali
    reali (acciaio dorato, argento 925, perla, turchese, smalto). Sono
-   dichiarati nel README: nessuno di questi e' un pezzo che Stefano ha in
+   dichiarati nel README: nessuno di questi è un pezzo che Stefano ha in
    negozio oggi.
 
    I NOMI DEI CAMPI sono quelli della tabella `regina_articoli` del
    gestionale (codice_fornitore / descrizione / prezzo_vendita / foto_url /
-   attributi / categoria). Cosi' il giorno che la bozza si attacca a
+   attributi / categoria). Così il giorno che la bozza si attacca a
    Supabase non si riscrive l'app: si riscrive solo la funzione che carica.
    ═══════════════════════════════════════════════════════════════════════ */
 
@@ -41,8 +41,8 @@ export const FAMIGLIE = {
 };
 
 /* il codice della SCENA, identico alla funzione `CODICE(fam,k)` di
-   spazio.html. Riscritto qui e non importato perche' spazio.html non e' un
-   modulo: e' l'unico punto in cui i due mondi si toccano senza ponte, e
+   spazio.html. Riscritto qui e non importato perché spazio.html non è un
+   modulo: è l'unico punto in cui i due mondi si toccano senza ponte, e
    per questo sta scritto a fianco della sua fonte. */
 export const codiceScena = (famiglia, k) =>
   "RJ-" + famiglia.slice(0, 3).toUpperCase() + "-" + String(k + 1).padStart(3, "0");
@@ -54,10 +54,10 @@ const CURA = {
     "Si asciuga dopo il mare e si ripone asciutto: il dorato non teme l'acqua, " +
     "teme il sale che resta.",
   argento:
-    "Si passa col panno di camoscio. L'argento si ossida: e' la sua eta', e si " +
+    "Si passa col panno di camoscio. L'argento si ossida: è la sua eta', e si " +
     "toglie in un minuto.",
   turchese:
-    "Il turchese e' poroso: niente creme, niente profumo, niente ammoniaca. " +
+    "Il turchese è poroso: niente creme, niente profumo, niente ammoniaca. " +
     "Un panno asciutto e basta.",
   perla:
     "La perla si indossa per ultima e si toglie per prima: profumo e lacca la " +
@@ -69,7 +69,7 @@ const CURA = {
     "cinque minuti.",
 };
 
-/* LA CONSEGNA e' un fatto del negozio, quindi sono tre righe sole. */
+/* LA CONSEGNA è un fatto del negozio, quindi sono tre righe sole. */
 const CONSEGNA = {
   banco: "Ritiro in negozio lo stesso giorno · spedizione in 2 giorni lavorativi.",
   ordinazione: "Su ordinazione · in negozio entro 5 giorni lavorativi.",
@@ -78,9 +78,9 @@ const CONSEGNA = {
 };
 
 /* ── la tabella vera ──────────────────────────────────────────────────
-   Ogni riga e' compatta di proposito: quello che si puo' DERIVARE non si
+   Ogni riga è compatta di proposito: quello che si può DERIVARE non si
    riscrive (id, codice_scena, famiglia_nome, foto del provino). Riscrivere
-   a mano un dato derivabile e' il modo piu' rapido per farne divergere due
+   a mano un dato derivabile è il modo più rapido per farne divergere due
    copie. */
 
 const P = (r) => {
@@ -91,9 +91,9 @@ const P = (r) => {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
   const in_3d = typeof r.k === "number";
-  /* le fotografie: prima quelle VERE (lo scatto di Regina, che e' una foto di
+  /* le fotografie: prima quelle VERE (lo scatto di Regina, che è una foto di
      collezione e non un packshot per articolo — lo dice la didascalia), poi il
-     provino 3D come segnaposto. Il provino non ha `src`: non e' un file, e'
+     provino 3D come segnaposto. Il provino non ha `src`: non è un file, è
      la scena che si renderizza da sola. Quando arrivera' lo shooting per
      articolo il provino scendera' in fondo e poi sparira'. */
   const foto = [
@@ -121,7 +121,7 @@ const P = (r) => {
     prezzo_vendita: r.prezzo,
     attributi: r.att,
     foto,
-    /* `foto_url` esiste perche' esiste in `regina_articoli`: e' la prima
+    /* `foto_url` esiste perché esiste in `regina_articoli`: è la prima
        fotografia vera, o null se il pezzo non ne ha ancora una. */
     foto_url: (r.foto && r.foto[0]) || null,
     collezione: r.coll ?? null,
@@ -261,10 +261,10 @@ export const ARTICOLI = [
       cura: "turchese" }),
 
   /* ── BRACCIALI · 2 pezzi, dal ripiano `rampa` ─────────────────────── */
-  /* il nome dice quello che si vede: e' una MAGLIA, non un tennis. La
+  /* il nome dice quello che si vede: è una MAGLIA, non un tennis. La
      lezione sta scritta per esteso nel commento di `RIPIANI` in spazio.html
-     e vale anche qui: su una pagina pubblica un nome sbagliato non e' una
-     sbavatura di resa, e' una dichiarazione falsa di prodotto. */
+     e vale anche qui: su una pagina pubblica un nome sbagliato non è una
+     sbavatura di resa, è una dichiarazione falsa di prodotto. */
   P({ fam: "rampa", k: 0, ean: "8054321000216",
       nome: "Bracciale Maglia Larga",
       desc: "Bracciale a maglia rolo larga in argento 925.",
@@ -309,11 +309,11 @@ export const ARTICOLI = [
 
      Non hanno `k`, quindi il 3D non li conosce. Esistono in VETRINA — si
      vedono in elenco, si mettono in lista, si comprano — ma non hanno un
-     alloggio nel cofanetto finche' non li si possiede davvero. E' la
-     stessa distinzione che fa gia' `COLLEZIONI` in spazio.html fra un
+     alloggio nel cofanetto finché non li si possiede davvero. È la
+     stessa distinzione che fa già `COLLEZIONI` in spazio.html fra un
      pezzo con `fam`/`k` (che si HA) e uno col solo prezzo (che MANCA).
 
-     Sono INVENTATI. Nessuno di questi e' in negozio da Stefano oggi.
+     Sono INVENTATI. Nessuno di questi è in negozio da Stefano oggi.
      Servono a togliere l'effetto-demo da ventidue referenze in croce.
      ═══════════════════════════════════════════════════════════════════ */
 
@@ -404,9 +404,9 @@ export const ARTICOLI = [
 ];
 
 /* ── gli indici, costruiti una volta ──────────────────────────────────
-   Una `find` dentro un ciclo di rendering e' il modo piu' silenzioso di
+   Una `find` dentro un ciclo di rendering è il modo più silenzioso di
    rendere lento un elenco. Qui le mappe si costruiscono al caricamento del
-   modulo e non si toccano piu'. */
+   modulo e non si toccano più. */
 
 export const PER_ID = new Map(ARTICOLI.map((a) => [a.id, a]));
 export const PER_EAN = new Map(ARTICOLI.map((a) => [a.codice_fornitore, a]));
@@ -418,7 +418,7 @@ export const articolo = (id) => PER_ID.get(id) || null;
 export const articoloPerEan = (ean) => PER_EAN.get(ean) || null;
 
 /* il prezzo scritto come lo scrive un italiano. Stessa scelta di
-   `euro()` nel gestionale: `useGrouping: "always"`, perche' altrimenti
+   `euro()` nel gestionale: `useGrouping: "always"`, perché altrimenti
    «2900,00 €» e «12.900,00 €» sono due grafie della stessa cosa. */
 const EURO = new Intl.NumberFormat("it-IT", {
   style: "currency",

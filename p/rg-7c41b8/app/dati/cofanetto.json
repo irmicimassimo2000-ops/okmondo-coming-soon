@@ -1,0 +1,108 @@
+{
+ "_": "Generato da _CO_consegna.py sui render di _CO_cofanetto.html. Non si scrive a mano.",
+ "quadro": {
+  "w": 1800,
+  "h": 1385,
+  "_": "tutti i file hanno lo stesso quadro e la stessa macchina: base e coperchio si sovrappongono senza sfalsamento"
+ },
+ "offset_coperchio": {
+  "x": 0,
+  "y": 0,
+  "_": "in percentuale del quadro. E' zero perche' i due strati sono due ritagli della stessa fotografia."
+ },
+ "cerniera": {
+  "x": 39.35,
+  "y": 47.568,
+  "w": 28.684,
+  "h": 8.003,
+  "_": "rettangolo dell'asse della cerniera, in % del quadro"
+ },
+ "perno": {
+  "x": 53.354,
+  "y": 51.484,
+  "_": "il punto per transform-origin, in % del quadro"
+ },
+ "apertura_gradi": -105,
+ "scatola_chiusa": {
+  "x": 15.917,
+  "y": 40.921,
+  "w": 61.784,
+  "h": 53.499
+ },
+ "coperchio_chiuso": {
+  "x": 15.917,
+  "y": 40.921,
+  "w": 61.784,
+  "h": 39.231
+ },
+ "camera": {
+  "fov": 22,
+  "elevazione": 28,
+  "rotazione": 20,
+  "distanza": 0.69096,
+  "mira": [
+   0,
+   0.0655,
+   -0.02154
+  ]
+ },
+ "misure_vere": {
+  "larghezza_m": 0.18,
+  "profondita_m": 0.12,
+  "altezza_m": 0.06,
+  "raggio_m": 0.004,
+  "apertura_gradi": -105
+ },
+ "file": {
+  "chiuso.webp": {
+   "w": 1800,
+   "h": 1385,
+   "kb": 116.2
+  },
+  "coperchio-chiuso.webp": {
+   "w": 1800,
+   "h": 1385,
+   "kb": 112.4
+  },
+  "aperto-bianco.webp": {
+   "w": 1800,
+   "h": 1385,
+   "kb": 116.9
+  },
+  "aperto-turchese.webp": {
+   "w": 1800,
+   "h": 1385,
+   "kb": 103.2
+  },
+  "aperto-velluto.webp": {
+   "w": 1800,
+   "h": 1385,
+   "kb": 114.0
+  },
+  "aperto-avorio.webp": {
+   "w": 1800,
+   "h": 1385,
+   "kb": 108.7
+  },
+  "base-bianco.webp": {
+   "w": 1800,
+   "h": 1385,
+   "kb": 110.4
+  },
+  "base-turchese.webp": {
+   "w": 1800,
+   "h": 1385,
+   "kb": 105.0
+  },
+  "base-velluto.webp": {
+   "w": 1800,
+   "h": 1385,
+   "kb": 119.4
+  },
+  "base-avorio.webp": {
+   "w": 1800,
+   "h": 1385,
+   "kb": 116.4
+  }
+ }
+}

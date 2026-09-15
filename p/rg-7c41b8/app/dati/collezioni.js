@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════════════
    LE COLLEZIONI.
 
-   Una collezione e' un ELENCO DI ARTICOLI con una frase che li tiene
+   Una collezione è un ELENCO DI ARTICOLI con una frase che li tiene
    insieme e un pezzo che la CHIUDE. Il pezzo che chiude non si compra: si
-   riceve avendo tutti gli altri. E' la meccanica che fa tornare una
+   riceve avendo tutti gli altri. È la meccanica che fa tornare una
    persona per il quarto pezzo invece che per il primo.
 
    DA DOVE VENGONO
@@ -11,22 +11,22 @@
    `filo` e `turchese` sono copiate alla lettera da `const COLLEZIONI` in
    `spazio.html`: i nomi, i pezzi, il nome di chi chiude, la nota e il
    testo delle promo sono quelli. `perla` e `onda` sono DICHIARATE da noi
-   per mostrare come si comporta l'app con piu' di due collezioni
+   per mostrare come si comporta l'app con più di due collezioni
    (l'elenco, il filtro, la carta «te ne manca uno»). Sono inventate.
 
    LA DIFFERENZA COL 3D
    ────────────────────
-   In spazio.html un pezzo della collezione e' `{nome, fam, k}` se si HA e
+   In spazio.html un pezzo della collezione è `{nome, fam, k}` se si HA e
    `{nome, prezzo}` se MANCA: il possesso stava dentro l'elenco. Qui no.
    Qui la collezione dice solo QUALI ARTICOLI la compongono; chi possiede
-   cosa lo dice `seme.js` con gli esemplari. E' la correzione di un difetto
+   cosa lo dice `seme.js` con gli esemplari. È la correzione di un difetto
    vero: scritto all'altro modo, l'elenco era giusto per Lucia e sbagliato
    per chiunque altro, e la stessa collezione andava riscritta per ogni
    cliente.
 
    LE PROMO SONO TESTO, ma legato allo STATO. Scritte come un elenco fisso,
    la carta diceva «ti manca un pezzo solo» mentre ne mancavano tre —
-   perche' due dei quattro che hai sono arrivati in regalo e non contano.
+   perché due dei quattro che hai sono arrivati in regalo e non contano.
    Restano parole nostre, modificabili collezione per collezione: cambia
    solo il fatto che ognuna dichiara QUANDO vale.
    ═══════════════════════════════════════════════════════════════════════ */
@@ -48,8 +48,8 @@ export const COLLEZIONI = [
       "bracciale-maglia",
       "pendente-filo",
     ],
-    /* chi CHIUDE non e' un articolo del catalogo: non ha prezzo, non ha
-       codice fornitore, non si puo' mettere in lista. Per questo
+    /* chi CHIUDE non è un articolo del catalogo: non ha prezzo, non ha
+       codice fornitore, non si può mettere in lista. Per questo
        `articolo` resta null — e il giorno che Stefano decide di
        codificarlo a magazzino basta metterci l'id. */
     chiude: {
@@ -61,12 +61,12 @@ export const COLLEZIONI = [
     },
     promo: {
       manca1:
-        "Ti manca un pezzo solo: quello che resta e’ tuo al 20% fino al 30 settembre.",
+        "Ti manca un pezzo solo: quello che resta è tuo al 20% fino al 30 settembre.",
       manca: "Ne mancano {n}: alla chiusura quello che resta va in sconto.",
       chiusa:
         "Collezione chiusa. Il Filo ti aspetta in negozio con il tuo nome incisso dentro.",
       sempre:
-        "A collezione chiusa l’incisione e’ compresa, e l’astuccio grande e’ in regalo.",
+        "A collezione chiusa l’incisione è compresa, e l’astuccio grande è in regalo.",
     },
   },
 
@@ -74,8 +74,8 @@ export const COLLEZIONI = [
     id: "turchese",
     nome: "Turchese",
     racconto:
-      "La pietra e' la stessa in tutti e cinque, e in nessuno e' tagliata " +
-      "uguale. E' un cabochon: si guarda dall'alto, non in trasparenza.",
+      "La pietra è la stessa in tutti e cinque, e in nessuno è tagliata " +
+      "uguale. È un cabochon: si guarda dall'alto, non in trasparenza.",
     stagione: "2026 · estate",
     pezzi: [
       "pendente-turchese",
@@ -90,7 +90,7 @@ export const COLLEZIONI = [
       articolo: null,
     },
     promo: {
-      manca1: "Ti manca un pezzo solo: quello che resta e’ tuo al 20%.",
+      manca1: "Ti manca un pezzo solo: quello che resta è tuo al 20%.",
       manca: "Ne mancano {n}: alla chiusura quello che resta va in sconto.",
       chiusa: "Collezione chiusa. La Pietra ti aspetta in negozio.",
       sempre: null,
@@ -103,8 +103,8 @@ export const COLLEZIONI = [
     id: "perla",
     nome: "Perla d'Estate",
     racconto:
-      "Perla d'acqua dolce, quindi mai due uguali: la forma e' quella che " +
-      "e' venuta. Sei pezzi che stanno bene sulla pelle abbronzata e " +
+      "Perla d'acqua dolce, quindi mai due uguali: la forma è quella che " +
+      "è venuta. Sei pezzi che stanno bene sulla pelle abbronzata e " +
       "peggio sotto il profumo.",
     stagione: "2027 · estate",
     pezzi: [
@@ -123,7 +123,7 @@ export const COLLEZIONI = [
       articolo: null,
     },
     promo: {
-      manca1: "Ti manca un pezzo solo: quello che resta e’ tuo al 20%.",
+      manca1: "Ti manca un pezzo solo: quello che resta è tuo al 20%.",
       manca: "Ne mancano {n}: alla chiusura quello che resta va in sconto.",
       chiusa: "Collezione chiusa. La Goccia si sceglie in negozio, una per volta.",
       sempre: null,
@@ -148,12 +148,12 @@ export const COLLEZIONI = [
     chiude: {
       nome: "L'Onda Lunga",
       nota:
-        "Il pezzo che chiude. E' la cavigliera nella misura lunga, che non " +
+        "Il pezzo che chiude. È la cavigliera nella misura lunga, che non " +
         "sta a listino e si fa su misura del piede.",
       articolo: null,
     },
     promo: {
-      manca1: "Ti manca un pezzo solo: quello che resta e’ tuo al 20%.",
+      manca1: "Ti manca un pezzo solo: quello che resta è tuo al 20%.",
       manca: "Ne mancano {n}: alla chiusura quello che resta va in sconto.",
       chiusa: "Collezione chiusa. L'Onda Lunga si misura al banco.",
       sempre: null,
@@ -164,17 +164,17 @@ export const COLLEZIONI = [
 export const PER_ID_COLLEZIONE = new Map(COLLEZIONI.map((c) => [c.id, c]));
 export const collezione = (id) => PER_ID_COLLEZIONE.get(id) || null;
 
-/* gli articoli veri di una collezione, gia' risolti. Se un id non esiste
-   nel catalogo qui torna `undefined` e la verifica lo grida: e' il modo
-   piu' veloce per accorgersi di un pezzo rinominato in un posto solo. */
+/* gli articoli veri di una collezione, già risolti. Se un id non esiste
+   nel catalogo qui torna `undefined` e la verifica lo grida: è il modo
+   più veloce per accorgersi di un pezzo rinominato in un posto solo. */
 export const pezziDi = (id) =>
   (collezione(id)?.pezzi || []).map((pid) => PER_ID.get(pid));
 
 /* LO STATO della collezione per UNA persona: quanti ne ha, quanti ne
-   mancano, e QUALE frase di promo vale adesso. `posseduti` e' l'insieme
+   mancano, e QUALE frase di promo vale adesso. `posseduti` è l'insieme
    degli id articolo che quella persona ha davvero (glielo passa il seme).
    La regola del regalo sta fuori di qui: chi chiama decide se un pezzo
-   ricevuto conta o no, e passa l'insieme gia' filtrato. */
+   ricevuto conta o no, e passa l'insieme già filtrato. */
 export function statoCollezione(id, posseduti) {
   const c = collezione(id);
   if (!c) return null;
@@ -190,7 +190,7 @@ export function statoCollezione(id, posseduti) {
     mancano,
     chiusa: n === 0,
     frase,
-    /* `sempre` e' la riga che vale a collezione chiusa e che si mostra
+    /* `sempre` è la riga che vale a collezione chiusa e che si mostra
        ACCANTO a `frase`, non al suo posto: sono due cose diverse: una
        dice a che punto sei, l'altra cosa ti spetta. */
     sempre: n === 0 ? c.promo.sempre : null,

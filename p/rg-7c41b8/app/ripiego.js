@@ -1,13 +1,13 @@
 /* ═══════════════════════════════════════════════════════════════════
    app/ripiego.js — IL SEME DI RIPIEGO, e nient'altro.
    I dati veri stanno in `app/dati/` e li scrive un altro esecutore.
-   Finche' quella cartella non c'e', l'app deve comunque ACCENDERSI —
-   un telaio che non parte perche' manca il catalogo non si puo'
-   collaudare, e un collaudo rimandato e' un collaudo che non si fa.
+   Finché quella cartella non c'è, l'app deve comunque ACCENDERSI —
+   un telaio che non parte perché manca il catalogo non si può
+   collaudare, e un collaudo rimandato è un collaudo che non si fa.
    Questo seme NON inventa merce: ricopia esattamente cio' che oggi sta
    scritto nelle tre pagine statiche (vetrina.html, perte.html,
-   profilo.html), che sono materiale gia' approvato. Il campo `semeId`
-   dice «ripiego» proprio perche' si veda a occhio quando l'app sta
+   profilo.html), che sono materiale già approvato. Il campo `semeId`
+   dice «ripiego» proprio perché si veda a occhio quando l'app sta
    girando senza i dati veri.
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -55,7 +55,7 @@ export const semeRipiego = {
 };
 
 /* il catalogo di ripiego: i due pezzi che la vetrina statica mostra
-   davvero, piu' i due arrivi. Stessi id, stesse fotografie, stessi
+   davvero, più i due arrivi. Stessi id, stesse fotografie, stessi
    prezzi — nulla di inventato. */
 export const catalogoRipiego = [
   {id:"rg-fl-004", nome:"Creola Media", materia:"Argento 925 · 16 mm",

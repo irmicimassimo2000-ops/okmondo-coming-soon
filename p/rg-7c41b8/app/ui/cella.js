@@ -4,8 +4,8 @@
    celle da 44 (52 con due righe, 60 con la foto), e un separatore
    hairline che parte DOPO il testo — un separatore che tocca il bordo
    divide il gruppo invece di dividere le righe.
-   Una cella che si tocca e' un <button>: cosi' la tastiera la trova, il
-   lettore di schermo la annuncia, e il bersaglio e' quello vero.
+   Una cella che si tocca è un <button>: così la tastiera la trova, il
+   lettore di schermo la annuncia, e il bersaglio è quello vero.
    Nessuna misura e nessun colore vivono qui: stanno in sistema.css. */
 import { e, dichiaraInArrivo } from "app/ui/dom.js";
 import { segno } from "app/ui/segni.js";
@@ -35,7 +35,7 @@ export function cella(d = {}){
   return n;
 }
 
-/* Il blocco: intestazione in occhiello Footnote piu' il gruppo. */
+/* Il blocco: intestazione in occhiello Footnote più il gruppo. */
 export function lista(titolo, celle){
   const fuori = [];
   if(titolo) fuori.push(e("h2", {class:"occhiello foot lista-testa", testo:titolo}));

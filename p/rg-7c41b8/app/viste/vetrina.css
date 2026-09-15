@@ -1,0 +1,347 @@
+/* ═══════════════════════════════════════════════════════════════════
+   app/viste/vetrina.css — F4 · quello che la VETRINA aggiunge.
+
+   Regola d'ingaggio: qui dentro non nasce nessun colore e nessun corpo
+   di carattere. Solo ruoli e token di `app/sistema.css` — `--testo`,
+   `--piano`, `--accento`, `--linea`, le sei durate, le due curve, la
+   griglia da 8. Un hex nudo in questo file sarebbe un colore che il
+   tema non sa spegnere.
+
+   Quello che NON c'è qui, e non è una dimenticanza: la griglia due
+   colonne (`.griglia-pezzi`), la cella-pezzo (`.pezzo-cella`), la riga
+   dei chip (`.elenco-seg`, `.chip-tocco`), il redatto (`.redatto`), i
+   tondi della collezione (`.tondo`). Esistono già nel sistema, scritte
+   per il foglio del cofanetto, e si riusano tali e quali: due schermate
+   che mostrano gioielli a due colonne devono mostrarli nello stesso
+   modo, o sono due app.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ═══ S1 · IL CATALOGO ══════════════════════════════════════════════ */
+
+/* LA CAPSULA DEL CONTEGGIO, in barra a destra. Il bersaglio è 44
+   pieni (il <button>); quello che si VEDE è la pastiglia dentro, più
+   piccola, con lo scavalco trasparente tutto intorno — lo stesso
+   trucco di «Annulla» nella pillola da 36 e della capsula «Elenco». */
+.vt-cap{display:inline-flex;align-items:center;justify-content:flex-end;
+  min-width:var(--tocco-min);min-height:var(--tocco-min);
+  margin-right:-8px;padding:0 8px;border:0;background:none;cursor:pointer;
+  color:var(--accento);
+  transition:transform var(--d-tocco) var(--ios)}
+.vt-cap:active{transform:scale(.97)}
+.vt-cap:focus-visible{outline:none}
+.vt-cap:focus-visible .vt-cap-pil{outline:2px solid var(--accento);outline-offset:2px}
+.vt-cap-pil{display:inline-flex;align-items:center;gap:5px;
+  height:calc(var(--u) * 4);padding:0 10px;border-radius:var(--r-capsula);
+  background:color-mix(in srgb,var(--accento) 16%,transparent)}
+.vt-cap .segno-filo{transform:translateY(-1px)}
+/* il conteggio prende il grado pieno del testo: su fondo velato
+   `--accento` fa 5,7:1 nel tema scuro, e non scende mai sotto. */
+.vt-conto{font:var(--t-foot);color:var(--accento)}
+
+/* LA RIGA D'APERTURA — Bodoni 22, subito sotto il titolo grande.
+   È la sola cosa in questa schermata che una griglia di gioielli non
+   ha per conto suo: due numeri veri e una dichiarazione di cosa l'app
+   NON è («gli altri li vedi in negozio»). Sta nel corpo del display
+   perché è voce del negozio, non didascalia. */
+.vt-apertura{margin:-4px 0 18px;color:var(--testo);max-width:22em}
+
+/* LA CELLA DEL CATALOGO — tre righe sotto la fotografia, SEMPRE le
+   stesse tre, sempre nello stesso ordine e negli stessi pesi. Baymard
+   misura che il 64% dei siti cambia gli attributi da una cella
+   all'altra e che i partecipanti scartavano pezzi credendo che
+   mancasse qualcosa: una cella con una riga in meno legge come un
+   pezzo con qualcosa in meno. */
+/* `min-width:0` NON è ornamento: una colonna di griglia parte da
+   `auto`, cioè dal contenuto minimo, e un testo a riga unica non ha
+   contenuto minimo — la cella si allarga oltre metà schermo e la
+   griglia esce dal telefono. Misurato: senza questa riga il catalogo
+   scorreva in orizzontale. */
+.vt-cella{gap:6px;min-width:0}
+.vt-scatto{position:relative;display:block}
+.vt-cella .fig{display:block;width:100%;aspect-ratio:4/5;
+  border-radius:var(--u);background:var(--incavo);object-fit:cover}
+/* il redatto tiene il CENTRO: il nome sta in mezzo al posto vuoto, come
+   nel foglio del cofanetto. Qui si dichiara solo la misura del posto —
+   toccare anche il `display` lo schiaccerebbe in alto a sinistra, e
+   l'occhiello «Nuovo» ci finirebbe sopra. Difetto visto a schermo. */
+.vt-cella .senza-foto{width:100%;aspect-ratio:4/5;border-radius:var(--u)}
+/* NOME, MATERIA, PREZZO. Il nome sta su UNA riga (i nomi di Regina
+   arrivano a «Bracciale Maglia Larga», 22 caratteri, e a 15 px in una
+   colonna da 173 ci stanno); la MATERIA sta su DUE, sempre, e il posto
+   è alto due righe anche quando ne basta una.
+   Perché due e non una tagliata: «Acciaio dorato e cabochon turchese»
+   su una riga diventava «Acciaio dorato e cabocho…», che non dice né
+   la materia né la pietra. Perché l'altezza è FISSA: una cella che
+   cresce di 18 px disallinea i prezzi fra le due colonne — in una
+   griglia si misura, non si spera. Le due righe le tiene `line-clamp`,
+   che è un fermo di sicurezza: chi sfora davvero lo scopre `vetrina.js`
+   misurando, e scende alla materia principale invece di tagliare. */
+.vt-cella b{display:block;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font:var(--t-sub);font-weight:400;color:var(--testo)}
+.vt-materia{display:-webkit-box;-webkit-box-orient:vertical;
+  -webkit-line-clamp:2;line-clamp:2;overflow:hidden;
+  margin-top:-2px;font:var(--t-foot);color:var(--testo-2);
+  /* 2 × 18 px di interlinea di `--t-foot`: il posto c'è sempre */
+  height:36px}
+.vt-prezzo{display:block;font:var(--t-sub);color:var(--testo)}
+
+/* L'OCCHIELLO «NUOVO» — una parola, maiuscoletto, in alto a sinistra,
+   su uno scrim che non è una tinta ma il fondo del tema tirato
+   sull'88%: così regge sopra una fotografia chiara come sopra una
+   scura senza sapere cosa c'è sotto. Mai due occhielli sulla stessa
+   cella, mai un badge colorato (reference 47, anti-pattern 3). */
+.vt-nuovo{position:absolute;left:var(--u);top:var(--u);
+  padding:3px 7px;border-radius:5px;
+  background:color-mix(in srgb,var(--notte) 88%,transparent);
+  color:var(--luce)}
+
+/* IL SEGNO «3D» — a filo, in basso a destra, sulla stessa materia
+   dell'occhiello. Dice che il pezzo esiste anche sul banco; non è un
+   tasto, e infatti non si tocca: il tasto è tutta la cella. */
+.vt-3d{position:absolute;right:var(--u);bottom:var(--u);
+  display:grid;place-items:center;width:26px;height:26px;
+  border-radius:var(--r-capsula);
+  background:color-mix(in srgb,var(--notte) 88%,transparent);
+  color:var(--luce)}
+
+/* ═══ S2 · LA PAGINA DEL PEZZO ══════════════════════════════════════ */
+
+/* LA GALLERIA A PAGINE. Tutta larghezza — la fotografia di un gioiello
+   indossato non si rientra: si guarda. I fermi sono quelli del
+   browser (`scroll-snap`), non una libreria. */
+/* 12 e non 18 sotto la galleria: sono i sei punti che tengono la riga
+   della materia sopra il filo della fascia ancorata a pagina ferma.
+   Misurato nella sonda `_E2_finitura.mjs` («la fascia non copre la
+   testa»), non stimato. */
+.vt-gal-avvolge,.vt-gal-uno{position:relative;
+  margin:0 calc(-1 * max(var(--margine),var(--safe-sx)))
+        12px calc(-1 * max(var(--margine),var(--safe-dx)))}
+.vt-gal{display:flex;overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x mandatory;overscroll-behavior-x:contain;
+  scrollbar-width:none}
+.vt-gal::-webkit-scrollbar{display:none}
+.vt-gal-pag{flex:0 0 100%;scroll-snap-align:start}
+.vt-gal-fig,.vt-gal-uno .fig,.vt-gal-uno .senza-foto{
+  display:block;width:100%;aspect-ratio:4/5;object-fit:cover;
+  background:var(--incavo)}
+.vt-gal-uno .senza-foto{display:grid;place-items:center;padding:24px;
+  text-align:center;border-radius:0}
+
+/* I PUNTI: 6 px, la stessa misura del badge-punto del sistema, a 12 dal
+   fondo. Il punto attivo non cambia misura — cambia grado di colore:
+   un punto che cresce sposta gli altri, e cinque punti che ballano per
+   una foto sono più movimento del contenuto che annunciano. */
+.vt-punti{position:absolute;left:0;right:0;bottom:12px;
+  display:flex;gap:var(--u);justify-content:center;pointer-events:none}
+.vt-punto{width:6px;height:6px;border-radius:var(--r-capsula);
+  background:color-mix(in srgb,var(--luce) 40%,transparent);
+  transition:background var(--d-alert) var(--ios)}
+.vt-punto.qui{background:var(--luce)}
+
+.vt-testa{margin:0 0 18px}
+.vt-nome{margin-bottom:4px;color:var(--testo)}
+.vt-testa .t-sub{margin-bottom:6px}
+.vt-prezzo-pdp{color:var(--testo)}
+/* LA PROVENIENZA — «REGINA · SAN SEVERO», maiuscoletto 13, `--testo-2`.
+   Occhiello e non accento: è un fatto, non uno stato e non un comando,
+   e in questa app il turchese vuol dire «si può fare qualcosa». */
+.vt-provenienza{display:block;margin:0 0 5px;color:var(--testo-2)}
+
+/* «LA MISURA» — un piano, non una lista: è una spiegazione, e una
+   spiegazione dentro una lista raggruppata diventa una riga che
+   qualcuno prova a toccare. */
+.vt-misura{padding:15px var(--margine) 12px;
+  border-radius:var(--r-lista);background:var(--piano)}
+.vt-misura p{margin-bottom:6px}
+.vt-misura .tasto{margin-left:-8px;color:var(--accento)}
+
+/* IL FOGLIO DELLA GUIDA */
+.vt-guida-riga{margin-bottom:16px}
+.vt-guida-riga b{display:block;margin-bottom:3px;color:var(--testo)}
+.vt-guida .vt-nota{margin:2px 0 16px;text-align:left}
+
+/* IL PEZZO IN PAGINA, e il tondo che lo indica: il posto di questo
+   pezzo nella collezione si vede, e non serve dirlo con una parola. */
+.tondo.questo{box-shadow:inset 0 0 0 2px var(--accento)}
+
+/* LE AZIONI — un primario solo per schermata, e sotto la frase che
+   dice cos'e'. La frase NON è un dettaglio di cortesia: senza, il
+   tasto legge come un carrello, e questa è una riserva senza
+   pagamento. */
+.vt-azioni{display:flex;flex-direction:column;align-items:stretch;
+  gap:var(--u);margin:22px 0 4px}
+.vt-nota{text-align:center;margin:0}
+/* il percorso umano, in pagina e non sotto il pollice: tasto di testo,
+   allineato a sinistra come «Come misuro il dito», e con lo stesso
+   scavalco di 8 px che il terziario si porta dentro. */
+.vt-sotto{display:flex;margin:18px 0 4px 0}
+.vt-sotto .tasto{margin-left:-8px;justify-content:flex-start}
+/* l'azione di testo in una riga sua: il bersaglio è 44 pieno
+   (`.tasto.terziario`), l'allineamento ottico si recupera dagli 8 px di
+   respiro che il tasto si porta dentro. */
+.vt-riga-testuale{display:flex;margin-left:-8px}
+
+/* ── LA FASCIA ANCORATA DEL PEZZO ─────────────────────────────────
+   Il primario resta SOPRA LA PIEGA insieme al prezzo, come su Cartier e
+   Mejuri: si ancora sopra la barra delle sezioni e ci resta finché c'è
+   pagina sotto. Il `bottom` è lo scavalco della capsula di vetro (gli
+   stessi 96 px che `.pagina` già si riserva sotto in `data-nav="c"`),
+   meno l'aria che la fascia si porta dentro.
+   Materiale REGULAR (30/.72): la regola dei materiali dice barre e
+   fogli, e una fascia ancorata è una barra. Il filo in alto la stacca
+   dal contenuto che le passa dietro. */
+/* Il `bottom` vale 48 e non 96: sotto lo scroller c'è già `#fascia`,
+   46 punti di fondale che il telaio si tiene per la capsula delle
+   sezioni, quindi 96 lascerebbero sessanta punti di vuoto sopra la
+   capsula. Il margine negativo di pari misura mangia la metà di riserva
+   che `.pagina` tiene in coda (`safe-b + 96`): così la fascia sta allo
+   STESSO posto mentre si scorre e a scorrimento finito — se i due
+   numeri non combaciano, all'ultimo tratto la barra fa un salto. */
+.vt-fascia{position:sticky;z-index:4;
+  bottom:calc(var(--safe-b) + 48px);
+  display:block;
+  margin:26px calc(-1 * max(var(--margine),var(--safe-sx)))
+         calc(-1 * (var(--safe-b) + 48px)) calc(-1 * max(var(--margine),var(--safe-dx)));
+  padding:9px max(var(--margine),var(--safe-dx)) 11px
+          max(var(--margine),var(--safe-sx));
+  box-shadow:inset 0 1px 0 var(--linea)}
+/* PREZZO E INVITO NELLO STESSO RETTANGOLO, su una riga: il prezzo tiene
+   il suo posto a sinistra (larghezza minima dichiarata, così due prezzi
+   di lunghezza diversa non fanno ballare la capsula) e la capsula prende
+   tutto il resto. */
+.vt-fascia-riga{display:flex;align-items:center;gap:14px}
+.vt-fascia-riga .vt-prezzo-pdp{flex:none;min-width:72px;color:var(--testo)}
+.vt-fascia-riga .tasto{flex:1 1 auto;padding:0 16px}
+.vt-fascia .vt-nota{margin-top:5px}
+/* la materia della scheda può andare a capo: è sotto il titolo, non in
+   una griglia, e non ha nessun prezzo da tenere allineato. */
+.vt-materia-pdp{margin-bottom:0}
+/* il tasto che è diventato uno STATO: resta pieno (è successo
+   qualcosa), ma non chiama più — il peso scende sul filo. */
+.tasto.vt-tenuto{background:none;color:var(--accento);
+  box-shadow:inset 0 0 0 1px var(--linea)}
+/* i due <a> vestiti da tasto: un collegamento che porta fuori
+   dall'app resta un collegamento, ma pesa come il tasto che affianca. */
+a.tasto{text-decoration:none}
+a.tasto.largo{display:flex;width:100%}
+
+.vt-coda{margin:6px 0 0}
+.vt-riga-testo{margin-bottom:8px}
+
+/* ═══ S3 · DA PARTE ═════════════════════════════════════════════════ */
+
+/* LA RIGA: foto 44, due righe di testo, lo stato accanto all'oggetto
+   (regola 5 del sistema: lo stato si dice accanto alla cosa, non in
+   una barra in cima) e «Togli» a filo, con il suo bersaglio da 44. */
+/* LA MINIATURA CHE NON C'E'. A 44 px il nome dentro il redatto non ci
+   sta e usciva dal riquadro sopra il testo della riga: a quella misura
+   il posto vuoto basta da solo — il nome sta già accanto, in chiaro. */
+.cella .senza-foto{overflow:hidden;box-shadow:inset 0 0 0 1px var(--linea)}
+.cella .senza-foto span{display:none}
+.vt-riga{gap:12px;min-height:72px;padding-right:var(--u)}
+.vt-riga .testo{flex:1 1 auto;min-width:0}
+.vt-riga .testo b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* la specificita' va dichiarata, non sperata: `.cella .testo span` del
+   sistema pesa (0,2,1) e vince su una classe sola — lo stato «viva»
+   usciva grigio invece che in accento. Si pareggia con il contesto. */
+/* IL TURCHESE È UNO SOLO PER SCHERMATA, oltre al primario, e in questa
+   schermata è «Lo regalo io». Lo stato della riserva era in accento e
+   i tre «Togli» pure: quattro turchesi sopra una capsula turchese
+   rendono la capsula una delle cinque cose turchesi invece che LA cosa
+   da fare. Lo stato lo dicono le PAROLE («Da parte fino al 22/09»
+   contro «In attesa»), non il colore; «Togli» resta un comando, e un
+   comando secondario in una lista di tre si legge benissimo in
+   `--testo-2` (5,4 su carta, 8,0 su velluto). */
+.vt-riga .testo .vt-stato{display:block;margin-top:1px;
+  font:var(--t-foot);color:var(--testo-2);
+  font-feature-settings:"tnum","lnum"}
+.vt-riga .testo .vt-stato.viva{color:var(--testo-2);font-weight:600}
+.vt-togli{flex:none;min-height:var(--tocco-min);min-width:var(--tocco-min);
+  padding:0 var(--u);border:0;background:none;cursor:pointer;
+  color:var(--testo-2);font:var(--t-foot);
+  transition:opacity var(--d-tocco) linear}
+.vt-togli:active{opacity:.55}
+.vt-togli:focus-visible{outline:2px solid var(--accento);outline-offset:-3px;
+  border-radius:var(--r-campo)}
+
+.vt-totale{display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:0 4px;margin:-8px 0 4px;color:var(--testo)}
+
+/* IL FOGLIO DI CHI REGALA */
+.vt-regalo p{margin-bottom:var(--u)}
+.vt-link{display:block;padding:10px 12px;border-radius:var(--r-campo);
+  background:var(--incavo);word-break:break-all}
+
+/* ═══ S4 · IL NEGOZIO ═══════════════════════════════════════════════ */
+
+/* NIENTE MAPPA DENTRO (NN/g: la mappa la apre il telefono, e una chiave
+   API per un negozio solo è una dipendenza per niente). Al suo posto
+   il piano 3:2 col MARCHIO INTERO al centro — mai ridotto, mai un
+   pittogramma ritagliato: il marchio completo è l'unico marchio. */
+.vt-insegna{display:grid;place-items:center;aspect-ratio:3/2;
+  margin:0 calc(-1 * max(var(--margine),var(--safe-sx)))
+        18px calc(-1 * max(var(--margine),var(--safe-dx)));
+  padding:var(--margine);
+  /* IL MARCHIO È DI CARTA, NON DEL TEMA. Il marchio di Regina è scuro
+     su chiaro, e su `--piano` in tema velluto sparisce — misurato a
+     schermo: 1,1:1. Il piano dell'insegna è perciò un MATERIALE di
+     marca (`--carta`), come la tessera, non una superficie del tema:
+     è anche cio' che si vede davvero in vetrina, un cartoncino chiaro
+     col marchio stampato sopra. Nessun filtro, nessuna inversione: il
+     marchio non si ricolora. */
+  background:var(--carta)}
+.vt-marchio{display:block;width:min(62%,220px);height:auto}
+/* la targhetta della pagina pubblica: lo stesso cartoncino, più piccolo */
+.vt-insegna-piccola{aspect-ratio:auto;margin:0 0 20px;padding:18px;
+  border-radius:var(--r-card)}
+.vt-insegna-piccola .vt-marchio{width:min(52%,180px)}
+
+.vt-aperto{color:var(--testo-2)}
+.vt-aperto.si{color:var(--accento)}
+/* oggi in evidenza: il peso, non un colore. Un giorno colorato in una
+   lista di sette diventa un avviso. */
+.vt-oggi .testo b,.vt-oggi .coda{font-weight:600}
+
+/* la riga che porta fuori: è un <a>, e deve vestirsi da cella senza
+   portarsi dietro la sottolineatura e il colore dei collegamenti. */
+.vt-esterno{text-decoration:none;color:var(--testo)}
+.vt-esterno:active{background:color-mix(in srgb,var(--testo) 6%,transparent)}
+.vt-esterno:focus-visible{outline:2px solid var(--accento);outline-offset:-3px}
+
+/* ═══ S3b · LA LISTA DI CHI REGALA ══════════════════════════════════
+   Una pagina pubblica: nessuna barra delle sezioni, nessun ritorno di
+   sistema — chi arriva qui non ha l'app, ha un link. Sta SOPRA tutto
+   perché non è una delle quattro sezioni; il tema se lo prende dal
+   <main>, così non esce di carta mentre l'app è di velluto. */
+.vt-ospite{position:fixed;inset:0;z-index:35;overflow-y:auto;
+  overscroll-behavior:contain;
+  background:var(--fondo);color:var(--testo)}
+.vt-ospite-dentro{padding:calc(var(--safe-t) + 32px)
+  max(var(--margine),var(--safe-dx)) calc(var(--safe-b) + 32px)
+  max(var(--margine),var(--safe-sx))}
+.vt-ospite h1{margin-bottom:2px;
+  font:var(--t-1);letter-spacing:var(--ls-display);font-optical-sizing:auto;
+  color:var(--testo)}
+/* il fuoco ci arriva da CODICE (chi apre la pagina deve sapere dove è
+   arrivato), non da un tabulatore: l'anello resterebbe acceso senza che
+   nessuno l'abbia chiesto. È la stessa scelta che il sistema fa sul
+   titolo grande (`.titolone:focus-visible`). */
+.vt-ospite h1:focus,.vt-ospite h1:focus-visible{outline:none}
+.vt-ospite > .vt-ospite-dentro > .t-sub{margin-bottom:22px}
+.vt-ospite .lista-blocco{margin-top:0}
+/* la barra delle sezioni non deve restare toccabile sotto una pagina
+   che, per chi la guarda, è tutto il sito. */
+body[data-ospite] #barra{visibility:hidden}
+
+/* ═══ CHI HA CHIESTO MENO MOVIMENTO ═════════════════════════════════
+   Le compressioni al tocco restano (100 ms, sotto il tetto), ma
+   diventano lineari e non scalano. Il FLIP della griglia si spegne da
+   solo in JS (`RIDOTTO`), come nel cofanetto. */
+@media (prefers-reduced-motion: reduce){
+  .vt-cap,.vt-cella{transition-duration:var(--d-tocco) !important;
+    transition-timing-function:linear !important}
+  .vt-cap:active{transform:none}
+  .vt-punto{transition-duration:var(--d-ct-out)}
+  .vt-gal{scroll-behavior:auto}
+}

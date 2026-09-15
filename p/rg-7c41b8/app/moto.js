@@ -1,10 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════════
    app/moto.js — IL MOTO, in un posto solo.
-   La molla della barra e' gia' approvata (OMEGA 14, ZETA 0,825) e vive
-   nel telaio. Questa e' LA STESSA molla, riscritta come modulo perche'
+   La molla della barra è già approvata (OMEGA 14, ZETA 0,825) e vive
+   nel telaio. Questa è LA STESSA molla, riscritta come modulo perché
    la usino anche il foglio, il gesto dal bordo e il toast: una app dove
    due cose si muovono con due leggi diverse si sente, anche se non si
-   sa dire perche'.
+   sa dire perché.
    ═══════════════════════════════════════════════════════════════════ */
 
 export const OMEGA = 14.0, ZETA = 0.825;
@@ -12,8 +12,8 @@ export const RIDOTTO = matchMedia("(prefers-reduced-motion: reduce)");
 
 /* ── LA MOLLA ──────────────────────────────────────────────────────
    Oscillatore smorzato integrato a rAF. Prende una velocita' iniziale
-   (quella del dito che ha lasciato) e si puo' interrompere a meta': un
-   gesto che non si puo' interrompere e' un video, non un'interfaccia.
+   (quella del dito che ha lasciato) e si può interrompere a metà: un
+   gesto che non si può interrompere è un video, non un'interfaccia.
    Ritorna un oggetto con `.ferma()` e `.a(nuovaMeta)`. */
 export function molla(da, a, opz = {}){
   const w = opz.omega ?? OMEGA, z = opz.zeta ?? ZETA;
@@ -47,11 +47,11 @@ export function molla(da, a, opz = {}){
 
 /* ── LA PROIEZIONE ─────────────────────────────────────────────────
    Dove finirebbe una cosa lanciata a `v` px/s se rallentasse con
-   decelerazione esponenziale. lambda 0,998 e' il valore di UIKit
-   (`UIScrollView.DecelerationRate.normal`): il fattore e'
+   decelerazione esponenziale. lambda 0,998 è il valore di UIKit
+   (`UIScrollView.DecelerationRate.normal`): il fattore è
    lambda/(1-lambda) = 499 ms di corsa residua.
-   Serve per decidere DURANTE il gesto, non alla fine: e' la differenza
-   fra «ha superato meta'» e «stava andando li'». */
+   Serve per decidere DURANTE il gesto, non alla fine: è la differenza
+   fra «ha superato metà» e «stava andando lì». */
 export function proietta(v, lambda = 0.998){
   return v * lambda / (1000 * (1 - lambda));
 }
@@ -79,8 +79,8 @@ export function flip(el, prima, poi, opz = {}){
    Safari 17.2 e Chrome 113 accettano `linear(...)` come funzione di
    temporizzazione: si campiona la molla e si consegna al CSS la sua
    forma vera, invece della `cubic-bezier` che la imita e sbaglia la
-   coda. Restituisce ANCHE la durata, perche' una curva senza la sua
-   durata e' mezza informazione. */
+   coda. Restituisce ANCHE la durata, perché una curva senza la sua
+   durata è mezza informazione. */
 export function lineare(opz = {}){
   const w = opz.omega ?? OMEGA, z = opz.zeta ?? ZETA, n = opz.punti ?? 24;
   /* durata: quando l'inviluppo e^(-z*w*t) scende sotto lo 0,4% */
@@ -102,14 +102,23 @@ export const MOLLA_CSS = lineare();
 /* ── LE VIEW TRANSITIONS ───────────────────────────────────────────
    Esistono da Safari 18. Le usiamo per i cambi di CONTENUTO dentro una
    vista (un elenco che si riordina, uno stato vuoto che si riempie):
-   li' il DOM cambia davvero e la transizione nativa e' migliore di
+   lì il DOM cambia davvero e la transizione nativa è migliore di
    qualunque FLIP scritto a mano.
-   NON le usiamo per il cambio di tab ne' per il push: una transizione
-   nativa e' uno scatto fotografico che non si puo' interrompere, e il
+   NON le usiamo per il cambio di tab né per il push: una transizione
+   nativa è uno scatto fotografico che non si può interrompere, e il
    gesto dal bordo deve seguire il dito 1:1 in ogni istante. */
 export function conTransizione(fn){
   if(RIDOTTO.matches || !document.startViewTransition){ fn(); return Promise.resolve(); }
-  return document.startViewTransition(fn).finished.catch(() => {});
+  const t = document.startViewTransition(fn);
+  /* SI SPENGONO TUTTE E TRE LE PROMESSE, non solo `finished`. Quando
+     una seconda transizione parte prima che la prima sia pronta, il
+     browser SALTA la prima e rifiuta la sua `ready` con un AbortError:
+     nessuno l'ascolta, e finisce come errore di pagina — un rosso nel
+     collaudo per una cosa che è successa apposta. Capita ogni volta
+     che due eventi di store arrivano ravvicinati. */
+  t.ready.catch(() => {});
+  t.updateCallbackDone.catch(() => {});
+  return t.finished.catch(() => {});
 }
 
 /* ── IL TEMPO CHE PASSA, se serve aspettarlo ── */

@@ -3,10 +3,10 @@
 
    Il banco (spazio.html) resta in un iframe: pesa dieci mega di modelli
    e di three.js, e tenerlo in un contesto suo significa che quando la
-   GPU tossisce tossisce LI', non nella scocca. Il prezzo di quella
-   scelta e' che la scocca e il banco non si vedono le variabili: si
+   GPU tossisce tossisce LÌ, non nella scocca. Il prezzo di quella
+   scelta è che la scocca e il banco non si vedono le variabili: si
    parlano.
-   Si parlano su UN canale solo, BroadcastChannel("regina"), perche' un
+   Si parlano su UN canale solo, BroadcastChannel("regina"), perché un
    BroadcastChannel non ha bisogno del riferimento alla finestra, non ha
    bisogno di `targetOrigin`, e regge anche una seconda scheda aperta.
 
@@ -17,15 +17,15 @@
      · `regina.veste`      la fodera del cofanetto  (velluto|bianco|avorio|turchese)
      · `regina.ambiente`   lo sfondo della stanza   (boutique|…)
      · `regina.insieme`    se suggerire gli insiemi ("si"|"no")
-     · `regina.occlusione` (sessionStorage) se l'occlusione e' stata spenta
-   La scocca percio' fa DUE cose: manda il messaggio sul canale (che il
+     · `regina.occlusione` (sessionStorage) se l'occlusione è stata spenta
+   La scocca perciò fa DUE cose: manda il messaggio sul canale (che il
    banco ancora non ascolta, e che in F2 ascoltera') e, per i tre campi
    che il banco legge all'avvio, allinea anche la chiave di
-   localStorage. E' un ponte con una gamba sola: regge, e si vede da qui
+   localStorage. È un ponte con una gamba sola: regge, e si vede da qui
    quale gamba manca.
 
    ── IL CONTRATTO DEI MESSAGGI (da attuare in F2) ────────────────────
-   Ogni messaggio e' un oggetto piatto:  {da, t, d}
+   Ogni messaggio è un oggetto piatto:  {da, t, d}
      `da`  chi parla:  "scocca" | "banco"          (mai rispondere a se stessi)
      `t`   il tipo, identico al tipo di evento dello store
      `d`   il carico, sempre un oggetto
@@ -40,41 +40,87 @@
      {t:"esemplare/ripristinato",d:{id:"…"}}
      {t:"banco/mostra",         d:{id:"rg-fl-004"}}      porta la camera sul pezzo
      {t:"banco/torna",          d:{}}                    riporta la camera al banco
-     {t:"banco/sospendi",       d:{}}                    la sezione non e' piu' visibile:
+     {t:"banco/sospendi",       d:{}}                    la sezione non è più visibile:
                                                          ferma il rAF, tieni la scena
-     {t:"banco/riprendi",       d:{}}                    la sezione e' tornata visibile
+     {t:"banco/riprendi",       d:{}}                    la sezione è tornata visibile
      {t:"demo/reset",           d:{}}                    ricarica tutto dal seme
 
    DAL BANCO ALLA SCOCCA
      {t:"banco/pronto",         d:{versione:"…"}}        i modelli sono in scena
-     {t:"banco/aperto",         d:{id:"rg-fl-004"}}      si e' toccato un pezzo:
+     {t:"banco/aperto",         d:{id:"rg-fl-004"}}      si è toccato un pezzo:
                                                          la scocca spinge la scheda
-     {t:"banco/chiuso",         d:{}}                    si e' tornati al banco
-     {t:"preferenze/fodera",    d:{fodera:"…"}}          la veste e' stata cambiata DAL banco
+     {t:"banco/chiuso",         d:{}}                    si è tornati al banco
+     {t:"preferenze/fodera",    d:{fodera:"…"}}          la veste è stata cambiata DAL banco
      {t:"preferenze/insieme",   d:{insieme:false}}
      {t:"banco/cadenza",        d:{fps:38, ao:false}}    diagnostica, per il pannello ?diag=1
 
+   ── AGGIUNTE DELLA FASE 3 (la carta, le azioni, il pezzo che entra) ──
+   Si aggiungono in fondo e non si riscrive niente sopra: il contratto è
+   letto da più esecutori insieme, e una riga spostata è una riga che
+   qualcuno non ritrova.
+
+   DALLA SCOCCA AL BANCO
+     {t:"esemplare/dati",  d:{id:"RJ-CM4-PR7-G9D", esemplare:{…}}}
+        la verita' su un esemplare: la scocca la conosce (viene dal seme o
+        da Supabase), il banco ne tiene solo una copia in chiaro. Il banco
+        la mette in dispensa e, se la carta di QUEL pezzo è aperta, la
+        riscrive sul posto — senza chiuderla, senza rigirarla, senza toast.
+        `esemplare` è l'oggetto di `app/dati/seme.js`; il banco legge
+        `codice, fam, k, quando|data_vendita, dove, da, dedica, regalo,
+        stato, per, regalato_a, misura` e, se c'è, `storia: [{quando,
+        fatto}]` — che vince sulla storia ricostruita.
+     {t:"esemplare/nuovo", d:{id:"RJ-…", esemplare:{…}}}
+        un pezzo appena entrato nel cofanetto. È l'unico messaggio che
+        apre una SCENA (grado grande, ~1,4 s: il vassoio sale, il pezzo si
+        posa, la luce sale dal fondo, arriva il cartellino). Porta
+        l'esemplare intero perché il banco quel codice non lo conosce
+        ancora: il ponte dei codici impara la riga qui.
+
+   DAL BANCO ALLA SCOCCA
+     {t:"azione/dedica",        d:{id, fam, k}}   apri il foglio Dedica
+     {t:"azione/regala",        d:{id, fam, k}}   apri il foglio Regala
+     {t:"azione/assistenza",    d:{id, fam, k}}   apri il foglio Assistenza
+     {t:"azione/condividi",     d:{id, fam, k}}   apri il foglio Condividi
+     {t:"azione/metti-da-parte",d:{id, fam, k}}   solo sui pezzi di vetrina
+        Le azioni che chiedono di SCRIVERE non aprono niente nell'iframe:
+        una tastiera dentro un telaio ridimensiona la scena e porta il
+        campo sotto il pollice. Di qua parte il messaggio e il tasto si
+        limita a dire che ha sentito il dito (compressione 0,96→1 in 300
+        ms). Nessuna risposta è attesa: quando la scocca ha finito manda
+        `esemplare/dati` e la carta si aggiorna da sola.
+     {t:"esemplare/rimosso",     d:{id, motivo}}
+        `motivo` è una delle tre righe del foglio «Cosa gli è successo?»:
+        "regalato" | "smarrito" | "archivio". La scena ha già fatto uscire
+        il pezzo dal vano e mostra la pillola «Rimosso · Annulla» per 6 s.
+        Lo stesso tipo va anche nell'altro verso (scocca→banco, dall'elenco):
+        lì la scena fa uscire il pezzo e NON mostra la pillola, perché
+        l'annulla lo offre già la schermata da cui l'ordine è partito.
+     {t:"esemplare/ripristinato",d:{id, motivo}}  si è premuto Annulla
+     {t:"nav/vetrina",           d:{da:"banco"}}
+        dal cofanetto vuoto: «Vai in vetrina». È una richiesta di rotta,
+        non un fatto della scena — la scocca decide come portarcisi.
+
    REGOLE
    1. Chi riceve un messaggio NON lo rimanda: `da` serve a questo.
-   2. Un messaggio e' un FATTO avvenuto, non un ordine da confermare:
+   2. Un messaggio è un FATTO avvenuto, non un ordine da confermare:
       nessun messaggio aspetta risposta.
    3. Tutto cio' che viaggia deve essere clonabile in modo strutturato:
       niente funzioni, niente nodi del DOM, niente oggetti three.js.
-   4. Il tipo e' lo stesso dell'evento dello store: cosi' il ponte non
-      deve tradurre, e una traduzione in meno e' un bug in meno.
+   4. Il tipo è lo stesso dell'evento dello store: così il ponte non
+      deve tradurre, e una traduzione in meno è un bug in meno.
    ═══════════════════════════════════════════════════════════════════ */
 
 import { ilCanale, iscrivi } from "app/stato.js";
 
-/* le chiavi che il banco legge oggi all'avvio: finche' non ascolta il
+/* le chiavi che il banco legge oggi all'avvio: finché non ascolta il
    canale, la scocca gliele scrive. Si tolgono in F2, e si toglie anche
    questa tabella. */
 const PONTEGGIO = {
   "preferenze/fodera":   (d) => d.fodera ? ["regina.veste", d.fodera] : null,
   "preferenze/ambiente": (d) => d.ambiente ? ["regina.ambiente", d.ambiente] : null,
-  /* ATTENZIONE, due «insieme» diversi. Nel banco `regina.insieme` e' un
+  /* ATTENZIONE, due «insieme» diversi. Nel banco `regina.insieme` è un
      interruttore ("si"|"no"): suggerire o no gli insiemi. Nei dati di
-     `app/dati/seme.js` invece `preferenze.insieme` e' la FORMA dei
+     `app/dati/seme.js` invece `preferenze.insieme` è la FORMA dei
      suggerimenti (`?sugg=a|b|c`: riga, carte velate, rail) — un'altra
      cosa con lo stesso nome. Qui si scrive la chiave del banco SOLO
      quando l'evento porta davvero un booleano; la lettera passa sul
@@ -101,7 +147,7 @@ export function diAlBanco(t, d = {}){
 export function apriIlPonte(){
   const c = ilCanale();
   if(c){
-    /* lo store filtra gia' la propria eco; qui si smistano solo i tipi
+    /* lo store filtra già la propria eco; qui si smistano solo i tipi
        che il banco manda e che lo store non conosce (banco/*). */
     const prima = c.onmessage;
     c.onmessage = (ev) => {
@@ -122,3 +168,41 @@ export function apriIlPonte(){
     try{ localStorage.setItem(k, String(v)); }catch(_){}
   });
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   F3b · CHI ASCOLTA COSA, DA QUESTA PARTE DEL PONTE (15/09)
+   Aggiunto in fondo, senza toccare una riga sopra: il contratto lo
+   leggono due esecutori insieme, e una riga spostata è una riga che
+   qualcuno non ritrova.
+
+   `app/viste/azioni.js` — montata da `avvio.js`, senza tab — si mette in
+   ascolto di:
+     azione/dedica · azione/regala · azione/assistenza · azione/condividi
+       aprono un FOGLIO della scocca (la tastiera di iOS deve stare fuori
+       dall'iframe: dentro, ridimensiona la scena e porta il campo sotto
+       il pollice). Del carico si legge il solo `id`; `fam` e `k`
+       viaggiano e non servono di qua.
+     nav/vetrina            porta alla sezione Vetrina.
+     banco/aperto           risponde subito con `esemplare/dati`.
+     banco/chiuso           smette di considerare quella carta «a schermo»
+                            (serve a una cosa sola e precisa: il toast
+                            «Salvata» esiste quando l'effetto è ALTROVE).
+   e manda:
+     esemplare/dati   a ogni cambiamento dei quattro rami che compongono
+                      la carta (esemplari, dediche, regali, assistenze),
+                      non solo su richiesta: il banco non deve chiedere, e
+                      una carta con una dedica vecchia è peggio di una
+                      carta senza dedica.
+     esemplare/nuovo  quando si apre un regalo dalla pagina `#/c/<codice>`.
+                      Porta l'esemplare intero: quel codice il banco non
+                      lo conosce ancora.
+
+   DUE COSE CHE IL CONTRATTO PREVEDE E CHE DA QUESTA PARTE NON HANNO
+   ANCORA UN ASCOLTATORE, ed è scritto invece che scoperto:
+     azione/metti-da-parte   è della Vetrina (F4), non delle azioni della
+                             carta: la scadenza e la lista vivono lì.
+     esemplare/rimosso|ripristinato  arrivano fino allo store da soli —
+                             il riduttore li conosce già — ma il foglio
+                             «Cosa gli è successo?» (46 S3.7) e la
+                             pillola con Annulla a 6 s stanno nel banco.
+   ═══════════════════════════════════════════════════════════════════ */

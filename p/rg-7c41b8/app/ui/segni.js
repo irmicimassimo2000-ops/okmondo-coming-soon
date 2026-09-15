@@ -5,21 +5,21 @@
      · griglia 24, area viva 20 (i tratti stanno fra 2 e 22);
      · tratto 1,7 — 1,5 a 20 px accanto a Inter 400, 2,0 a 28 nei tasti;
        il tratto lo dichiara il CSS (`--tratto`) e `non-scaling-stroke`
-       lo tiene in pixel di schermo, cosi' lo stesso disegno a misure
+       lo tiene in pixel di schermo, così lo stesso disegno a misure
        diverse non ingrassa;
      · giunti arrotondati, terminali PIATTI;
-     · mezzo pixel: i membri ortogonali stanno su coordinate .5, cosi'
+     · mezzo pixel: i membri ortogonali stanno su coordinate .5, così
        un tratto dispari cade dentro il pixel invece che a cavallo.
 
    ── I PESI OTTICI ──────────────────────────────────────────────────
    Quattro disegni con lo stesso tratto NON pesano uguale: una scatola
    chiusa deposita il doppio dell'inchiostro di una spunta. Ogni segno
-   porta percio' la sua SCALA OTTICA `k`, misurata contando i pixel
+   porta perciò la sua SCALA OTTICA `k`, misurata contando i pixel
    d'inchiostro a 48 px (sonda `_A2_segni.mjs`, tratto 3,4 = 1,7 alla
-   scala del disegno). La forbice chiesta e' +-12% sulla media.
+   scala del disegno). La forbice chiesta è +-12% sulla media.
    I NUMERI SONO MISURATI, NON STIMATI: la tabella sta nel rapporto.
 
-   NB: la barra delle sezioni ha i SUOI segni, dentro index.html, ed e'
+   NB: la barra delle sezioni ha i SUOI segni, dentro index.html, ed è
    approvata dal cliente. Quelli non si toccano e non si spostano: qui
    dentro ci sono i segni che servono alle VISTE. Cofanetto, vetrina,
    stella e profilo compaiono in entrambi apposta — la barra li vuole
@@ -55,7 +55,7 @@ export const FORME = {
   cuore:
     '<path d="M12 19.4C7.3 16.2 4.6 13.4 4.6 10.3A3.9 3.9 0 0 1 12 8.2a3.9 3.9 0 0 1 7.4 2.1c0 3.1-2.7 5.9-7.4 9.1z"/>',
 
-  /* il regalo: scatola, fascia, fiocco. La fascia e' un membro solo che
+  /* il regalo: scatola, fascia, fiocco. La fascia è un membro solo che
      attraversa tutto: due mezze fasce non si allineano mai. */
   regalo:
     '<path d="M4.8 9.6h14.4v9.1a1.3 1.3 0 0 1-1.3 1.3H6.1a1.3 1.3 0 0 1-1.3-1.3z"/>' +
@@ -63,8 +63,8 @@ export const FORME = {
     '<path d="M12 9.6C9.4 6.6 7 5.6 6.3 7.1c-.6 1.3.9 2.2 5.7 2.5z"/>' +
     '<path d="M12 9.6c2.6-3 5-4 5.7-2.5.6 1.3-.9 2.2-5.7 2.5z"/>',
 
-  /* la collezione: quattro anelli, due e due. Non e' una griglia di
-     pallini — sono anelli, e un anello e' il pezzo che Regina vende. */
+  /* la collezione: quattro anelli, due e due. Non è una griglia di
+     pallini — sono anelli, e un anello è il pezzo che Regina vende. */
   collezione:
     '<circle cx="8.6" cy="8.6" r="3"/>' +
     '<circle cx="15.4" cy="8.6" r="3"/>' +
@@ -138,7 +138,7 @@ export const FORME = {
 /* ── LE SCALE OTTICHE ──────────────────────────────────────────────
    MISURATE, non decise: vedi l'intestazione. Chi aggiunge un segno
    lascia 1 qui, rilancia `_A2_segni.mjs` e ci scrive il numero che
-   esce. Un `k` inventato e' peggio di nessun `k`. */
+   esce. Un `k` inventato è peggio di nessun `k`. */
 export const K = {
   cofanetto:0.973,
   vetrina:0.934,
@@ -163,10 +163,10 @@ export const K = {
 
 /* ── LE DUE CLASSI DI PESO ─────────────────────────────────────────
    L'inchiostro si pareggia DENTRO una classe, non fra classi diverse,
-   e la ragione e' geometrica, non pigrizia: un chevron e' un tratto
+   e la ragione è geometrica, non pigrizia: un chevron è un tratto
    solo lungo 20 unita', un calendario ne ha 72. Per portarli allo
    stesso inchiostro il chevron dovrebbe crescere di due volte e mezzo,
-   cioe' diventare una freccia grassa in mezzo a una riga di testo.
+   cioè diventare una freccia grassa in mezzo a una riga di testo.
    Quindi:
      · OGGETTI — i pittogrammi chiusi, quelli che stanno da soli in una
        cella, in uno stato vuoto o in un tasto. Si guardano insieme, e
@@ -187,7 +187,7 @@ export const NOMI = Object.keys(FORME);
 /* ── IL SEGNO, IN MARCATURA ────────────────────────────────────────
    `misura` sceglie la classe (20 / 24 / 28 / 56) e con essa il tratto:
    il disegno non cambia mai, cambia la penna. `aria-hidden` sempre: un
-   segno non e' un testo, e chi ascolta ha gia' l'etichetta accanto. */
+   segno non è un testo, e chi ascolta ha già l'etichetta accanto. */
 export function segnoHTML(id, opz = {}){
   const forma = FORME[id];
   if(!forma) return "";

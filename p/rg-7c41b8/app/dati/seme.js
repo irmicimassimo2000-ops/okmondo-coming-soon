@@ -1,16 +1,16 @@
 /* ═══════════════════════════════════════════════════════════════════════
    IL SEME — lo stato iniziale della demo.
 
-   Il catalogo e' del NEGOZIO e non cambia da una persona all'altra. Questo
-   file invece e' di UNA persona sola: Lucia Sabatini, tessera RJ 00042.
-   E' quello che nell'app vera arriverebbe da Supabase dopo il login, ed e'
+   Il catalogo è del NEGOZIO e non cambia da una persona all'altra. Questo
+   file invece è di UNA persona sola: Lucia Sabatini, tessera RJ 00042.
+   È quello che nell'app vera arriverebbe da Supabase dopo il login, ed è
    tenuto separato apposta: il giorno che si attacca il gestionale si butta
    questo file, non si riscrive l'app.
 
    LA REGOLA CHE TIENE INSIEME TUTTO: NIENTE NUMERI SCOLLEGATI.
-   Il credito e' la SOMMA dei movimenti. Lo speso_totale e' la somma di
+   Il credito è la SOMMA dei movimenti. Lo speso_totale è la somma di
    quello che Lucia ha pagato DI TASCA SUA (i regali di Antonio non le
-   fanno livello: li ha pagati lui). Il livello e' quello che le soglie
+   fanno livello: li ha pagati lui). Il livello è quello che le soglie
    dicono a partire dallo speso_totale. `_D_verifica.mjs` ricontrolla tutte
    e tre le catene a ogni esecuzione: se qualcuno tocca un prezzo nel
    catalogo e non qui, la verifica fallisce invece di far uscire una carta
@@ -23,7 +23,7 @@
 
 export const versione_schema = 1;
 
-/* la data in cui questa demo «e' ambientata». Tutte le scadenze, i
+/* la data in cui questa demo «è ambientata». Tutte le scadenze, i
    «mancano N giorni» e i preavvisi si calcolano da qui e non da
    `new Date()`: una bozza che si guarda fra due mesi non deve dire
    «l'anniversario era 60 giorni fa». */
@@ -55,7 +55,7 @@ export const cliente = {
   livello: 1,
   tessera_vip: false,
   tessera_numero: 42,
-  /* la tessera come si LEGGE, con gli zeri: e' quello che sta stampato
+  /* la tessera come si LEGGE, con gli zeri: è quello che sta stampato
      sulla carta e che compare nella testata di ogni pagina. */
   tessera: "RJ 00042",
   cliente_dal: "2025-03-08",
@@ -63,7 +63,7 @@ export const cliente = {
 };
 
 /* ── I LIVELLI ──────────────────────────────────────────────────────────
-   Nel gestionale `regina_livelli` nasce VUOTA apposta: finche' non si
+   Nel gestionale `regina_livelli` nasce VUOTA apposta: finché non si
    conoscono scontrino medio e clienti attivi, il credito non matura. Qui
    le quattro righe sono nostre, tarate su un solo vincolo dato: Lucia sta
    al «Secondo» e le mancano 260,00 € per arrivare al 5%.
@@ -79,21 +79,21 @@ export const livelli = [
 ];
 
 /* ── GLI ESEMPLARI ──────────────────────────────────────────────────────
-   Il `codice` e' quello della Carta del Pezzo — quello che finisce nel QR
+   Il `codice` è quello della Carta del Pezzo — quello che finisce nel QR
    e che apre `/c/<codice>` a chi scarta il regalo. Nove caratteri da un
    alfabeto senza forme ambigue (niente 0/O, niente 1/I/L), scritti a
-   gruppi di tre, perche' devono poter essere DETTATI AL TELEFONO quando il
+   gruppi di tre, perché devono poter essere DETTATI AL TELEFONO quando il
    QR non si inquadra.
 
-   `fam` e `k` sono la posizione nella scena 3D. Un esemplare puo' non
-   averli: e' un pezzo che esiste e che si possiede, ma che nel modello non
+   `fam` e `k` sono la posizione nella scena 3D. Un esemplare può non
+   averli: è un pezzo che esiste e che si possiede, ma che nel modello non
    ha un alloggio. Si vede in elenco, non nella stanza. Vedi `ponte.js`.
 
    `stato` segue il gestionale:
-     venduto     · la carta e' stampata, nessuno l'ha ancora inquadrata
-     registrato  · qualcuno l'ha scansionata: e' entrata in un Libretto
+     venduto     · la carta è stampata, nessuno l'ha ancora inquadrata
+     registrato  · qualcuno l'ha scansionata: è entrata in un Libretto
      trasferito  · ha cambiato Libretto
-   Un esemplare `venduto` NON si conta fra i posseduti: e' la sorpresa che
+   Un esemplare `venduto` NON si conta fra i posseduti: è la sorpresa che
    aspetta in negozio, e contarlo rovinerebbe sia il conteggio della
    collezione sia la sorpresa. */
 
@@ -108,8 +108,8 @@ export const esemplari = [
     da: "Antonio",
     firmato: true,
     dedica:
-      "Per i tuoi trent’anni, perche’ tu abbia sempre qualcosa che brilla " +
-      "anche nei giorni in cui non ne hai voglia. E perche’ quando la metti " +
+      "Per i tuoi trent’anni, perché tu abbia sempre qualcosa che brilla " +
+      "anche nei giorni in cui non ne hai voglia. E perché quando la metti " +
       "ti ricordi che quel giorno c’eravamo tutti, e che era una bella giornata.",
     occasione: "compleanno",
     regalo: true,
@@ -194,8 +194,8 @@ export const esemplari = [
     da: null,
     firmato: false,
     /* la dedica che una persona scrive A SE' STESSA. Sta nel 3D e vale la
-       pena tenerla: e' la riga che dice che questa non e' un'app di regali. */
-    dedica: "Comprato da sola, e va benissimo cosi’.",
+       pena tenerla: è la riga che dice che questa non è un'app di regali. */
+    dedica: "Comprato da sola, e va benissimo così.",
     occasione: null,
     regalo: false,
     stato: "registrato",
@@ -216,10 +216,10 @@ export const esemplari = [
     stato: "registrato",
   },
   {
-    /* IL PEZZO CHE CHIUDE FILO DI LUCE, gia' pagato da Antonio e gia'
-       stampato, ma non ancora inquadrato da nessuno. Percio' `venduto` e
+    /* IL PEZZO CHE CHIUDE FILO DI LUCE, già pagato da Antonio e già
+       stampato, ma non ancora inquadrato da nessuno. Perciò `venduto` e
        non `registrato`: l'app lo mostra come «ti aspetta in negozio» e
-       NON lo conta fra i posseduti. E' anche il motivo per cui la carta
+       NON lo conta fra i posseduti. È anche il motivo per cui la carta
        di Filo di Luce dice «ti manca un pezzo solo» e non «chiusa». */
     codice: "RJ-DX4-79M-HTQ",
     articolo: "pendente-filo",
@@ -241,12 +241,12 @@ export const esemplari = [
    movimenti. Qui vale la stessa regola, e la verifica la ricontrolla.
 
    Le percentuali sono quelle dei livelli al momento dell'acquisto: 2% nel
-   primo anno (Primo livello), 3% da quando e' passata al Secondo.
+   primo anno (Primo livello), 3% da quando è passata al Secondo.
      2025 · 245,00 € di acquisti al 2%  →  4,90
      2026 · 295,00 € di acquisti al 3%  →  8,85
    La somma delle due fa lo speso_totale: 540,00 €. I due regali di
    Antonio del 12 luglio (Collana Maglia e Anello Cabochon, 98,00 €) non
-   ci sono dentro: li ha pagati lui, e il livello e' di chi paga. */
+   ci sono dentro: li ha pagati lui, e il livello è di chi paga. */
 
 export const movimenti_credito = [
   { data: "2025-03-08", tipo: "benvenuto", importo: 10.0,
@@ -272,8 +272,8 @@ export const movimenti_credito = [
 ];
 
 /* ── LE DATE ────────────────────────────────────────────────────────────
-   Il patrimonio vero di una gioielleria non e' il magazzino, sono le date.
-   `avviso` e' calcolabile (sette giorni prima) ma sta scritto: il negozio
+   Il patrimonio vero di una gioielleria non è il magazzino, sono le date.
+   `avviso` è calcolabile (sette giorni prima) ma sta scritto: il negozio
    deve poterlo spostare per una data sola senza toccare la regola. */
 
 export const ricorrenze = [
@@ -288,15 +288,15 @@ export const ricorrenze = [
 ];
 
 /* ── LA LISTA ───────────────────────────────────────────────────────────
-   Il ponte fra chi indossa e chi paga. Il `token` e' quello che sta
+   Il ponte fra chi indossa e chi paga. Il `token` è quello che sta
    nell'indirizzo da girare ad Antonio: vale per la lista, non per il
-   cliente, cosi' si revoca senza toccare l'account.
+   cliente, così si revoca senza toccare l'account.
 
    NOTA SU UNA DIVERGENZA. Le pagine leggere della bozza (vetrina.html)
    mettevano in lista «Creola Media» e «Pendente Turchese». Secondo lo
-   stato del 3D — che qui e' la verita' — Lucia possiede gia' tutti e due,
-   e una lista di pezzi che si hanno gia' non e' una lista: e' un errore
-   che si vede al primo sguardo. Percio' la lista punta ai due pezzi che le
+   stato del 3D — che qui è la verita' — Lucia possiede già tutti e due,
+   e una lista di pezzi che si hanno già non è una lista: è un errore
+   che si vede al primo sguardo. Perciò la lista punta ai due pezzi che le
    mancano DAVVERO per chiudere le sue due collezioni. */
 
 export const wishlist = [
@@ -309,12 +309,12 @@ export const wishlist = [
 ];
 
 /* ── COME LUCIA HA LASCIATO L'APP ───────────────────────────────────────
-   `fodera` e' uno dei quattro velluti del cofanetto 3D (velluto | bianco |
+   `fodera` è uno dei quattro velluti del cofanetto 3D (velluto | bianco |
    avorio | turchese) e va ricordato: un cliente che prova il turchese al
-   banco e torna a casa deve ritrovarlo. `insieme` e' la forma dei
+   banco e torna a casa deve ritrovarlo. `insieme` è la forma dei
    suggerimenti (`?sugg=a|b|c` in spazio.html: riga · carte velate · rail),
-   `carta` e' cosa apre la Carta del Pezzo (`?carta=foto|finestra|due`),
-   `nav` e' la sezione della barra in basso. */
+   `carta` è cosa apre la Carta del Pezzo (`?carta=foto|finestra|due`),
+   `nav` è la sezione della barra in basso. */
 
 export const preferenze = {
   fodera: "turchese",
@@ -324,7 +324,7 @@ export const preferenze = {
 };
 
 /* ── QUELLO CHE IL NEGOZIO LE HA DETTO ─────────────────────────────────
-   Tre notifiche, tre motivi diversi. Piu' di tre in una settimana e la
+   Tre notifiche, tre motivi diversi. Più di tre in una settimana e la
    gente disinstalla. */
 
 export const notifiche = [
@@ -334,7 +334,7 @@ export const notifiche = [
     articolo: "creola-grande", letta: true },
   { id: "not-2", tipo: "collezione", data: "2026-09-14",
     titolo: "A Filo di Luce manca un pezzo solo",
-    testo: "Il Pendente Filo e' l'ultimo. Alla chiusura l'incisione e' compresa.",
+    testo: "Il Pendente Filo è l'ultimo. Alla chiusura l'incisione è compresa.",
     collezione: "filo", letta: false },
   { id: "not-3", tipo: "compleanno", data: "2026-09-17",
     titolo: "Dal 24 il tuo credito vale il doppio",
@@ -345,33 +345,37 @@ export const notifiche = [
 /* la promozione a cui punta la terza notifica, e che le pagine leggere
    mostrano per esteso nel blocco «Per te». */
 export const promozioni = [
+  { id: "promo-doppio", nome: "Il credito vale il doppio",
+    dal: "2026-09-15", al: "2026-09-21",
+    testo: "Dal 15 al 21 settembre il credito vale il doppio, in negozio, su tutta la collezione Filo di Luce. Nessun codice.",
+    perche: "La collezione è completa in vetrina per una settimana sola." },
   { id: "promo-compleanno", nome: "Il mese del tuo compleanno",
     dal: "2026-09-24", al: "2026-10-01",
     testo: "Dal 24 settembre il credito che hai vale il doppio, per una settimana.",
     moltiplicatore: 2 },
 ];
 
-/* ── QUELLO CHE E' ARRIVATO IN NEGOZIO ─────────────────────────────────
-   Non e' «novita'» generica: sono quattro articoli con la data in cui
-   sono entrati a magazzino, che e' il dato che il gestionale conosce
+/* ── QUELLO CHE È ARRIVATO IN NEGOZIO ─────────────────────────────────
+   Non è «novità» generica: sono quattro articoli con la data in cui
+   sono entrati a magazzino, che è il dato che il gestionale conosce
    davvero (il movimento di carico). */
 
 export const arrivi = [
-  { articolo: "anello-grande", data: "2026-09-08" },
-  { articolo: "creola-grande", data: "2026-09-10" },
-  { articolo: "collana-perla", data: "2026-09-11" },
-  { articolo: "bracciale-onda", data: "2026-09-13" },
+  { articolo: "anello-grande", data: "2026-09-10" },
+  { articolo: "creola-grande", data: "2026-09-17" },
+  { articolo: "collana-perla", data: "2026-09-17" },
+  { articolo: "bracciale-onda", data: "2026-09-24" },
 ];
 
 /* ── le due letture che servono ovunque ──────────────────────────────── */
 
 /* cosa Lucia HA DAVVERO: solo gli esemplari entrati nel Libretto. Un
-   `venduto` non c'e' ancora. */
+   `venduto` non c'è ancora. */
 export const posseduti = new Set(
   esemplari.filter((e) => e.stato !== "venduto").map((e) => e.articolo)
 );
 
-/* il livello a partire dallo speso: la soglia piu' alta che si e'
+/* il livello a partire dallo speso: la soglia più alta che si è
    superata. Scritto come funzione e non come numero per non avere due
    verita' quando Lucia spendera' i prossimi 260 €. */
 export function livelloDa(speso) {

@@ -1,0 +1,272 @@
+/* ═══════════════════════════════════════════════════════════════════
+   app/viste/azioni.css — le misure dei FOGLI della carta e della pagina
+   pubblica `#/c/<codice>`. Solo token del sistema: nessun hex nudo vive
+   qui, e nessuna misura che non venga dalla griglia 8, dai bersagli 44 e
+   dalla scala tipografica lockata.
+   Lo carica il modulo (`azioni.js`) con lo stesso `?v=` dei moduli: non
+   sta in `sistema.css` perché quelle sono le regole di TUTTA l'app e
+   queste sono le misure di quattro fogli.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ═══ IL FOGLIO, DA DENTRO ══════════════════════════════════════════ */
+.az-foglio{display:flex;flex-direction:column;gap:16px;
+  padding-bottom:8px}
+.az-dedica{gap:14px}
+.az-riga{margin:0}
+.az-centro{text-align:center}
+.az-eti{display:block;color:var(--testo-2);margin-bottom:-8px}  /* 5,4:1 */
+
+/* IL FONDO. Un primario per foglio (regola 3 del sistema), largo, 50 di
+   altezza — la misura la porta già `.tasto`. Il `gap` piccolo tiene il
+   terziario attaccato al primario: sono la stessa decisione detta due
+   volte, non due decisioni. */
+.az-fondo{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.az-fondo-tastiera{transition:transform var(--d-tastiera) var(--ios)}
+
+/* IL PEZZO IN TESTA — foto 56 e due righe. Niente campo per dire quale
+   pezzo è: si vede. */
+.az-testa{display:flex;align-items:center;gap:12px;min-height:56px;
+  position:relative}
+.az-fig{width:56px;height:56px;flex:none;border-radius:var(--r-campo);
+  object-fit:cover;background:var(--incavo)}
+.az-fig.redatto{display:flex;align-items:center;justify-content:center;
+  padding:4px;text-align:center;font:var(--t-cap2);color:var(--testo-2)}
+.az-testa-testi{display:flex;flex-direction:column;gap:2px;min-width:0}
+.az-testa-testi b{color:var(--testo)}
+
+/* ═══ IL SEGMENTED ══════════════════════════════════════════════════
+   Chip da 32 dentro una riga da 44: 32 non è un bersaglio, 44 si'.
+   Le voci si dividono la larghezza, così «Un altro giorno» non spinge
+   fuori «Oggi». */
+.az-seg{gap:6px}
+/* `flex:1 1 auto`, NON `1 1 0`: a terzi uguali «Un altro giorno»
+   finiva in «Un altro gior…» mentre «Oggi» aveva il doppio dello spazio
+   che gli serviva. Con la base sul contenuto ognuno prende quello che
+   gli serve e lo spazio che avanza si divide. */
+.az-chip{flex:1 1 auto;min-width:0;justify-content:center;
+  border:0;font:var(--t-foot);color:var(--testo);
+  transition:background-color var(--d-tocco) var(--ios),
+             color var(--d-tocco) var(--ios)}
+.az-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* LO SCAVALCO DI BERSAGLIO, come la pillola del toast: il chip resta 32
+   a vedersi e diventa 44 a toccarsi. Trasparente, sopra il chip e sotto
+   il testo — così non si vede e non ruba il click a nient'altro, perché
+   la riga è fatta di chip larghi uguali e non c'è niente in mezzo. */
+.az-chip{position:relative}
+.az-chip::after{content:"";position:absolute;left:0;right:0;top:50%;
+  height:var(--tocco-min);transform:translateY(-50%)}
+.az-chip > span{position:relative;z-index:1}
+.az-chip:active{transform:scale(.97)}
+.az-chip:focus-visible{outline:2px solid var(--accento);outline-offset:2px}
+
+/* ═══ 3.2 · LA DEDICA ═══════════════════════════════════════════════ */
+/* LA TESSERINA: il retro della carta in miniatura. La dedica ci sta in
+   Bodoni corsivo 22 — la stessa faccia e lo stesso grado che avra' sulla
+   carta vera, perché un'anteprima in un altro carattere non è
+   un'anteprima, è un'altra cosa. */
+/* MISURE STRETTE APPOSTA: il foglio della dedica sta al fermo di mezzo
+   (50 dvh = 422 punti su un telefono da 844) e dentro ci devono stare
+   sottotitolo, tesserina, campo, contatore, promessa e il primario da
+   50 — se il primario finisce sotto il bordo, il foglio ha un tasto che
+   bisogna scoprire scorrendo, e un primario che si scopre non è un
+   primario. Contato: 18+96+56+16+18+50 più cinque respiri da 14. */
+.az-ded-tessera{display:flex;flex-direction:column;justify-content:center;
+  gap:8px;min-height:96px;padding:14px 18px;
+  border-radius:var(--r-card);background:var(--incavo);
+  box-shadow:inset 0 0 0 1px var(--linea);text-align:center}
+.az-ded-testo{margin:0;min-height:28px;
+  font:var(--t-2);font-style:italic;letter-spacing:var(--ls-display);
+  font-optical-sizing:auto;color:var(--testo);
+  overflow-wrap:break-word}
+.az-ded-firma{align-self:flex-end}
+
+.az-campo-riga{display:flex;flex-direction:column;gap:6px}
+.az-ded-campo{height:auto;min-height:calc(var(--campo) + 12px);
+  padding:12px;resize:none;line-height:22px;font:var(--t-body)}
+.az-ded-conta{align-self:flex-end;font-variant-numeric:lining-nums tabular-nums}
+/* AL LIMITE il contatore cambia colore, e basta: niente scuotimento e
+   niente riga d'errore — non sta sbagliando nessuno, sta finendo lo
+   spazio di un'incisione. `--errore` sul piano fa 5,0:1 sul chiaro e
+   7,3:1 sullo scuro. */
+.az-limite{color:var(--errore)}
+
+/* ═══ 3.3 · REGALA ══════════════════════════════════════════════════ */
+.az-via{display:flex;flex-direction:column;gap:12px}
+/* IL QR a 240: la quiet zone la porta già l'SVG (4 moduli), quindi qui
+   non serve altro margine. Sotto i 200 punti un QR di versione 4 ha
+   moduli da meno di 6 px e le fotocamere cominciano a sbagliare. */
+.az-qr{width:240px;max-width:100%;aspect-ratio:1;margin:4px auto 0;
+  border-radius:var(--r-card);overflow:hidden;
+  box-shadow:inset 0 0 0 1px var(--linea)}
+.az-qr svg{display:block;width:100%;height:100%}
+
+/* IL SIGILLO CHE SI CHIUDE — disco 28, si posa in 300 con la molla, la
+   «R» dissolve a 300. Sta in alto a destra del pezzo in testa, dove
+   starebbe la ceralacca su una busta. */
+.az-sigillo{position:absolute;top:0;right:0;
+  display:flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:var(--r-capsula);
+  background:var(--accento);opacity:0}
+.az-sigillo-r{font:var(--t-head);font-family:var(--f-display);
+  color:var(--accento-testo);opacity:0;line-height:1}
+
+.az-wa{text-decoration:none}
+
+/* ═══ 3.4 · ASSISTENZA ══════════════════════════════════════════════
+   Quattro righe da 44 con la spunta a filo. Il separatore parte DOPO il
+   testo, come nelle liste del sistema: un separatore che tocca il bordo
+   divide il gruppo invece di dividere le righe. */
+.az-scelte{border-radius:var(--r-lista);background:var(--piano);
+  overflow:hidden}
+.az-riga-scelta{display:flex;align-items:center;justify-content:space-between;
+  gap:12px;width:100%;min-height:var(--tocco-min);padding:0 14px;
+  border:0;background:none;color:var(--testo);text-align:left;
+  transition:background-color var(--d-tocco) var(--ios)}
+/* IL SEPARATORE PARTE DOPO IL TESTO, e non da bordo a bordo: un filo
+   che tocca il bordo divide il GRUPPO invece di dividere le righe. È un
+   pelo vero (1 px schiacciato a un terzo), come nelle liste del
+   sistema. */
+.az-riga-scelta{position:relative}
+.az-riga-scelta + .az-riga-scelta::before{content:"";position:absolute;
+  left:14px;right:0;top:0;height:1px;background:var(--linea);
+  transform:scaleY(.333);transform-origin:top}
+.az-riga-scelta:active{background:var(--incavo)}
+.az-riga-scelta:focus-visible{outline:2px solid var(--accento);outline-offset:-2px}
+.az-spunta{opacity:0;color:var(--accento);
+  transition:opacity var(--d-tocco) var(--ios)}
+.az-riga-scelta.az-scelta .az-spunta{opacity:1}
+.az-data{font-variant-numeric:lining-nums tabular-nums}
+/* `.campo` dichiara `display:block`, e una classe batte l'`[hidden]`
+   del browser: senza questa riga il calendario restava a schermo anche
+   con «Domani» scelto, e diceva una data che nessuno aveva chiesto. */
+.az-data[hidden]{display:none}
+
+/* IL TASTO CHE È DIVENTATO LO STATO: non è più un primario, e non
+   deve sembrarlo. Piano, filo, testo normale — e resta leggibile
+   (17,8:1 sul chiaro, 16,0 sullo scuro) invece di sbiadire. */
+.tasto.az-fatto[disabled]{opacity:1;
+  background:var(--piano);color:var(--testo);
+  box-shadow:inset 0 0 0 1px var(--linea)}
+
+/* ═══ LA PAGINA PUBBLICA #/c/<codice> ═══════════════════════════════
+   Di CARTA e dichiarata: è quello che vede chi ha solo un link, e il
+   marchio di Regina è scuro su chiaro — sul velluto sparirebbe
+   (misurato 1,1:1). Il tema si scrive, non si eredita per caso dal fatto
+   che questo strato vive fuori dal <main>. */
+/* SOPRA LA PORTA. Era 38, cioè sotto l'ingresso (60): chi riceveva un
+   regalo senza aver mai aperto l'app vedeva S0 e non il regalo. Il
+   regalo vince, e la porta aspetta (vedi `app/avvio.js`). Sopra anche
+   il banner in Home (45) e la zona dei toast (40): mentre questa
+   pagina è aperta non c'è nient'altro da dire. */
+.az-carta{position:fixed;inset:0;z-index:62;overflow-y:auto;
+  overscroll-behavior:contain;
+  background:var(--fondo);color:var(--testo)}
+.az-carta-dentro{display:flex;flex-direction:column;
+  min-height:100%;
+  padding:calc(var(--safe-t) + 40px) max(var(--margine),var(--safe-dx))
+          calc(var(--safe-b) + 32px) max(var(--margine),var(--safe-sx))}
+.az-carta h1{margin:0 0 2px;
+  font:var(--t-1);letter-spacing:var(--ls-display);font-optical-sizing:auto;
+  color:var(--testo)}
+/* il fuoco ci arriva DA CODICE (chi apre deve sapere dov'e' arrivato),
+   non da un tabulatore: l'anello resterebbe acceso senza che nessuno
+   l'abbia chiesto. Stessa scelta del titolo grande nel sistema. */
+.az-carta h1:focus,.az-carta h1:focus-visible{outline:none}
+.az-carta .az-fondo{margin-top:auto;padding-top:24px}
+.az-marchio-piccolo{display:block;height:34px;width:auto;max-width:48%;
+  margin:0 auto 26px;object-fit:contain}
+.az-pezzo-foto{display:block;width:100%;aspect-ratio:1;object-fit:cover;
+  border-radius:var(--r-card);margin-bottom:20px;background:var(--incavo)}
+.az-pezzo-foto.redatto{display:flex;align-items:center;justify-content:center;
+  font:var(--t-sub);color:var(--testo-2)}
+.az-piede{margin:28px 0 0;text-align:center;
+  font:var(--t-2);letter-spacing:var(--ls-display);font-optical-sizing:auto;
+  color:var(--testo-2)}
+/* la barra delle sezioni non resta toccabile sotto una pagina che, per
+   chi la guarda, è tutto il sito. */
+body[data-carta] #barra{visibility:hidden}
+
+/* ═══ LA REGIA DI 1,7 s ═════════════════════════════════════════════
+   Quattro battute: ognuna entra con dissolvenza 250 e dodici punti dal
+   basso (`--ios`). Le misure dei tempi stanno in JS, dove si possono
+   leggere e campionare; qui c'è solo COME entra ciascuna.
+   La scena resta la pagina: alla fine c'è la carta ferma col suo
+   tasto, non un «OK». */
+.az-regia{justify-content:center;text-align:center;gap:0}
+/* `will-change` PRIMA che la scena parta, non durante: un livello
+   promosso mentre la battuta entra si fa disegnare proprio nel
+   fotogramma in cui doveva solo comparire, e quel disegno lo paga il
+   timer successivo. Promosso prima, l'entrata è una dissolvenza del
+   compositore e costa zero. Si RESTITUISCE a scena ferma (`az-ferma`):
+   memoria di video tenuta accesa su una pagina finita, su un telefono,
+   si paga. */
+.az-regia > *{opacity:0;transform:translateY(12px);
+  will-change:opacity,transform;
+  transition:opacity 250ms var(--ios),transform 250ms var(--ios)}
+.az-regia > .az-in{opacity:1;transform:none}
+.az-regia.az-ferma > *{will-change:auto}
+/* LA PROVA GENERALE, a luci spente: il contenitore è invisibile, le
+   transizioni e la molla del pezzo sono spente, e la scena si disegna
+   tutta una volta perché il rasterizzatore faccia il suo lavoro adesso
+   invece che dentro la regia. Dura due fotogrammi e nessuno la vede. */
+.az-regia.az-preroll{opacity:0}
+.az-regia.az-preroll > *{transition:none !important;animation:none !important}
+
+/* IL MARCHIO NON SPARISCE: sale di 40 e si riduce quando entra «Da chi»
+   — è la stessa battuta vista dall'altro lato.
+   SI RIDUCE CON `scale`, NON CON `height`, e la ragione è misurata: una
+   fotografia che cambia altezza si fa ri-disegnare a ogni fotogramma e
+   rifa il layout di tutta la scena, e quel lavoro se lo prende il timer
+   che capita in quel momento — la battuta dei 400 ms arrivava a 684
+   mentre le altre tre erano in orario, e togliendo il marchio tornava a
+   429. Con `scale` è una trasformazione del compositore: costa zero, e
+   lo spazio riservato non cambia, quindi sotto non si muove niente.
+   0,625 = 40 su 64, cioè esattamente il rapporto fra i due gradi. */
+.az-r-marchio{display:block;height:64px;width:auto;max-width:62%;
+  margin:0 auto;object-fit:contain;transform-origin:center top;
+  transition:opacity 250ms var(--ios),transform 350ms var(--ios)}
+.az-regia > .az-r-marchio.az-su{transform:translateY(-40px) scale(.625)}
+.az-r-da{margin:0 0 4px;
+  font:var(--t-1);letter-spacing:var(--ls-display);font-optical-sizing:auto}
+.az-r-pezzo{display:flex;flex-direction:column;align-items:center;gap:12px;
+  margin-top:8px}
+.az-r-fig{width:240px;max-width:72%;aspect-ratio:1;object-fit:cover;
+  border-radius:var(--r-card);background:var(--incavo)}
+.az-r-fig.redatto{display:flex;align-items:center;justify-content:center;
+  font:var(--t-sub);color:var(--testo-2)}
+.az-r-nome{margin:0;
+  font:var(--t-1);letter-spacing:var(--ls-display);font-optical-sizing:auto}
+.az-r-dedica{margin:14px 0 0;min-height:28px;
+  font:var(--t-2);font-style:italic;letter-spacing:var(--ls-display);
+  font-optical-sizing:auto;color:var(--testo);overflow-wrap:break-word}
+/* senza dedica lo spazio NON si vede: il fronte resta pulito e l'invito
+   sta altrove (46 §3.2). */
+.az-r-dedica.az-senza{display:none}
+.az-r-coda{margin-top:auto;padding-top:28px}
+.az-r-etica{margin:12px 0 0;text-align:center}
+
+/* IL PEZZO ENTRA CON LA MOLLA — 400 ms, keyframe all'80 % a +1 punto:
+   una molla corta, senza rimbalzo (WWDC18: si parte dal 100 % di
+   smorzamento). */
+@media (prefers-reduced-motion: no-preference){
+  .az-regia > .az-r-pezzo.az-in{
+    animation:az-posa 400ms var(--molla) both}
+}
+@keyframes az-posa{
+  0%{opacity:0;transform:translateY(-16px)}
+  80%{opacity:1;transform:translateY(1px)}
+  100%{opacity:1;transform:none}
+}
+
+/* ═══ CHI HA CHIESTO MENO MOVIMENTO ═════════════════════════════════
+   La scala si abbassa di un grado: la scena grande diventa una
+   dissolvenza di 250 col frame finale già tutto in posto. Non si salta
+   niente — cambia il modo, non il contenuto. */
+@media (prefers-reduced-motion: reduce){
+  .az-regia > *{transition-duration:150ms;transition-timing-function:linear;
+    transform:none}
+  .az-r-marchio{transition-duration:150ms;transition-timing-function:linear}
+  .az-r-marchio.az-su{transform:none}
+  .az-fondo-tastiera{transition-duration:150ms;transition-timing-function:linear}
+  .az-chip:active,.az-riga-scelta:active{transform:none}
+}

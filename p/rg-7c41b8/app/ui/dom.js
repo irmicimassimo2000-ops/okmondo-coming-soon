@@ -1,6 +1,6 @@
 /* app/ui/dom.js — due funzioni, e nessuna libreria.
    `e()` costruisce un nodo, `svuota()` lo azzera. Servono a togliere di
-   mezzo il `innerHTML +=` che e' il modo piu' rapido per farsi entrare
+   mezzo il `innerHTML +=` che è il modo più rapido per farsi entrare
    in casa il testo di un cliente come se fosse marcatura. */
 export function e(tag, attr = {}, figli = []){
   const n = document.createElement(tag);
@@ -11,12 +11,12 @@ export function e(tag, attr = {}, figli = []){
     else if(k === "testo") n.textContent = v;
     else if(k === "html") n.innerHTML = v;          /* solo per i segni SVG nostri */
     else if(k === "stile") n.style.cssText = v;
-    /* `data-vivo` non e' decorazione: e' la prova, scritta nel DOM, che
+    /* `data-vivo` non è decorazione: è la prova, scritta nel DOM, che
        questo comando FA qualcosa. Il banco di collaudo conta i tasti
-       morti cercando chi non ha ne' `data-vivo` ne' `aria-disabled`, e
-       cosi' un comando che sembra vivo e non lo e' non puo' passare
-       inosservato — non perche' qualcuno si ricordi di controllarlo, ma
-       perche' il controllo e' automatico. */
+       morti cercando chi non ha né `data-vivo` né `aria-disabled`, e
+       così un comando che sembra vivo e non lo è non può passare
+       inosservato — non perché qualcuno si ricordi di controllarlo, ma
+       perché il controllo è automatico. */
     else if(k.startsWith("su")){
       n.addEventListener(k.slice(2).toLowerCase(), v);
       if(k === "suClick") n.setAttribute("data-vivo", "1");
@@ -32,9 +32,9 @@ export function svuota(n){ while(n.firstChild) n.removeChild(n.firstChild); }
 
 /* ── LA VOCE ───────────────────────────────────────────────────────
    Una sola regione di annunci in tutta l'app (`#annunci`), e si scrive
-   solo da qui. Si azzera prima di riempire perche' un `role="status"`
+   solo da qui. Si azzera prima di riempire perché un `role="status"`
    a cui si riscrive lo STESSO testo non annuncia niente: per il lettore
-   di schermo non e' cambiato nulla. */
+   di schermo non è cambiato nulla. */
 export function annuncia(testo){
   const n = document.getElementById("annunci");
   if(!n) return;
@@ -43,12 +43,12 @@ export function annuncia(testo){
 }
 
 /* ── CIO' CHE NON C'E' ANCORA ──────────────────────────────────────
-   Un comando che in questa fase non puo' fare niente non si toglie e
+   Un comando che in questa fase non può fare niente non si toglie e
    non si lascia muto: si DICHIARA. `aria-disabled` (non `disabled`)
-   perche' resti raggiungibile da tastiera e leggibile — chi esplora ha
+   perché resti raggiungibile da tastiera e leggibile — chi esplora ha
    diritto di sapere che la cosa esiste e quando arrivera'; un tasto
    `disabled` sparisce dal giro e non spiega niente. E al tocco parla,
-   perche' il silenzio e' indistinguibile da un guasto. */
+   perché il silenzio è indistinguibile da un guasto. */
 export function dichiaraInArrivo(n, fase, cosa){
   n.setAttribute("aria-disabled", "true");
   n.setAttribute("data-fase", fase);

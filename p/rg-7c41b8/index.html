@@ -1,32 +1,63 @@
 <!doctype html>
-<!-- `lang` NON e' una formalita': e' la voce. Senza, VoiceOver legge
+<!-- `lang` NON è una formalita': è la voce. Senza, VoiceOver legge
      «Cofanetto» con la fonetica inglese, e un'app di gioielleria italiana
-     che si presenta con l'accento sbagliato ha gia' perso un pezzo di
+     che si presenta con l'accento sbagliato ha già perso un pezzo di
      quello che stava provando a costruire. -->
 <html lang="it">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#14110E">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<!-- NESSUNA ICONA, e di proposito. Il canone del marchio dice che il
-     marchio completo e' l'unico marchio: un favicon e' un marchio ridotto,
-     e non e' stato chiesto. `href="data:,"` dichiara «nessuna icona» e
-     toglie la richiesta a vuoto che il browser fa comunque. -->
+<!-- NESSUN FAVICON, e di proposito. Il canone del marchio dice che il
+     marchio completo è l'unico marchio: un favicon è un monogramma
+     ridotto, e non è stato chiesto. `href="data:,"` dichiara «nessuna
+     icona» e toglie la richiesta a vuoto che il browser fa comunque. -->
 <link rel="icon" href="data:,">
+
+<!-- ══ F1.4 · L'APP IN HOME ═══════════════════════════════════════════
+     L'icona della Home NON è un favicon ed è il contrario di un
+     marchio ridotto: è il marchio COMPLETO posato al centro di un
+     quadrato crema (`app/pwa/genera.py`), PNG opaco senza angoli
+     arrotondati — l'alfa lascerebbe il nero sotto e gli angoli li
+     arrotonda iOS da solo.
+     Il manifest serve a iOS 17 e 18: da iOS 26 tutto cio' che va in
+     Home apre come web app, ma quelle due versioni restano in giro fino
+     al 2028 e senza `display:standalone` (o il meta qui sotto) partono
+     come segnalibro.
+     `black-translucent` porta la pagina SOTTO la status bar; funziona
+     insieme a `viewport-fit=cover` e a `env(safe-area-inset-*)`, che il
+     sistema di design usa già ovunque.
+     Gli SPLASH: iOS non li genera, e senza serve un bianco di default.
+     Uno per risoluzione, con la sua media query esatta. Ognuno è la
+     PRIMA SCHERMATA SENZA CONTENUTO — crema col marchio nello stesso
+     punto e alla stessa misura di `.f1-marchio` — così il caricamento
+     è invisibile: quando la pagina arriva, non si sposta niente. -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Regina">
+<link rel="apple-touch-icon" sizes="180x180" href="app/pwa/icona-180.png">
+<link rel="apple-touch-startup-image" href="app/pwa/avvio-iphone-390x844.png"
+      media="(device-width:390px) and (device-height:844px) and (-webkit-device-pixel-ratio:3)">
+<link rel="apple-touch-startup-image" href="app/pwa/avvio-iphone-393x852.png"
+      media="(device-width:393px) and (device-height:852px) and (-webkit-device-pixel-ratio:3)">
+<link rel="apple-touch-startup-image" href="app/pwa/avvio-iphone-428x926.png"
+      media="(device-width:428px) and (device-height:926px) and (-webkit-device-pixel-ratio:3)">
 <title>Regina Jewels</title>
 <!--
   ══════════════════════════════════════════════════════════════════
   L'APP, IN UNA PAGINA SOLA.
   Fino al 14/09 questo file era un TELAIO con quattro cornici: quattro
   documenti separati, quattro contesti, quattro volte i caratteri, e una
-  navigazione che si poteva solo mimare — perche' fra due cornici non
-  passa ne' uno stato ne' un gesto.
-  Da qui in poi index.html E' l'app. Tre sezioni su quattro sono VISTE
+  navigazione che si poteva solo mimare — perché fra due cornici non
+  passa né uno stato né un gesto.
+  Da qui in poi index.html È l'app. Tre sezioni su quattro sono VISTE
   sempre montate dentro questa stessa pagina (`app/viste/*.js`), con la
   loro pila e la loro posizione di scorrimento. La quarta — il banco in
   tre dimensioni — resta in una cornice, e per una ragione sola: pesa
   dieci mega di modelli e di three.js, e quando la GPU tossisce deve
-  tossire LI'. Il prezzo di quella scelta e' che scocca e banco non si
+  tossire LÌ. Il prezzo di quella scelta è che scocca e banco non si
   vedono le variabili: si parlano, su BroadcastChannel("regina"). Il
   contratto dei messaggi sta scritto per intero in `app/canale3d.js`.
 
@@ -41,26 +72,26 @@
 
   ══════════════════════════════════════════════════════════════════
   IL SISTEMA DI DESIGN (F0.2) — dove vive e cosa vincola.
-  Tutto sta in `app/sistema.css`, che e' la trascrizione fedele di
+  Tutto sta in `app/sistema.css`, che è la trascrizione fedele di
   E:/OK.AGENZIA/regina-jewels/studio/SISTEMA-DESIGN.md: i token coi
-  contrasti gia' misurati accanto, i due temi, la scala tipografica, i
+  contrasti già misurati accanto, i due temi, la scala tipografica, i
   materiali, le sei durate e le due curve, e le classi di base.
   Da qui in poi NESSUN file di `app/ui` o `app/viste` porta un hex, una
-  durata o un corpo di carattere: solo ruoli e classi. Il controllo e'
+  durata o un corpo di carattere: solo ruoli e classi. Il controllo è
   automatico (sonda `_A2_verifica.mjs`, prove 2, 3 e 4).
   IL TEMA: le tre viste di elenco sono di VELLUTO (`data-tema=scuro` sul
-  <main>), il cofanetto e' di CARTA (`data-tema=chiaro` sulla sua
-  sezione, perche' il banco in tre dimensioni e' crema). Su scuro
-  l'accento e' --firma-fuoco, mai --firma: il turchese di Regina sul
+  <main>), il cofanetto è di CARTA (`data-tema=chiaro` sulla sua
+  sezione, perché il banco in tre dimensioni è crema). Su scuro
+  l'accento è --firma-fuoco, mai --firma: il turchese di Regina sul
   nero misura 2,6:1.
 
   ══════════════════════════════════════════════════════════════════
   LA BARRA — tre impianti, si sceglie.
-  Verdetto di Massimo: «strutturiamo una navigation bar piu' identitaria e
+  Verdetto di Massimo: «strutturiamo una navigation bar più identitaria e
   innovativa, sia l'estetica che l'animazione». Quella di prima erano
   quattro parole in maiuscoletto con quattro simboli presi dal carattere
   di sistema (◆ ○ ✦ ●): funzionante e anonima — poteva stare in qualunque
-  applicazione, che e' esattamente il test che si fallisce.
+  applicazione, che è esattamente il test che si fallisce.
   Qui la scelta non la fa l'esecutore: tre barre STRUTTURALMENTE diverse,
   costruite sul materiale vero, e si sceglie.
     · A · IL CABOCHON — barra agganciata, l'attiva sta su una pietra
@@ -68,15 +99,15 @@
     · B · LA CATENA  — un filo corre da bordo a bordo, le voci sono charm
           appesi, e sotto l'attiva il filo si incurva.
     · C · LA CAPSULA DI VETRO — barra staccata dal bordo, vetro vero col
-          velo che sfoca la sezione, l'attiva e' una pastiglia che scivola.
+          velo che sfoca la sezione, l'attiva è una pastiglia che scivola.
   Si attivano con `?nav=a|b|c`, da console con `window.__nav("b")`, e la
   scelta resta in `localStorage["rj.nav"]`. Di serie: C.
 
   ── SECONDA PASSATA (13/09) ────────────────────────────────────────
-  Verdetto del cliente: «la barra e' brutta, mi piaceva piu' quella a
-  nuvola staccata, e in piu' sono brutte le icone e l'armonia del layout
+  Verdetto del cliente: «la barra è brutta, mi piaceva più quella a
+  nuvola staccata, e in più sono brutte le icone e l'armonia del layout
   gestalt. Voglio una UX e UI ispirata a iPhone e al video riferimento».
-  La direzione non e' piu' aperta: si parla iOS. C resta la struttura
+  La direzione non è più aperta: si parla iOS. C resta la struttura
   giusta (staccata dal bordo, fascia riservata che non copre il menu
   delle famiglie) e viene rifatta nella lingua della tab bar flottante
   di iOS 26 — vetro traslucido con velo e riflesso di bordo, pastiglia
@@ -87,86 +118,92 @@
   la nota sui pesi ottici accanto a SEGNI.
 
   ── TERZA PASSATA (15/09) ──────────────────────────────────────────
-  LA BARRA NON E' STATA TOCCATA. E' approvata: stessi segni, stesse
+  LA BARRA NON È STATA TOCCATA. È approvata: stessi segni, stesse
   misure, stessa molla, stessi contrasti, stesso foglio di stile —
-  qui sotto, riga per riga come stava. L'unica differenza e' da chi
+  qui sotto, riga per riga come stava. L'unica differenza è da chi
   prende gli ordini: prima chiamava `apri()`, che montava una cornice;
-  ora chiama `window.__vai()`, che e' il navigatore. Cambia il
+  ora chiama `window.__vai()`, che è il navigatore. Cambia il
   destinatario, non il gesto.
   ══════════════════════════════════════════════════════════════════
 -->
 
-<!-- I MODULI PORTANO LA VERSIONE. Non e' una precauzione: e' successo.
+<!-- I MODULI PORTANO LA VERSIONE. Non è una precauzione: è successo.
      Safari serve volentieri un modulo vecchio a un telaio nuovo, e il
-     risultato e' un'app che sembra rotta a caso. Le mappe d'importazione
+     risultato è un'app che sembra rotta a caso. Le mappe d'importazione
      sono l'unico posto dove il timbro si scrive UNA volta per modulo,
      invece che a ogni `import` in ogni file.
      La stringa qui sotto deve combaciare con `const VERSIONE` in fondo:
      se non combacia, il pannello `?diag=1` lo dice.
 
-     E c'e' una RETE, in fondo alla mappa: `"app/": "./app/"`. Costo di
+     E c'è una RETE, in fondo alla mappa: `"app/": "./app/"`. Costo di
      un modulo dimenticato senza la rete: l'app non parte affatto
-     («Failed to resolve module specifier»), ed e' successo mentre si
+     («Failed to resolve module specifier»), ed è successo mentre si
      scriveva questo file. Con la rete, un modulo dimenticato si carica
-     lo stesso — soltanto senza timbro, cioe' con la cache del browser
+     lo stesso — soltanto senza timbro, cioè con la cache del browser
      invece che con la nostra. Un difetto che si vede solo dopo un
-     aggiornamento e' meglio di uno schermo nero. Le voci esplicite
+     aggiornamento è meglio di uno schermo nero. Le voci esplicite
      vincono sul prefisso: la rete non toglie il timbro a nessuno. -->
 <script type="importmap">
 {"imports":{
   "app/": "./app/",
-  "app/avvio.js":         "./app/avvio.js?v=2026-09-15c",
-  "app/innesto.js":       "./app/innesto.js?v=2026-09-15c",
-  "app/stato.js":         "./app/stato.js?v=2026-09-15c",
-  "app/rotta.js":         "./app/rotta.js?v=2026-09-15c",
-  "app/moto.js":          "./app/moto.js?v=2026-09-15c",
-  "app/canale3d.js":      "./app/canale3d.js?v=2026-09-15c",
-  "app/ripiego.js":       "./app/ripiego.js?v=2026-09-15c",
-  "app/ui/dom.js":        "./app/ui/dom.js?v=2026-09-15c",
-  "app/ui/cella.js":      "./app/ui/cella.js?v=2026-09-15c",
-  "app/ui/tasto.js":      "./app/ui/tasto.js?v=2026-09-15c",
-  "app/ui/vuoto.js":      "./app/ui/vuoto.js?v=2026-09-15c",
-  "app/ui/scheletro.js":  "./app/ui/scheletro.js?v=2026-09-15c",
-  "app/ui/segni.js":      "./app/ui/segni.js?v=2026-09-15c",
-  "app/ui/barra-nav.js":  "./app/ui/barra-nav.js?v=2026-09-15c",
-  "app/ui/toast.js":      "./app/ui/toast.js?v=2026-09-15c",
-  "app/ui/foglio.js":     "./app/ui/foglio.js?v=2026-09-15c",
-  "app/viste/vetrina.js": "./app/viste/vetrina.js?v=2026-09-15c",
-  "app/viste/perte.js":   "./app/viste/perte.js?v=2026-09-15c",
-  "app/viste/profilo.js": "./app/viste/profilo.js?v=2026-09-15c",
-  "app/dati/seme.js":     "./app/dati/seme.js?v=2026-09-15c",
-  "app/dati/catalogo.js": "./app/dati/catalogo.js?v=2026-09-15c",
-  "app/dati/collezioni.js":"./app/dati/collezioni.js?v=2026-09-15c"
+  "app/avvio.js":         "./app/avvio.js?v=2026-09-15e",
+  "app/innesto.js":       "./app/innesto.js?v=2026-09-15e",
+  "app/stato.js":         "./app/stato.js?v=2026-09-15e",
+  "app/rotta.js":         "./app/rotta.js?v=2026-09-15e",
+  "app/moto.js":          "./app/moto.js?v=2026-09-15e",
+  "app/canale3d.js":      "./app/canale3d.js?v=2026-09-15e",
+  "app/ripiego.js":       "./app/ripiego.js?v=2026-09-15e",
+  "app/ui/dom.js":        "./app/ui/dom.js?v=2026-09-15e",
+  "app/ui/cella.js":      "./app/ui/cella.js?v=2026-09-15e",
+  "app/ui/tasto.js":      "./app/ui/tasto.js?v=2026-09-15e",
+  "app/ui/vuoto.js":      "./app/ui/vuoto.js?v=2026-09-15e",
+  "app/ui/scheletro.js":  "./app/ui/scheletro.js?v=2026-09-15e",
+  "app/ui/segni.js":      "./app/ui/segni.js?v=2026-09-15e",
+  "app/ui/barra-nav.js":  "./app/ui/barra-nav.js?v=2026-09-15e",
+  "app/ui/toast.js":      "./app/ui/toast.js?v=2026-09-15e",
+  "app/ui/tessera.js":    "./app/ui/tessera.js?v=2026-09-15e",
+  "app/ui/foglio.js":     "./app/ui/foglio.js?v=2026-09-15e",
+  "app/viste/ingresso.js": "./app/viste/ingresso.js?v=2026-09-15e",
+  "app/viste/cofanetto.js":"./app/viste/cofanetto.js?v=2026-09-15e",
+  "app/viste/vetrina.js": "./app/viste/vetrina.js?v=2026-09-15e",
+  "app/viste/perte.js":   "./app/viste/perte.js?v=2026-09-15e",
+  "app/viste/profilo.js": "./app/viste/profilo.js?v=2026-09-15e",
+  "app/viste/azioni.js":  "./app/viste/azioni.js?v=2026-09-15e",
+  "app/dati/negozio.js":  "./app/dati/negozio.js?v=2026-09-15e",
+  "app/dati/provini.js":  "./app/dati/provini.js?v=2026-09-15e",
+  "app/dati/seme.js":     "./app/dati/seme.js?v=2026-09-15e",
+  "app/dati/catalogo.js": "./app/dati/catalogo.js?v=2026-09-15e",
+  "app/dati/collezioni.js":"./app/dati/collezioni.js?v=2026-09-15e"
 }}
 </script>
-<link rel="stylesheet" href="app/sistema.css?v=2026-09-15c">
+<link rel="stylesheet" href="app/sistema.css?v=2026-09-15e">
 
-<!-- LA BARRA E' NEL SISTEMA. Fino al 15/09 il suo foglio di stile
-     stava qui, e stava qui per una ragione buona: e' l'unico pezzo
+<!-- LA BARRA È NEL SISTEMA. Fino al 15/09 il suo foglio di stile
+     stava qui, e stava qui per una ragione buona: è l'unico pezzo
      approvato dal cliente, e un pezzo approvato non si sposta di file
      mentre gli si cambia il mondo intorno.
-     Adesso si e' spostato, e il permesso l'ha dato una misura, non una
+     Adesso si è spostato, e il permesso l'ha dato una misura, non una
      opinione: schermata a 390x844 a due volte, fondale neutralizzato
      (contenuto delle viste nascosto), ritaglio degli ultimi 92 punti —
      143.520 pixel — prima e dopo. DIFFERENZA: 0 pixel, delta massimo 0.
      Sonda: E:/OK.AGENZIA/regina-jewels/studio/prova3d/_A2_barra.mjs e
-     _A2_verifica.mjs (prova 7). Se un giorno quel numero non e' piu' 0,
-     la barra e' cambiata: si torna indietro, non si aggiorna la linea
+     _A2_verifica.mjs (prova 7). Se un giorno quel numero non è più 0,
+     la barra è cambiata: si torna indietro, non si aggiorna la linea
      di base. -->
 
 <body>
-<!-- LA SCOCCA. #app sta dentro body perche' il foglio dal basso debba
+<!-- LA SCOCCA. #app sta dentro body perché il foglio dal basso debba
      poterla far arretrare (scala .92, raggio 12) senza toccare se
      stesso: un <dialog> modale vive nel top layer e non eredita le
      trasformazioni dell'antenato. -->
 <div id="app">
-  <!-- IL TEMA. Le tre viste di elenco sono DI VELLUTO (tema scuro): e'
-       cio' che erano le vecchie pagine, coi vassoi, ed e' cio' che una
+  <!-- IL TEMA. Le tre viste di elenco sono DI VELLUTO (tema scuro): è
+       cio' che erano le vecchie pagine, coi vassoi, ed è cio' che una
        gioielleria fa da sempre — il metallo e la pietra si leggono sul
        buio, non sulla carta. Il COFANETTO resta di carta (tema chiaro)
-       perche' il banco in tre dimensioni e' crema: un fondo scuro
+       perché il banco in tre dimensioni è crema: un fondo scuro
        intorno a un banco crema sarebbe una cornice, non una stanza.
-       Cosi' il sistema mostra tutt'e due i temi, e su scuro l'accento e'
+       Così il sistema mostra tutt'e due i temi, e su scuro l'accento è
        --firma-fuoco, mai --firma (che sul nero fa 2,6:1). -->
   <main id="dentro" data-tema="scuro">
     <section class="vista" data-vista="cofanetto" aria-label="Cofanetto" data-tema="chiaro" hidden>
@@ -187,7 +224,7 @@
 </div>
 
 <!-- IL FOGLIO. Uno solo, riusato: due <dialog> aperti insieme sono due
-     top layer sovrapposti, e da li' non si torna indietro. -->
+     top layer sovrapposti, e da lì non si torna indietro. -->
 <dialog id="foglio" aria-labelledby="foglio-titolo">
   <button type="button" class="maniglia" aria-label="Alza o abbassa il foglio"><i></i></button>
   <h2 id="foglio-titolo" tabindex="-1"></h2>
@@ -217,8 +254,8 @@
    ── I PESI OTTICI, MISURATI ─────────────────────────────────────
    Quattro disegni con lo stesso tratto NON pesano uguale: una scatola
    chiusa deposita il doppio dell'inchiostro di una stella. Ogni segno
-   porta percio' la sua SCALA OTTICA `k`, e il tratto resta 1,7 davvero
-   perche' dentro il gruppo scalato si dichiara 1,7/k.
+   porta perciò la sua SCALA OTTICA `k`, e il tratto resta 1,7 davvero
+   perché dentro il gruppo scalato si dichiara 1,7/k.
    Tarati contando i pixel a 48 px (sonda `_N2_tara.js`): i quattro
    contorni stanno in 371-377 (scarto 1,7%), i quattro pieni in 374-386
    (scarto 3,1%) — la forbice chiesta era ±12%.  */
@@ -257,10 +294,13 @@ const SEZIONI = [
   {id:"perte",     nome:"Per te"},
   {id:"profilo",   nome:"Profilo"},
 ];
-/* «Cofanetto» apre il banco in tre dimensioni; la scheda cofanetto.html
-   costruita a parte resta come vista d'elenco e la si raggiunge da dentro. */
+/* «Cofanetto» apre il banco in tre dimensioni. Dal 15/09 la vecchia
+   pagina statica cofanetto.html è diventata la VISTA ELENCO
+   (app/viste/cofanetto.js): un foglio che sale sopra la stanza, chiamato
+   dalla capsula di vetro «Elenco» in alto a destra, indirizzo
+   #/cofanetto/elenco. La pagina statica resta sul disco come reperto. */
 /* E LA VERSIONE, che timbra i moduli e la cornice del banco. */
-const VERSIONE = "2026-09-15c";
+const VERSIONE = "2026-09-15e";
 window.VERSIONE = VERSIONE;
 
 const barra = document.getElementById("barra");
@@ -271,10 +311,10 @@ const RIDOTTO = matchMedia("(prefers-reduced-motion: reduce)");
 /* ── LA MOLLA ──────────────────────────────────────────────────
    Una sola, e sta qui. 0,5 s di assestamento, smorzamento 0,825:
    l'oscillazione smorzata sorpassa il bersaglio dell'1,3% e si posa.
-   Non e' un rimbalzo, e' il peso di una cosa che si appoggia.
+   Non è un rimbalzo, è il peso di una cosa che si appoggia.
    (La stessa legge, come modulo, sta in app/moto.js: la usano il
    foglio, il toast e il gesto dal bordo. Qui resta scritta com'era
-   perche' la barra non cambi neanche di una cifra.) */
+   perché la barra non cambi neanche di una cifra.) */
 const OMEGA = 14.0, ZETA = 0.825;
 function Molla(x0){ this.x = x0; this.v = 0; this.meta = x0; this.viva = false; }
 Molla.prototype.passo = function(dt){
@@ -288,7 +328,7 @@ Molla.prototype.passo = function(dt){
 
 /* ── LA BARRA SI COSTRUISCE ────────────────────────────────────
    Un solo impianto di marcatura per tutte e tre: cambia il foglio di
-   stile, non la struttura. Cosi' una voce vale una voce, ovunque. */
+   stile, non la struttura. Così una voce vale una voce, ovunque. */
 barra.innerHTML =
   '<span id="gemma"></span>' +
   '<span id="capsula"></span>' +
@@ -308,7 +348,7 @@ const filoPath = catena.querySelector("path");
 const tasti = [...barra.querySelectorAll("button")];
 /* IL GESTO NON CAMBIA, CAMBIA IL DESTINATARIO. Prima montava una
    cornice; ora chiama il navigatore, che sa anche cosa significa
-   toccare la voce gia' attiva (tornare alla radice di quel tab). */
+   toccare la voce già attiva (tornare alla radice di quel tab). */
 tasti.forEach(b => {
   b.onclick = () => { if(window.__vai) window.__vai(b.dataset.id); };
   /* la stessa marcatura che `app/ui/dom.js` mette da sola sui comandi
@@ -354,7 +394,7 @@ function centro(id){
 function disegna(x, vel){
   if(NAV === "a"){
     /* la goccia si stira: lo scaleX cresce con la velocita', e lo
-       scaleY cala della meta' — il volume della pietra non cambia */
+       scaleY cala della metà — il volume della pietra non cambia */
     const s = Math.min(Math.abs(vel)/3200, 1) * 0.34;
     gemma.style.transform =
       "translateX(" + (x - 23).toFixed(2) + "px) scale(" +
@@ -362,8 +402,8 @@ function disegna(x, vel){
   } else if(NAV === "b"){
     filoPath.setAttribute("d", tracciaFilo(barra.clientWidth, x, 9));
   } else if(NAV === "c"){
-    /* la pastiglia non si stira: in iOS il vetro e' rigido, si sposta e
-       si posa. Lo stiramento e' il linguaggio del cabochon (A). */
+    /* la pastiglia non si stira: in iOS il vetro è rigido, si sposta e
+       si posa. Lo stiramento è il linguaggio del cabochon (A). */
     capsula.style.transform = "translateX(" + (x - largCapsula/2).toFixed(2) + "px)";
   }
 }
@@ -389,7 +429,7 @@ function posa(subito){
   catena.setAttribute("viewBox", "0 0 " + barra.clientWidth + " 20");
   if(NAV === "c"){
     /* la pastiglia veste il tasto meno tre punti per lato: attaccata ai
-       bordi sembrerebbe un selettore segmentato, e quello e' un'altra
+       bordi sembrerebbe un selettore segmentato, e quello è un'altra
        famiglia di comandi. */
     const b = tasti.find(t => t.dataset.id === attiva);
     largCapsula = Math.round((b ? b.getBoundingClientRect().width : 0) - 6);
@@ -434,9 +474,9 @@ vestiLaBarra(NAV);
    telaio no: Safari lo tiene in cache anche dopo «ricarica» e anche
    chiudendo il browser, e un telaio vecchio chiede moduli vecchi — con
    il loro ?v= vecchio, che la cache serve volentieri. Massimo ha
-   ricaricato piu' volte e vedeva sempre la versione di prima. Appena
+   ricaricato più volte e vedeva sempre la versione di prima. Appena
    aperto, il telaio chiede se stesso con un timbro che nessuna cache ha
-   mai visto, legge la VERSIONE che sta online, e se e' diversa dalla
+   mai visto, legge la VERSIONE che sta online, e se è diversa dalla
    propria si rimpiazza. Costa cinque kilobyte, una volta. */
 fetch(location.pathname + "?t=" + Date.now(), {cache:"no-store"})
   .then(r => r.text())

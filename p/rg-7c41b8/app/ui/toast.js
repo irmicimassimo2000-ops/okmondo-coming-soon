@@ -1,6 +1,6 @@
 /* app/ui/toast.js — LA CONFERMA.
    Il verdetto del cliente, e il sistema lockato lo scrive nella regola
-   5: «la conferma sta in fondo, dove sta il pollice», ed e' UNA pillola
+   5: «la conferma sta in fondo, dove sta il pollice», ed è UNA pillola
    da 36 — --vano su --luce — che entra in 100 ms ed esce in 250.
 
    UNA. Non una pila: se ne arriva un'altra, la prima se ne va subito.
@@ -8,11 +8,11 @@
    leggerne mezza, e la seconda vince comunque.
 
    Sta SOPRA la barra, non sotto: sotto la copre il vetro, e un avviso
-   coperto non e' un avviso. `role="status"` perche' venga letto senza
+   coperto non è un avviso. `role="status"` perché venga letto senza
    rubare il fuoco: un avviso che sposta il fuoco interrompe quello che
-   si stava facendo, ed e' il contrario del suo mestiere.
-   («Annulla» e' un bersaglio da 44 dentro una pillola da 36: lo
-   scavalco e' trasparente, quindi la pillola resta 36 a vedersi e 44 a
+   si stava facendo, ed è il contrario del suo mestiere.
+   («Annulla» è un bersaglio da 44 dentro una pillola da 36: lo
+   scavalco è trasparente, quindi la pillola resta 36 a vedersi e 44 a
    toccarsi. Vedi `.toast .annulla` in sistema.css.) */
 import { e } from "app/ui/dom.js";
 import { molla, proietta, RIDOTTO } from "app/moto.js";
@@ -26,7 +26,17 @@ export function toast(testo, opz = {}){
   if(!zona) return null;
   if(inScena) inScena();                 /* niente pile: la prima esce */
 
-  const n = e("div", {class:"toast entra", role:"status", "aria-live":"polite"},
+  /* LA PILLOLA DICHIARA IL PROPRIO TEMA, e non è un dettaglio: la
+     regola 5 dice `--vano` su `--luce` IN TUTTI I TEMI, e quei due
+     sono materia fissa — restano scuro su chiaro ovunque. Ma
+     «Annulla» è un ACCENTO, e `--accento` in una vista di carta è
+     `--firma` (#106068), che su `--vano` fa 2,6:1: illeggibile. Con
+     `data-tema="scuro"` addosso, dentro la pillola l'accento è
+     `--firma-fuoco` (5,7:1) — il ruolo giusto, non un hex scritto a
+     mano — e resta tale il giorno in cui la zona dei toast finisse
+     dentro un contenitore chiaro. */
+  const n = e("div", {class:"toast entra", role:"status", "aria-live":"polite",
+    "data-tema":"scuro"},
     [e("span", {testo})]);
   if(opz.annulla)
     n.append(e("button", {type:"button", class:"annulla", testo:"Annulla",

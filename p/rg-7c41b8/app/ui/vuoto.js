@@ -1,11 +1,11 @@
 /* app/ui/vuoto.js — LO STATO VUOTO.
    Il pattern che iOS chiama ContentUnavailableView, e che il sistema
-   lockato scrive cosi': segno + Title 2 + Body secondario + UNA azione.
+   lockato scrive così: segno + Title 2 + Body secondario + UNA azione.
    Sempre in quest'ordine, sempre tutte e quattro. Uno stato vuoto senza
-   azione e' un vicolo cieco con le tende.
+   azione è un vicolo cieco con le tende.
    Il segno viene dalla libreria di `app/ui/segni.js` — niente disegni
-   sciolti in giro per i file: un segno che vive in un solo posto e'
-   un segno che si puo' ancora pareggiare con gli altri. */
+   sciolti in giro per i file: un segno che vive in un solo posto è
+   un segno che si può ancora pareggiare con gli altri. */
 import { e } from "app/ui/dom.js";
 import { tasto } from "app/ui/tasto.js";
 import { segno } from "app/ui/segni.js";

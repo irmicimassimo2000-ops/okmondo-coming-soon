@@ -1,0 +1,275 @@
+/* ═══════════════════════════════════════════════════════════════════
+   app/viste/perte.css — LE MISURE DI «PER TE».
+
+   Perché esiste. `sistema.css` porta le regole di TUTTA l'app: i
+   ruoli, la scala, la lista raggruppata, i tre tasti. Questo file porta
+   le misure di UNA schermata — la card 361 × 452, la fila di cinque
+   posti da 61 col passo 14, il rail 160 × 200 a passo 172 — e le porta
+   qui perché sono i numeri del documento di F5, non del sistema. Se
+   domani F5 cambia impaginazione, cambia questo file e basta.
+
+   Due regole che valgono riga per riga:
+   · NESSUN HEX. Ogni colore è un ruolo del sistema (`--testo`,
+     `--piano`, `--incavo`, `--accento`). Un hex qui dentro sarebbe un
+     colore che non sa in quale tema si trova, e la vista «Per te» è di
+     velluto (tema scuro) mentre le stesse classi vivranno un giorno
+     anche su carta.
+   · NESSUNA DURATA NUOVA. Sei durate e due curve stanno in `:root`; qui
+     si usano quelle.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── LE MISURE DICHIARATE ──────────────────────────────────────────
+   I numeri del documento, scritti una volta, in un posto solo. `--f5-
+   posto` è 61 ANCHE su uno schermo da 390: è la MISURA a essere
+   lockata, non il passo — su 393 pt il passo esce esattamente 14, su
+   390 esce 13,25, e fra le due si preferisce tenere fermo il posto
+   (che è un oggetto: una foto quadrata) e lasciar respirare l'aria
+   (che è vuoto). */
+.vista[data-vista="perte"]{
+  --f5-card-l: 361; --f5-card-h: 452;     /* il blocco grande, 4:5 abbondante */
+  --f5-posto: 61px;                        /* i posti della fila */
+  --f5-rail-l: 160px; --f5-rail-h: 200px;  /* le card del rail */
+  --f5-rail-passo: 12px;                   /* 160 + 12 = 172 */
+}
+
+/* ── LA RIGA DEL RITORNO ─────────────────────────────────────────── */
+.accento{color:var(--accento)}
+.riga-ritorno{margin:8px 0 0}
+
+/* ══ LA POZZA DI LUCE ══════════════════════════════════════════════
+   Il documento dice «silhouette con luce se il pezzo non è ancora
+   fotografato», e ha ragione per un motivo misurabile: in Regina la
+   fotografia manca per la maggior parte degli articoli (cinque scatti
+   su trentaquattro), quindi il caso «senza foto» NON è l'eccezione —
+   è la faccia normale della schermata. Un pannello piatto da 452
+   punti è la card grigia col punto interrogativo che la carta
+   psicologica vieta; una pozza di luce su un vano scuro è un vano
+   ILLUMINATO, cioè un posto in cui il pezzo andra'.
+   Tutto da `--quieto` e `--incavo`: nessun hex, e funziona anche nel
+   tema chiaro, dove la stessa luce si legge come un velo. */
+div.grande-fig, div.arrivo-fig, .posto.manca .posto-vuoto{
+  background:
+    radial-gradient(118% 76% at 50% 36%,
+      color-mix(in srgb, var(--quieto) 17%, transparent) 0%,
+      color-mix(in srgb, var(--quieto) 6%, transparent) 46%,
+      transparent 68%),
+    var(--incavo);
+  box-shadow:inset 0 0 0 1px var(--linea)}
+
+/* ══ IL BLOCCO GRANDE ══════════════════════════════════════════════
+   Titolo in maiuscoletto turchese (la REGOLA), poi la card, poi il nome
+   in Bodoni 22 e la riga in Inter 15. Le due righe stanno SOTTO la
+   card, non dentro: un testo sopra una fotografia è un testo che
+   dipende dalla fotografia, e metà dei pezzi di Regina una fotografia
+   non ce l'ha ancora. */
+.blocco{margin:24px 0 22px}
+.blocco-testa{display:block;margin:0 0 8px}
+.card-grande{display:block;width:100%;padding:0;border:0;background:none;
+  text-align:left;color:inherit;cursor:pointer;
+  transition:transform var(--d-tocco) var(--molla)}
+.card-grande:active{transform:scale(.985)}
+.card-grande:focus-visible{outline:2px solid var(--accento);outline-offset:4px;
+  border-radius:var(--r-card)}
+.card-grande-foto{display:block;width:100%;
+  aspect-ratio:var(--f5-card-l) / var(--f5-card-h);
+  border-radius:var(--r-card);overflow:hidden;background:var(--incavo)}
+.grande-fig{display:block;width:100%;height:100%;object-fit:cover}
+.card-nome{display:block;margin:8px 0 0}
+.card-riga{display:block;margin:2px 0 0}
+.card-perche{display:block;margin:4px 0 0}
+
+/* ══ I RAIL ════════════════════════════════════════════════════════
+   Scorrimento orizzontale con l'aggancio, e la prima card a filo del
+   margine: il rail SFORA la pagina di --margine per lato, così le card
+   scorrono da bordo a bordo invece di fermarsi in un corridoio. */
+.rail-blocco{margin:24px 0 0}
+.rail-testa{margin:0}
+.rail-sotto{margin:2px 0 0}
+.rail{display:flex;gap:var(--f5-rail-passo);margin:10px 0 0;
+  padding:0 max(var(--margine),var(--safe-dx)) 2px max(var(--margine),var(--safe-sx));
+  margin-left:calc(-1 * max(var(--margine),var(--safe-sx)));
+  margin-right:calc(-1 * max(var(--margine),var(--safe-dx)));
+  overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.card-rail{flex:0 0 auto;width:var(--f5-rail-l);padding:0;border:0;background:none;
+  text-align:left;color:inherit;cursor:pointer;scroll-snap-align:start;
+  transition:transform var(--d-tocco) var(--molla)}
+.card-rail:active{transform:scale(.97)}
+.card-rail:focus-visible{outline:2px solid var(--accento);outline-offset:3px;
+  border-radius:var(--r-card)}
+.card-rail-foto{display:block;width:var(--f5-rail-l);height:var(--f5-rail-h);
+  border-radius:var(--r-card);overflow:hidden;background:var(--incavo)}
+.rail-fig{display:block;width:100%;height:100%;object-fit:cover}
+div.rail-fig{display:grid;place-items:center;text-align:center;padding:0 12px;
+  color:var(--testo-2);border-radius:0}
+.card-rail-nome{display:block;margin:6px 0 0}
+.card-rail .cifra{display:block;color:var(--testo-2)}
+/* l'ultima card non è un'esca: è una frase che dichiara la fine */
+.coda-rail{display:flex;align-items:center;height:var(--f5-rail-h);
+  padding:0 14px;border-radius:var(--r-card);background:var(--piano);
+  cursor:default}
+
+/* ══ LA FILA DEI POSTI ═════════════════════════════════════════════
+   Cinque posti da 61 con passo 14: 5 × 61 + 4 × 14 = 361. `space-
+   between` tiene il posto fermo e distribuisce l'avanzo, che è il
+   verso giusto — il posto è un oggetto, il passo è aria. */
+.fila{display:flex;justify-content:space-between;align-items:flex-start;
+  gap:6px;margin:12px 0 0}
+.posto{width:var(--f5-posto);display:flex;flex-direction:column;align-items:center}
+.posto-foto,.posto-vuoto,.posto .redatto{display:block;
+  width:var(--f5-posto);height:var(--f5-posto);
+  border-radius:var(--u);object-fit:cover}
+/* IL POSTO CHE MANCA — una silhouette a tono `--incavo` con la sua
+   pozza di luce (vedi sopra), non un buco e non una card grigia col
+   punto interrogativo. Il filo interno dice «qui ci va qualcosa», e il
+   nome sotto dice cosa.
+   IL POSTO CHE C'E' MA NON HA UNA FOTO è un caso diverso, e la prima
+   passata li confondeva: sullo schermo «Anello Filo», che Lucia
+   possiede, si vedeva identico a «Perno Turchese», che le manca — e
+   allora la fila mentiva sul conteggio che le stava accanto. Si riempie
+   di materia, senza filo: pieno contro vuoto, come i pallini. */
+.posto .redatto{display:grid;place-items:center;overflow:hidden;
+  font-size:0;color:var(--testo-2)}
+.posto .redatto span{display:none}
+.posto.ha .redatto{box-shadow:none;
+  background:color-mix(in srgb, var(--quieto) 18%, var(--piano))}
+/* L'ETICHETTA DEL POSTO — DUE RIGHE, MAI TRE PUNTINI.
+   Su una riga sola, a 61 di larghezza, USCIVANO TUTTE: «Collana M…»,
+   «Anello Ca…», «Bracciale …», «Pendente…». Cinque etichette tagliate
+   sotto cinque fotografie non sono una fila: sono cinque pezzi di cui
+   non si sa il nome, e la fila serve proprio a dire quali pezzi sono.
+   Le due strade erano: quattro miniature per riga a 78, oppure cinque a
+   61 con l'etichetta su due righe da 11. SI È SCELTA LA SECONDA, e il
+   motivo è che la fila È l'oggetto: cinque posti in una riga sola
+   sono la collezione vista tutta insieme — a quattro più uno a capo
+   il colpo d'occhio sul «4 di 5» sparisce, che è l'unica cosa che
+   quella fila deve dire.
+   Misura: i nomi di Regina sono due parole («Girocollo Turchese»,
+   «Bracciale Maglia»), la più lunga è «Girocollo» e a 11 px sta in
+   50 dei 61 disponibili. Due righe bastano per tutti, e il `line-clamp`
+   è il fermo di sicurezza, non il piano. L'altezza è FISSA a due
+   righe così i cinque posti restano alti uguale anche quando un nome
+   sta su una riga sola. */
+.posto-nome{display:-webkit-box;-webkit-box-orient:vertical;
+  -webkit-line-clamp:2;line-clamp:2;overflow:hidden;
+  margin:5px 0 0;width:var(--f5-posto);height:26px;   /* 2 × 13 di --t-cap2 */
+  text-align:center;color:var(--testo-2);
+  overflow-wrap:anywhere}
+.posto.ha .posto-nome{color:var(--testo)}
+.fila-grande{margin-top:18px}
+
+/* i pallini della riga di elenco: 8 pt, pieni o a contorno */
+.pallini{flex:none;display:inline-flex;gap:5px;align-items:center;margin-left:auto;
+  padding-left:8px}
+.pallino{width:8px;height:8px;border-radius:var(--r-capsula);
+  box-shadow:inset 0 0 0 1px var(--testo-2)}
+.pallino.ha{background:var(--accento);box-shadow:none}
+.coll-riga .frec{margin-left:8px}
+
+/* ══ L'HUB E LA COLLEZIONE ═════════════════════════════════════════ */
+.coll-sez{margin:0 0 40px}
+.coll-sez + .coll-sez{padding-top:0}
+.coll-titolo{margin:0}
+.coll-racconto{margin:4px 0 0}
+/* UNA riga di stato, e porta anche la coda del premio quando la
+   collezione è a UNO dalla chiusura: è il testo più importante della
+   sezione, e sta in `--testo` pieno — non in turchese. Il turchese di
+   questa schermata è l'AZIONE («Apri Filo di Luce»), una sola. */
+.coll-conto{margin:14px 0 0;color:var(--testo)}
+.coll-frase{margin:4px 0 0}
+.coll-dove{margin:6px 0 0;color:var(--testo)}
+.sotto-testa{margin:26px 0 10px}
+/* il ritorno dentro la sezione: bersaglio pieno da 44, testo Inter 13 */
+.coll-apri{display:inline-flex;align-items:center;gap:4px;
+  min-height:var(--tocco-min);margin-top:8px;padding:0 2px;
+  border:0;background:none;color:var(--accento);cursor:pointer}
+.coll-apri:active{opacity:.55}
+.coll-apri:focus-visible{outline:2px solid var(--accento);outline-offset:2px;
+  border-radius:6px}
+.riga-azione{display:flex;margin:18px 0 0}
+.riga-azione .tasto{padding-left:0}
+
+/* ══ P4 · LA CARD A RIGHE FISSE ════════════════════════════════════
+   Angoli 10, fondo `--piano` (nel velluto è `--vano`), quattro righe e
+   nessun bottone pieno: l'azione, quando c'è, è testo. */
+.p4{display:block;margin:22px 0 0;padding:15px 16px 16px;
+  border-radius:var(--r-lista);background:var(--piano)}
+.p4-occhiello{display:block;margin:0 0 6px}
+.p4-titolo{display:block}
+.p4-riga{margin:4px 0 0}
+.p4-nota{margin:6px 0 0}
+.p4 .tasto.terziario{margin:6px 0 -6px;padding-left:0;justify-content:flex-start}
+
+.arrivi-blocco{margin:24px 0 0}
+.arrivi-blocco .lista-testa{display:block;margin:0 0 7px 4px}
+.arrivi-blocco .p4:first-of-type{margin-top:0}
+/* la foto dell'arrivo è 3:2 e sta IN ALTO, a filo della card */
+.p4-arrivo{padding-top:0;overflow:hidden}
+.arrivo-foto{display:block;width:calc(100% + 32px);margin:0 -16px 14px;
+  padding:0;border:0;background:none;cursor:pointer}
+.arrivo-fig{display:block;width:100%;aspect-ratio:3 / 2;object-fit:cover;
+  background:var(--incavo)}
+div.arrivo-fig{display:grid;place-items:center;text-align:center;
+  color:var(--testo-2)}
+.arrivo-foto:focus-visible{outline:2px solid var(--accento);outline-offset:-3px}
+
+/* ══ LA FINE ═══════════════════════════════════════════════════════ */
+.la-fine{margin:32px 0 0;text-align:center}
+
+/* ══ P3 · LA CHIUSURA ══════════════════════════════════════════════
+   Fondo pieno, niente barra delle sezioni, niente da scorrere se non
+   serve. La scena È la pagina. */
+body[data-pieno="1"] #barra{flex:0 0 0;height:0;min-height:0;padding:0;border-top:0;
+  overflow:hidden;pointer-events:none;
+  transition:height var(--d-ct-out) var(--ios)}
+body[data-pieno="1"] #barra > *{display:none}
+body[data-pieno="1"] #fascia{height:0}
+body[data-pieno="1"] #toast-zona{bottom:calc(24px + var(--safe-b))}
+
+.strato.schermo-pieno{background:var(--fondo);z-index:3}
+.chiusura{min-height:100%;display:flex;flex-direction:column;
+  padding:calc(var(--safe-t) + 76px) max(var(--margine),var(--safe-dx))
+          calc(var(--safe-b) + 16px) max(var(--margine),var(--safe-sx))}
+/* la fila della chiusura sta in alto, col centro dei posti a 300 dal
+   bordo: 76 di aria + 194 di spinta + metà posto. È l'unico numero
+   di questa schermata che vale la pena scrivere a mano, perché è
+   quello che decide se la scena si legge in una volta sola. */
+.fila-chiusura{margin:194px 0 0}
+.chiusura-titolo{margin:40px 0 0;min-height:0;display:block}
+/* IL TITOLO PRENDE IL FUOCO (chi ascolta deve sapere che la scena è
+   cambiata) MA NON L'ANELLO: non è un comando, non c'è niente da
+   fargli, e un rettangolo turchese intorno a «Filo di Luce, completa.»
+   è l'unica cosa fuori posto in una schermata di festa. L'anello resta
+   dove serve — sul tasto. */
+.chiusura-titolo:focus,.chiusura-titolo:focus-visible{outline:none}
+.chiusura-sotto{margin:6px 0 0}
+.premio{margin:26px 0 0}
+.premio .cella{align-items:center}
+/* il nome del premio è il nome di un PEZZO: Bodoni 22, come tutti i
+   nomi di pezzo dell'app. La specificita' va dichiarata: `.cella .testo
+   b` del sistema pesa (0,2,1) e una classe sola perderebbe. */
+.premio .cella .testo b.premio-nome{font:var(--t-2);
+  letter-spacing:var(--ls-display);font-optical-sizing:auto;
+  color:var(--testo)}
+/* LA FIRMA — «Regina» in Bodoni corsivo. Il documento chiede una firma
+   SVG: in cartella non ce n'e' una, e una firma disegnata a mano dal
+   codice sarebbe una calligrafia finta. Si scrive col carattere del
+   marchio, che è vero. */
+.firma{flex:none;margin-left:auto;padding-left:12px;font-style:italic;
+  color:var(--accento)}
+.chiusura-coda{margin-top:auto;padding-top:28px}
+.prossima{width:100%;border-radius:var(--r-lista);background:var(--piano);
+  margin-bottom:14px;opacity:.82}
+.prossima:active{opacity:1}
+
+/* ══ MOVIMENTO RIDOTTO ═════════════════════════════════════════════
+   Le scene di questa vista si animano in JavaScript (Web Animations) e
+   lì `RIDOTTO` decide da solo; qui si spengono le pressioni, che sono
+   l'unica cosa che il CSS anima. */
+@media (prefers-reduced-motion:reduce){
+  .card-grande,.card-rail{transition:none}
+  .card-grande:active,.card-rail:active{transform:none}
+  body[data-pieno="1"] #barra{transition:none}
+}

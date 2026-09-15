@@ -1,23 +1,23 @@
 /* ═══════════════════════════════════════════════════════════════════════
    IL PONTE fra la STANZA e il LIBRETTO.
 
-   PERCHE' ESISTONO DUE CODICI, e perche' e' giusto che restino due.
+   PERCHÉ ESISTONO DUE CODICI, e perché è giusto che restino due.
 
-   La scena 3D chiama un pezzo `RJ-ANE-001`. Quel codice e' una POSIZIONE:
+   La scena 3D chiama un pezzo `RJ-ANE-001`. Quel codice è una POSIZIONE:
    famiglia + indice nel ripiano. Serve al modello per sapere quale mesh
-   accendere, e non puo' essere altro — il file .glb ha cinque anelli in
+   accendere, e non può essere altro — il file .glb ha cinque anelli in
    fila e li distingue per ordine, non per storia. Due clienti che aprono
-   la stessa stanza vedono lo stesso `RJ-ANE-001`, ed e' corretto: e' lo
+   la stessa stanza vedono lo stesso `RJ-ANE-001`, ed è corretto: è lo
    stesso modello.
 
-   Il gestionale chiama un pezzo `RJ-CM4-PR7-G9D`. Quel codice e' un
-   ESEMPLARE: e' L'ANELLO DI LUCIA, comprato il 12 luglio, regalato da
-   Antonio, con dentro scritto «Il primo.». Non e' ripetibile, e' quello
-   che finisce nel QR della Carta del Pezzo, e' quello che apre
+   Il gestionale chiama un pezzo `RJ-CM4-PR7-G9D`. Quel codice è un
+   ESEMPLARE: è L'ANELLO DI LUCIA, comprato il 12 luglio, regalato da
+   Antonio, con dentro scritto «Il primo.». Non è ripetibile, è quello
+   che finisce nel QR della Carta del Pezzo, è quello che apre
    `/c/<codice>` a chi scarta il regalo, e deve poter essere DETTATO al
-   telefono (per questo l'alfabeto e' senza 0/O e senza 1/I/L).
+   telefono (per questo l'alfabeto è senza 0/O e senza 1/I/L).
 
-   Unificarli sembra una pulizia e invece e' la rottura: se la stanza usa
+   Unificarli sembra una pulizia e invece è la rottura: se la stanza usa
    il codice dell'esemplare, la stanza diventa personale e il modello 3D va
    ricostruito per cliente; se il Libretto usa il codice della posizione,
    due anelli uguali comprati in due giorni diversi diventano lo stesso
@@ -26,17 +26,17 @@
    Quindi restano due, e si toccano SOLO qui. Ogni altro file dell'app
    chiede a questo modulo e non fa aritmetica sui codici per conto suo.
 
-   Un ESEMPLARE puo' non avere posizione (`fam`/`k` a null): e' un pezzo
+   Un ESEMPLARE può non avere posizione (`fam`/`k` a null): è un pezzo
    vero che il modello 3D non conosce — si vede in elenco, non nella
-   stanza. E un POSTO puo' essere vuoto: nessuno possiede quel modello.
-   Il ponte torna `null` in entrambi i casi, e non e' un errore: e' il
+   stanza. E un POSTO può essere vuoto: nessuno possiede quel modello.
+   Il ponte torna `null` in entrambi i casi, e non è un errore: è il
    caso normale. Ventidue posti, dieci esemplari.
    ═══════════════════════════════════════════════════════════════════════ */
 
 import { PER_SCENA, PER_ID, codiceScena } from "./catalogo.js";
 import { esemplari } from "./seme.js";
 
-/* il formato del codice esemplare, cosi' come lo genera
+/* il formato del codice esemplare, così come lo genera
    `regina_genera_codice_esemplare()` nel gestionale: nove caratteri
    dell'alfabeto senza forme ambigue, a gruppi di tre. */
 export const ALFABETO = "ACDEFGHJKMNPQRTUVWXY3479";
@@ -95,10 +95,10 @@ export const articoloDiCodice = (codice) => {
 };
 
 /* ── la vista che serve alla stanza ────────────────────────────────────
-   Per ogni posto: cosa c'e' (articolo) e se e' di Lucia (esemplare).
-   `possesso` e' `false` anche quando l'esemplare esiste ma e' ancora
-   `venduto`: la carta e' stampata, ma nessuno l'ha inquadrata, e in quel
-   caso il pezzo NON deve comparire nel cofanetto — e' la sorpresa. */
+   Per ogni posto: cosa c'è (articolo) e se è di Lucia (esemplare).
+   `possesso` è `false` anche quando l'esemplare esiste ma è ancora
+   `venduto`: la carta è stampata, ma nessuno l'ha inquadrata, e in quel
+   caso il pezzo NON deve comparire nel cofanetto — è la sorpresa. */
 
 export function posto(fam, k) {
   const a = articoloDiScena(fam, k);
@@ -114,7 +114,7 @@ export function posto(fam, k) {
   };
 }
 
-/* gli esemplari che NON hanno un posto nella stanza: e' l'elenco che
+/* gli esemplari che NON hanno un posto nella stanza: è l'elenco che
    l'interfaccia deve saper mostrare da qualche altra parte, altrimenti
    quei pezzi spariscono dall'app pur essendo pagati. */
 export const senzaPosto = () =>
