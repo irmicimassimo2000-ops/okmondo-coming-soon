@@ -1,0 +1,798 @@
+/* ═══════════════════════════════════════════════════════════════════
+   app/sistema.css — IL SISTEMA DI DESIGN, in un posto solo.
+   Sorgente: E:\OK.AGENZIA\regina-jewels\studio\SISTEMA-DESIGN.md
+   (lockato il 15/09/2026). I token qui sotto sono quelli del documento,
+   riga per riga, con i contrasti gia' misurati scritti accanto.
+
+   LE CINQUE REGOLE, per chi tocca questo file:
+   1. Un colore ha un RUOLO (--testo, --piano, --accento). Gli hex nudi
+      vivono solo in :root e nel tema; ogni coppia nuova entra col suo
+      contrasto scritto accanto (>= 4,5:1; >= 3:1 solo da 24 px o
+      19 px/600).
+   2. Bodoni solo >= 22 px con opsz automatico; sotto e' Inter;
+      semibold = 600; maiuscoletto solo per occhielli 11-15 px con
+      0,08-0,12 em; niente sotto 11 px.
+   3. Griglia 8; bersagli 44; UN tasto primario a capsula da 50 per
+      schermo; raggi concentrici; margini da --margine.
+   4. Sei durate e due curve, non se ne inventano: tab = nessuna
+      transizione; tocco 100; push 350; sheet 500 senza rimbalzo;
+      movimento ridotto = dissolvenze 150.
+   5. Niente SF Symbols, niente emoji, niente shimmer (redatto
+      monocromo), niente toast impilati. Lo stato si dice accanto
+      all'oggetto; la conferma sta in fondo, ed e' UNA pillola da 36.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@font-face{font-family:Bodoni;src:url("../font/bodoni.woff2") format("woff2");
+  font-weight:400 500;font-display:swap}
+@font-face{font-family:Bodoni;src:url("../font/bodoni-it.woff2") format("woff2");
+  font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:Inter;src:url("../font/inter.woff2") format("woff2");
+  font-weight:400 600;font-display:swap}
+/* i due nomi del documento ("Bodoni Moda", Inter) e i nomi dei file
+   locali sono la stessa faccia: l'alias tiene insieme le due scritture
+   senza duplicare i byte. */
+@font-face{font-family:"Bodoni Moda";src:url("../font/bodoni.woff2") format("woff2");
+  font-weight:400 500;font-display:swap}
+
+/* ═══ I TOKEN ═══════════════════════════════════════════════════════
+   Copia fedele del blocco `## Token` del documento lockato. */
+:root{
+  --notte:#14110E; --vano:#1C1813; --vassoio:#241F19; --fossetta:#191510;
+  --carta:#FAF8F5; --cipria:#F4EBE6; --luce:#F2ECE1;
+  --quieto:#B3A795; --tenue:#8A7E70; --incisa:#6F6459;
+  --firma:#106068; --firma-fuoco:#3E9AA1;
+  --fondo:var(--carta); --piano:var(--cipria); --incavo:#F2ECE1;
+  --testo:var(--notte); --testo-2:var(--incisa);            /* 17,8 · 5,4 */
+  --accento:var(--firma); --accento-testo:var(--carta);      /* 6,8 · 6,8 */
+  --successo:#4F6B4A; --attenzione:#8A5A1E; --errore:#7A2E33; --credito:var(--firma);
+  --linea:color-mix(in srgb,var(--incisa) 45%,transparent);
+  --f-display:"Bodoni Moda",Bodoni,Didot,serif; --f-testo:Inter,-apple-system,sans-serif;
+  --t-large:400 34px/41px var(--f-display); --t-1:400 28px/34px var(--f-display); --t-2:400 22px/28px var(--f-display);
+  --t-3:600 20px/25px var(--f-testo); --t-head:600 17px/22px var(--f-testo); --t-body:400 17px/22px var(--f-testo);
+  --t-call:400 16px/21px var(--f-testo); --t-sub:400 15px/20px var(--f-testo); --t-foot:400 13px/18px var(--f-testo);
+  --t-cap1:400 12px/16px var(--f-testo); --t-cap2:400 11px/13px var(--f-testo);
+  --ls-display:.01em; --ls-occhiello:.12em; --ls-occhiello-13:.08em;
+  --u:8px; --margine:16px; --tocco-min:44px; --tasto:50px; --cella:44px; --campo:44px; --seg:32px;
+  --r-sheet:10px; --r-lista:10px; --r-card:12px; --r-campo:10px; --r-alert:14px; --r-capsula:9999px;
+  --safe-t:env(safe-area-inset-top); --safe-b:env(safe-area-inset-bottom);
+  --vetro:saturate(180%) blur(30px); --vetro-tinta:color-mix(in srgb,var(--fondo) 72%,transparent);
+  --ombra-1:0 1px 2px rgb(20 17 14/.06); --ombra-2:0 3px 8px rgb(20 17 14/.12); --ombra-sheet:0 -8px 24px rgb(20 17 14/.18);
+  --molla:cubic-bezier(.22,1,.36,1); --ios:cubic-bezier(.2,.8,.2,1);
+  --d-tocco:100ms; --d-alert:200ms; --d-tastiera:250ms; --d-push:350ms; --d-sheet:500ms; --d-ct-in:300ms; --d-ct-out:250ms;
+}
+[data-tema=scuro]{ --fondo:var(--notte); --piano:var(--vano); --incavo:var(--fossetta);
+  --testo:var(--luce); --testo-2:var(--quieto);                 /* 16,0 · 8,0 */
+  --accento:var(--firma-fuoco); --accento-testo:var(--notte);   /* 5,7 · 5,7 */
+  --successo:#9DB49A; --attenzione:#D0A15A; --errore:#C9868B; --credito:var(--firma-fuoco);
+  --linea:color-mix(in srgb,var(--tenue) 35%,transparent); }
+@media (min-width:414px){:root{--margine:20px}}
+@media (prefers-reduced-motion:reduce){:root{--d-push:150ms;--d-sheet:150ms;--d-ct-in:150ms;--d-ct-out:150ms;--molla:linear;--ios:linear}}
+html{font-optical-sizing:auto;font-feature-settings:"calt","liga","tnum";-webkit-text-size-adjust:100%}
+
+/* ── IL TEMA CHIARO, DICHIARATO ────────────────────────────────────
+   Il documento porta un solo blocco di tema (`scuro`) perche' il chiaro
+   E' :root. Qui serve anche il verso opposto: la scocca porta
+   `data-tema=scuro` sul <main>, e la sezione del cofanetto deve poter
+   tornare di carta DENTRO quel ramo. Sono gli stessi ruoli di :root,
+   niente hex nuovo. */
+[data-tema=chiaro]{ --fondo:var(--carta); --piano:var(--cipria); --incavo:var(--luce);
+  --testo:var(--notte); --testo-2:var(--incisa);                /* 17,8 · 5,4 */
+  --accento:var(--firma); --accento-testo:var(--carta);         /*  6,8 · 6,8 */
+  --successo:#4F6B4A; --attenzione:#8A5A1E; --errore:#7A2E33; --credito:var(--firma);
+  --linea:color-mix(in srgb,var(--incisa) 45%,transparent); }
+
+/* ── I PONTI ───────────────────────────────────────────────────────
+   Nomi che la BARRA APPROVATA e la scocca di F0.1 usano gia'. Non sono
+   token nuovi: sono gli stessi valori, chiamati come li chiama chi era
+   qui prima. Toccarli significa muovere la barra, e la barra non si
+   muove. `--vetro` porta due significati — in :root e' il filtro del
+   documento, su `body[data-nav=c]` e' la TINTA della capsula: l'ombra
+   della cascata fa vincere il secondo dentro <body>, che e' dove la
+   barra vive. Le classi `.vetro` qui sotto non lo leggono apposta. */
+:root{
+  --filo:rgba(255,240,215,.10);      /* il riflesso interno della barra */
+  --fodera:var(--notte);             /* il fondo delle viste, come si chiamava */
+  --tocco:var(--d-tocco);
+  --t-push:var(--d-push); --t-corto:var(--d-alert);
+  --su:env(safe-area-inset-top,0px);  --giu:env(safe-area-inset-bottom,0px);
+  --sx:env(safe-area-inset-left,0px); --dx:env(safe-area-inset-right,0px);
+  --safe-sx:env(safe-area-inset-left,0px); --safe-dx:env(safe-area-inset-right,0px);
+  /* LA TESSERA: un oggetto di marca, non una superficie del tema.
+     --luce su --firma misura 6,3:1, sul fondo del gradiente 7,9:1. */
+  --tessera-a:var(--firma); --tessera-b:#0B4A52; --tessera-testo:var(--luce);
+  /* LE FODERE del cofanetto: materia, non ruoli. */
+  --fodera-bianco:#F2F0EC; --fodera-avorio:#D8CEBE;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* ═══ LA SCOCCA FISSA ═══════════════════════════════════════════════
+   Niente scroll sul documento: la pagina non si muove mai, si muovono
+   gli scroller DENTRO le viste. E' cosi' che una barra flottante resta
+   ferma e la gomma elastica di Safari non trascina la scocca. */
+html,body{position:fixed;inset:0;overflow:hidden;
+  background-color:var(--notte);
+  overscroll-behavior:none;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent}
+body{font:var(--t-body);font-feature-settings:"calt","liga","tnum";color:var(--testo)}
+/* Il corpo del testo segue il Dynamic Type dove c'e'. */
+@supports (font:-apple-system-body){ html{font:-apple-system-body} }
+
+/* #app sta dentro body per una ragione sola: il foglio dal basso deve
+   poter ARRETRARE tutto il resto senza toccare se stesso — un <dialog>
+   modale vive nel top layer e non eredita la trasformazione. */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;
+  transform-origin:50% 0;
+  transition:transform var(--d-push) var(--ios), border-radius var(--d-push) var(--ios)}
+body.arretrato #app{transform:scale(.92) translateY(calc(var(--safe-t) + 10px));
+  border-radius:var(--r-card);overflow:hidden}
+
+/* ═══ LE VISTE ══════════════════════════════════════════════════════
+   Tutte e quattro sempre montate, una sola visibile. NESSUNA
+   TRANSIZIONE fra i tab: e' la regola 4 del sistema, ed e' anche cio'
+   che fa iOS — quattro sezioni pari non si attraversano, si scelgono.
+   `visibility` invece di `display` perche' una vista che sparisce dal
+   flusso perde la posizione dello scroller. */
+#dentro{flex:1 1 auto;position:relative;min-height:0;isolation:isolate}
+.vista{position:absolute;inset:0;opacity:0;pointer-events:none}
+.vista[hidden]{display:block !important;visibility:hidden}
+.vista.qui{opacity:1;pointer-events:auto;visibility:visible}
+
+/* LO SCROLLER — uno per strato, e sta DENTRO la vista. Non porta piu'
+   margini: la barra di navigazione e' a filo di schermo e l'aria
+   orizzontale la mette `.pagina`. */
+/* IL COLORE SI RIDICHIARA QUI, e non e' pignoleria: `color` si eredita
+   come valore GIA' CALCOLATO. <body> sta FUORI da [data-tema=scuro] (che
+   vive sul <main>), quindi il suo var(--testo) e' quello chiaro, e ogni
+   testo che non ridichiari il proprio colore se lo porterebbe dentro il
+   tema scuro — notte su notte, 1,04:1. Misurato, non temuto. */
+.strato{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  background:var(--fondo);color:var(--testo)}
+/* la sezione del banco in tre dimensioni non e' uno scroller */
+.vista[data-vista="cofanetto"] .strato{overflow:hidden}
+
+/* ═══ LA PILA — la vista che entra da destra ════════════════════════ */
+.strato.spinto{z-index:2;transform:translateX(100%);
+  box-shadow:-2px 0 18px -6px rgb(0 0 0/.55)}
+.strato.sotto::after{content:"";position:absolute;inset:0;z-index:9;
+  background:#000;opacity:var(--velo,0);pointer-events:none}
+.strato.anima,.strato.anima::after{transition:transform var(--d-push) var(--ios),
+  opacity var(--d-push) var(--ios)}
+
+/* ═══ IL VELO DEL BANCO ═════════════════════════════════════════════ */
+#velo{position:absolute;inset:0;display:grid;place-items:center;z-index:3;
+  background:var(--fondo);color:var(--testo-2);
+  font:var(--t-foot);letter-spacing:var(--ls-occhiello-13);
+  transition:opacity var(--d-alert) ease}
+#velo[hidden]{opacity:0;pointer-events:none;display:grid}
+#banco{position:absolute;inset:0;width:100%;height:100%;border:0;
+  background:var(--fondo);z-index:1}
+
+/* ═══ LA SCALA ══════════════════════════════════════════════════════
+   Undici corpi, e non uno di piu'. Bodoni da 22 in su (Large Title,
+   Title 1, Title 2), Inter da 20 in giu'. La scorciatoia `font:` azzera
+   `font-feature-settings`: dove servono le cifre allineate si
+   ridichiara (vedi `.coda`, `.cifra`). */
+.t-large{font:var(--t-large);letter-spacing:var(--ls-display);font-optical-sizing:auto}
+.t-1    {font:var(--t-1);letter-spacing:var(--ls-display);font-optical-sizing:auto}
+.t-2    {font:var(--t-2);letter-spacing:var(--ls-display);font-optical-sizing:auto}
+.t-3    {font:var(--t-3)}
+.t-head {font:var(--t-head)}
+.t-body {font:var(--t-body)}
+.t-call {font:var(--t-call)}
+.t-sub  {font:var(--t-sub)}
+.t-foot {font:var(--t-foot)}
+.t-cap1 {font:var(--t-cap1)}
+.t-cap2 {font:var(--t-cap2)}
+.tenue{color:var(--testo-2)}
+.cifra{font-feature-settings:"tnum","lnum"}
+
+/* L'OCCHIELLO — l'unico maiuscoletto del sistema. 11 px con 0,12 em;
+   nella misura Footnote (13) la spaziatura scende a 0,08 em, perche'
+   una capitale piu' grande ha gia' la sua aria. */
+.occhiello{font:var(--t-cap2);letter-spacing:var(--ls-occhiello);
+  text-transform:uppercase;color:var(--testo-2)}
+.occhiello.foot{font:var(--t-foot);letter-spacing:var(--ls-occhiello-13)}
+
+/* ═══ LA PAGINA ═════════════════════════════════════════════════════
+   L'aria orizzontale di una schermata sta qui, una volta sola. Sotto,
+   il posto per la capsula di vetro: lo scavalco della barra piu' aria
+   piu' la safe-area. */
+.pagina{padding:0 max(var(--margine),var(--safe-dx))
+          calc(var(--safe-b) + 24px) max(var(--margine),var(--safe-sx))}
+body[data-nav="c"] .pagina{padding-bottom:calc(var(--safe-b) + 96px)}
+body[data-nav="a"] .pagina,body[data-nav="b"] .pagina{padding-bottom:calc(var(--safe-b) + 24px)}
+
+/* ═══ LA BARRA DI NAVIGAZIONE ═══════════════════════════════════════
+   L'anatomia di iOS: 44 punti di barra (piu' la safe-area) e, sotto,
+   52 di titolo grande. Scorrendo, il titolo grande esce e quello
+   compatto entra — una DISSOLVENZA INCROCIATA, non un morphing: due
+   caratteri diversi (Bodoni 34 e Inter 600 17) non si interpolano, si
+   scambiano. La barra e' trasparente finche' non ha niente sotto di
+   se'; appena il contenuto le passa dietro prende il vetro e il filo.
+   Vive DENTRO lo scroller (sticky), perche' ogni strato della pila ha
+   la sua: e' cosi' che una schermata spinta porta il proprio titolo e
+   il proprio indietro. */
+.barra-nav{position:sticky;top:0;z-index:6;
+  display:flex;align-items:center;gap:6px;
+  min-height:calc(var(--safe-t) + 44px);
+  padding:var(--safe-t) max(var(--margine),var(--safe-dx)) 0
+          max(var(--margine),var(--safe-sx));
+  background:transparent;
+  transition:background var(--d-alert) ease}
+.barra-nav > .compatto{flex:1 1 auto;min-width:0;text-align:center;
+  font:var(--t-head);color:var(--testo);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  opacity:0;transition:opacity var(--d-alert) ease}
+.barra-nav > .lato{flex:0 0 auto;min-width:var(--tocco-min);
+  display:flex;align-items:center}
+.barra-nav > .lato.destra{justify-content:flex-end}
+.barra-nav.posata{
+  background:color-mix(in srgb,var(--fondo) 72%,transparent);
+  -webkit-backdrop-filter:saturate(180%) blur(30px);
+  backdrop-filter:saturate(180%) blur(30px)}
+.barra-nav.posata::after{content:"";position:absolute;left:0;right:0;bottom:0;
+  height:1px;background:var(--linea);transform:scaleY(.333);transform-origin:bottom}
+.barra-nav.posata > .compatto{opacity:1}
+
+/* IL TITOLO GRANDE. 52 punti di riga, Bodoni 34, e sparisce in
+   dissolvenza mentre sale. Niente scala, niente traslazione: un titolo
+   che si rimpicciolisce mentre un altro cresce e' due titoli in
+   movimento, e se ne legge zero. */
+.titolone{display:flex;align-items:flex-end;min-height:52px;padding-bottom:6px;
+  font:var(--t-large);letter-spacing:var(--ls-display);font-optical-sizing:auto;
+  color:var(--testo);
+  transition:opacity var(--d-alert) ease}
+.titolone:focus{outline:none}
+.titolone:focus-visible{outline:2px solid var(--accento);outline-offset:4px;
+  border-radius:4px}
+.titolone.sparito{opacity:0}
+.testa-pagina{display:flex;align-items:flex-end;justify-content:space-between;
+  gap:12px;margin-bottom:14px}
+.testa-pagina .occhiello{padding-bottom:10px}
+
+/* IL RITORNO — chevron piu' parola, come in iOS, e il bersaglio pieno. */
+.indietro{display:inline-flex;align-items:center;gap:4px;
+  min-height:var(--tocco-min);min-width:var(--tocco-min);
+  margin-left:-8px;padding:0 8px;
+  border:0;background:none;cursor:pointer;
+  color:var(--accento);font:var(--t-body);
+  transition:opacity var(--d-tocco) linear}
+.indietro .segno-filo{transform:scaleX(-1)}
+.indietro:active{opacity:.55}
+.indietro:focus-visible{outline:2px solid var(--accento);outline-offset:-2px;
+  border-radius:var(--r-campo)}
+
+/* ═══ LA LISTA RAGGRUPPATA ══════════════════════════════════════════
+   Il modo in cui iOS elenca le cose: gruppo con raggio 10, rientrato di
+   --margine, celle da 44 (52-60 quando portano due righe), separatore
+   hairline da 1 px schiacciato a un terzo e RIENTRATO dal testo — un
+   separatore che tocca il bordo divide il gruppo invece delle righe.
+   L'intestazione e' un occhiello in misura Footnote. */
+.lista-blocco{margin:0 0 22px}
+.lista-testa{display:block;margin:0 0 7px 4px}
+.lista{border-radius:var(--r-lista);overflow:hidden;background:var(--piano)}
+.cella{position:relative;display:flex;align-items:center;gap:12px;width:100%;
+  min-height:var(--cella);padding:7px var(--margine);
+  border:0;background:none;color:var(--testo);font:var(--t-body);text-align:left;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:background var(--d-tocco) linear}
+.cella.due{min-height:52px}
+.cella.con-foto{min-height:60px}
+.cella + .cella::before{content:"";position:absolute;left:var(--margine);right:0;top:0;
+  height:1px;background:var(--linea);transform:scaleY(.333);transform-origin:top}
+.cella.con-foto + .cella.con-foto::before{left:calc(var(--margine) + 44px + 12px)}
+.cella:active{background:color-mix(in srgb,var(--testo) 6%,transparent)}
+.cella:focus-visible{outline:2px solid var(--accento);outline-offset:-3px}
+.cella.piatta{cursor:default}
+.cella.piatta:active{background:none}
+.cella .fig{flex:none;width:44px;height:44px;object-fit:cover;
+  border-radius:6px;background:var(--incavo)}
+.cella .pastiglia{flex:none;width:34px;height:34px;border-radius:var(--u);
+  box-shadow:inset 0 0 0 1px var(--linea)}
+.cella .testo{flex:1 1 auto;min-width:0}
+.cella .testo b{display:block;font:var(--t-body)}
+.cella .testo span{display:block;margin-top:1px;font:var(--t-foot);color:var(--testo-2)}
+.cella .coda{flex:none;margin-left:auto;padding-left:6px;
+  font:var(--t-sub);font-feature-settings:"tnum","lnum";color:var(--testo-2)}
+.cella .frec{color:var(--testo-2)}
+
+/* ── CIO' CHE NON C'E' ANCORA ──────────────────────────────────────
+   Un comando in arrivo si vede che e' in arrivo, e lo DICE. Resta a
+   piena leggibilita' il testo: sbiadire tutto scenderebbe sotto la
+   soglia di contrasto, e una cosa illeggibile non e' una dichiarazione,
+   e' una sparizione. */
+.inarrivo .testo b{color:var(--testo-2)}
+.cella.inarrivo:active,.tasto.inarrivo:active{background:none;transform:none}
+.tasto.inarrivo{background:none;color:var(--testo-2);
+  box-shadow:inset 0 0 0 1px var(--linea)}
+.fase{flex:none;margin-left:auto;padding:2px 7px;border-radius:5px;
+  background:var(--incavo);color:var(--testo-2);
+  font:var(--t-cap2);letter-spacing:var(--ls-occhiello);
+  text-transform:uppercase;white-space:nowrap}
+.cella .coda + .fase{margin-left:8px}
+
+/* ═══ I TASTI ═══════════════════════════════════════════════════════
+   Primario: capsula piena da 50, --accento con --accento-testo.
+   Secondario: la stessa capsula svuotata, filo hairline e testo
+   accento. Terziario: solo testo. Uno solo primario per schermo.
+   Il `:active` scala a 0,97 in 100 ms — e' l'unica cosa che dice «ti ho
+   sentito» prima che accada qualunque altra cosa. */
+.tasto{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:var(--tasto);min-width:var(--tocco-min);padding:0 22px;
+  border:0;border-radius:var(--r-capsula);cursor:pointer;
+  font:var(--t-head);
+  -webkit-tap-highlight-color:transparent;
+  transition:transform var(--d-tocco) var(--molla), background var(--d-alert) ease}
+.tasto.primario{background:var(--accento);color:var(--accento-testo)}
+.tasto.secondario{background:none;color:var(--accento);
+  box-shadow:inset 0 0 0 1px var(--linea)}
+.tasto.terziario{min-height:var(--tocco-min);padding:0 8px;
+  background:none;color:var(--accento);box-shadow:none}
+.tasto:active{transform:scale(.97)}
+.tasto:focus-visible{outline:2px solid var(--accento);outline-offset:3px}
+.tasto[disabled]{opacity:.45;pointer-events:none}
+.tasto.largo{display:flex;width:100%}
+.tasto[aria-pressed="true"]{background:var(--accento);color:var(--accento-testo);
+  box-shadow:none}
+.riga-tasti{display:flex;gap:var(--u);margin-bottom:18px}
+.colonna-tasti{display:flex;flex-direction:column;gap:9px;margin-top:22px}
+
+/* ═══ IL CAMPO ══════════════════════════════════════════════════════ */
+.campo{display:block;width:100%;height:var(--campo);padding:0 12px;
+  border:0;border-radius:var(--r-campo);
+  background:var(--incavo);color:var(--testo);font:var(--t-body)}
+.campo::placeholder{color:var(--testo-2)}
+.campo:focus-visible{outline:2px solid var(--accento);outline-offset:0}
+
+/* ═══ IL CHIP ═══════════════════════════════════════════════════════
+   32 di altezza, come il segmented di iOS. Da fermo e' un'etichetta;
+   quando diventa un comando va messo in una riga con lo scavalco di
+   bersaglio (`.seg`), perche' 32 non e' 44. */
+.chip{display:inline-flex;align-items:center;height:var(--seg);padding:0 14px;
+  border-radius:var(--r-capsula);background:var(--piano);color:var(--testo);
+  font:var(--t-foot);white-space:nowrap}
+.chip.acceso{background:var(--accento);color:var(--accento-testo)}
+.seg{display:flex;align-items:center;gap:6px;min-height:var(--tocco-min)}
+
+/* ═══ IL BADGE ══════════════════════════════════════════════════════
+   Due sole forme: il punto da 6 e la capsula da 18. Il testo prende il
+   fondo del tema, che e' chiaro dove il badge e' scuro e viceversa
+   (6,5:1 sullo scuro, 8,7:1 sul chiaro). */
+.badge{display:inline-flex;align-items:center;justify-content:center;
+  min-width:18px;height:18px;padding:0 5px;border-radius:var(--r-capsula);
+  background:var(--errore);color:var(--fondo);
+  font:var(--t-cap2);font-feature-settings:"tnum","lnum"}
+.badge.punto{width:6px;height:6px;min-width:0;padding:0}
+
+/* ═══ IL PROGRESSO ══════════════════════════════════════════════════ */
+.progresso{height:4px;border-radius:var(--r-capsula);background:var(--incavo);
+  overflow:hidden}
+.progresso > i{display:block;height:100%;width:var(--quota,0%);
+  background:var(--accento);border-radius:inherit;
+  transition:width var(--d-alert) var(--ios)}
+.anello{width:20px;height:20px;color:var(--accento)}
+.anello.grande{width:37px;height:37px}
+
+/* ═══ IL REDATTO ════════════════════════════════════════════════════
+   Monocromo, e fermo. Niente shimmer: una luce che scorre su qualcosa
+   che non esiste ancora e' l'unica animazione dell'app che non dice
+   niente — e la regola 5 la vieta. */
+.redatto{background:var(--incavo);border-radius:4px}
+
+/* ═══ LO STATO VUOTO ════════════════════════════════════════════════
+   Quattro cose, sempre in quest'ordine: un segno, Title 2, Body
+   secondario, UNA azione. Uno stato vuoto senza azione e' un vicolo
+   cieco con le tende. */
+.vuoto{display:flex;flex-direction:column;align-items:center;text-align:center;
+  gap:14px;padding:46px 18px 40px}
+.vuoto .segno-filo{color:var(--testo-2)}
+.vuoto b{font:var(--t-2);letter-spacing:var(--ls-display);font-optical-sizing:auto;
+  color:var(--testo)}
+.vuoto p{max-width:22em;font:var(--t-body);color:var(--testo-2)}
+
+/* ═══ I MATERIALI ═══════════════════════════════════════════════════
+   thin 20/.60 · regular 30/.72 · thick 40/.88, e SOLO su barre e fogli:
+   un materiale sul contenuto e' un contenuto che si scusa. La tinta e'
+   il fondo del tema. (`var(--vetro)` non si legge qui: dentro <body> lo
+   ombreggia la tinta della barra approvata.) */
+.vetro{-webkit-backdrop-filter:saturate(180%) blur(var(--v-sfoca,30px));
+  backdrop-filter:saturate(180%) blur(var(--v-sfoca,30px));
+  background:color-mix(in srgb,var(--fondo) var(--v-tinta,72%),transparent)}
+.vetro.thin   {--v-sfoca:20px;--v-tinta:60%}
+.vetro.regular{--v-sfoca:30px;--v-tinta:72%}
+.vetro.thick  {--v-sfoca:40px;--v-tinta:88%}
+
+/* ═══ IL FILO ═══════════════════════════════════════════════════════
+   1 px schiacciato a un terzo: e' cosi' che si ottiene un hairline vero
+   su uno schermo a tre volte, invece di un 0,33 px che il browser
+   arrotonda a piacere. */
+.hairline{position:relative}
+.hairline::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:var(--linea);transform:scaleY(.333);transform-origin:bottom}
+
+/* ═══ I SEGNI A FILO ════════════════════════════════════════════════
+   Griglia 24 (area viva 20), tratto dichiarato in pixel di schermo
+   grazie a `non-scaling-stroke`, giunti tondi, terminali piatti.
+   1,5 accanto a Inter 400 a 20; 1,7 di serie; 2,0 nei tasti a 28. */
+.segno-filo{display:block;width:24px;height:24px;flex:none;
+  --tratto:1.7;color:inherit}
+.segno-filo path,.segno-filo circle,.segno-filo ellipse,
+.segno-filo line,.segno-filo rect,.segno-filo polyline,.segno-filo polygon{
+  stroke-width:var(--tratto);
+  vector-effect:non-scaling-stroke;   /* non e' ereditata: si dichiara qui */
+  stroke-linejoin:round;stroke-linecap:butt}
+.segno-filo.m14{width:14px;height:14px;--tratto:1.5}
+.segno-filo.m20{width:20px;height:20px;--tratto:1.5}
+.segno-filo.m28{width:28px;height:28px;--tratto:2}
+.segno-filo.m56{width:56px;height:56px;--tratto:2}
+/* icona e testo sulla stessa riga di base, con l'icona a -1 */
+.con-segno{display:inline-flex;align-items:center;gap:6px}
+.con-segno .segno-filo{transform:translateY(-1px)}
+
+/* ═══ LA TESSERA ════════════════════════════════════════════════════
+   L'unico oggetto dell'app che si guarda invece di leggersi. Non e' una
+   superficie del tema: e' materia di marca, e porta la sua coppia gia'
+   misurata (--luce sul turchese: 6,3:1 nel punto piu' chiaro). */
+.tessera{aspect-ratio:1.586;border-radius:var(--r-card);padding:18px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  color:var(--tessera-testo);
+  background:linear-gradient(150deg,var(--tessera-a),var(--tessera-b));
+  box-shadow:var(--ombra-2)}
+.tessera .occhiello{color:var(--tessera-testo)}
+.tessera .somma{font:var(--t-large);letter-spacing:var(--ls-display);
+  font-optical-sizing:auto;font-feature-settings:"tnum","lnum"}
+
+
+/* ═══ I PEZZI DI PAGINA ═════════════════════════════════════════════
+   Quel poco che una vista mette in pagina fuori dalle liste. Sta qui e
+   non negli inline delle viste: uno stile scritto dentro un file .js
+   non si puo' ne' temare ne' misurare. */
+.scatto{display:block;width:100%;aspect-ratio:1.1;object-fit:cover;
+  border-radius:var(--r-card);margin:14px 0 12px;background:var(--incavo)}
+.prezzo{margin-bottom:6px}
+.riquadro{padding:15px 16px 17px;margin-bottom:22px;
+  border-radius:var(--r-card);background:var(--incavo)}
+.riquadro-testo{margin:5px 0 12px}
+.nota-tessera{margin:10px 0 22px}
+.firma-seme{display:block;margin-top:12px}
+
+/* ═══ IL FOGLIO DAL BASSO ═══════════════════════════════════════════
+   <dialog> nativo: il top layer, il fuoco trattenuto e l'Esc li porta
+   il browser. Noi mettiamo la maniglia 36x5 a 5 punti dal bordo, i due
+   fermi e il trascinamento. Sale in 500 ms, senza rimbalzo. */
+#foglio{position:fixed;inset:auto 0 0 0;width:100%;max-width:100%;
+  max-height:100dvh;margin:0;padding:0;border:0;
+  border-radius:var(--r-sheet) var(--r-sheet) 0 0;
+  background:var(--piano);color:var(--testo);
+  box-shadow:var(--ombra-sheet), inset 0 0 0 1px var(--linea);
+  overflow:hidden;
+  height:50dvh;                       /* il fermo medio: circa la meta' */
+  transition:transform var(--d-sheet) var(--ios), height var(--d-sheet) var(--ios)}
+#foglio[data-fermo="alto"]{height:92dvh}
+#foglio::backdrop{background:rgb(0 0 0/.42);
+  transition:opacity var(--d-alert) ease}
+#foglio:not([open]){display:none}
+@starting-style{
+  #foglio[open]{transform:translateY(100%)}
+  #foglio[open]::backdrop{opacity:0}
+}
+#foglio .maniglia{display:block;width:100%;min-height:var(--tocco-min);
+  padding:5px 0 0;border:0;background:none;cursor:grab;touch-action:none}
+#foglio .maniglia i{display:block;width:36px;height:5px;margin:0 auto;
+  border-radius:var(--r-capsula);
+  background:color-mix(in srgb,var(--testo) 26%,transparent)}
+#foglio .maniglia:focus-visible{outline:2px solid var(--accento);
+  outline-offset:-4px;border-radius:var(--r-sheet)}
+#foglio h2{padding:0 20px 12px;
+  font:var(--t-2);letter-spacing:var(--ls-display);font-optical-sizing:auto;
+  outline:none}
+#foglio h2:focus-visible{outline:2px solid var(--accento);outline-offset:2px}
+#foglio .corpo{overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  height:calc(100% - 84px);
+  padding:0 max(var(--margine),var(--safe-sx)) calc(20px + var(--safe-b))}
+
+/* ═══ LA CONFERMA ═══════════════════════════════════════════════════
+   UNA pillola da 36, --vano su --luce, in fondo — dove sta il pollice
+   (verdetto del cliente). Entra in 100 ms, esce in 250. Mai impilata:
+   la seconda sostituisce la prima.
+   «Annulla» e' 44 di bersaglio dentro una pillola di 36: lo scavalco di
+   4 per lato e' trasparente, quindi la pillola resta 36 a vedersi e 44
+   a toccarsi.
+   UNA CONTRADDIZIONE NEL DOCUMENTO, e come si e' sciolta: la tabella dei
+   token porta `--d-ct-in:300ms`, ma la regola 5 — e il verdetto del
+   cliente che l'ha dettata — dice «entra in 100 ms ed esce in 250».
+   Vince la regola, perche' e' il verdetto: l'entrata e' `--d-tocco`
+   (100), l'uscita `--d-ct-out` (250). `--d-ct-in` resta dichiarato,
+   com'e' scritto nel documento, e non lo usa nessuno. */
+#toast-zona{position:fixed;left:0;right:0;z-index:40;pointer-events:none;
+  display:flex;justify-content:center;padding:0 16px;
+  bottom:calc(96px + var(--safe-b))}
+body[data-nav="a"] #toast-zona{bottom:calc(86px + var(--safe-b))}
+body[data-nav="b"] #toast-zona{bottom:calc(88px + var(--safe-b))}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:10px;
+  height:36px;max-width:min(440px,100%);padding:0 6px 0 16px;
+  border-radius:var(--r-capsula);
+  background:var(--vano);color:var(--luce);   /* 15,1:1 */
+  box-shadow:var(--ombra-2);
+  font:var(--t-foot);white-space:nowrap;
+  transition:transform var(--d-tocco) var(--ios), opacity var(--d-tocco) linear}
+.toast.entra{transform:translateY(10px);opacity:0}
+.toast.via{transition-duration:var(--d-ct-out)}
+.toast .annulla{flex:none;height:var(--tocco-min);min-width:var(--tocco-min);
+  margin:-4px 0;padding:0 10px;border:0;background:none;cursor:pointer;
+  color:var(--firma-fuoco);                   /* 5,7:1 su --vano */
+  font:var(--t-head)}
+.toast .annulla:focus-visible{outline:2px solid var(--firma-fuoco);outline-offset:-3px;
+  border-radius:var(--r-capsula)}
+
+/* ═══ GLI ANNUNCI — una sola regione, in tutta l'app ════════════════ */
+#annunci{position:absolute;width:1px;height:1px;overflow:hidden;
+  clip-path:inset(50%);white-space:nowrap}
+
+/* ═══ CHI HA CHIESTO MENO MOVIMENTO ═════════════════════════════════
+   Regola 4: dissolvenze da 150, e nient'altro. Il documento riscrive
+   quattro durate; qui si chiudono anche le due che restano (alert e
+   tastiera) e si spengono scale e traslazioni, perche' «meno
+   movimento» non e' «movimento piu' corto». */
+@media (prefers-reduced-motion: reduce){
+  :root{--d-alert:150ms;--d-tastiera:150ms}
+  #app,.strato.anima,.strato.anima::after,.toast,#foglio,
+  .barra-nav,.titolone,#velo{
+    transition-duration:150ms !important;
+    transition-timing-function:linear !important;
+    transition-delay:0s !important}
+  body.arretrato #app{transform:none}
+  .tasto:active,.cella:active{transform:none}
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   LA BARRA DELLE SEZIONI — approvata dal cliente, arrivata qui intera.
+   Veniva dal blocco <style> di index.html. Non e' stata riscritta: e'
+   stata SPOSTATA, riga per riga, e la prova che non si e' mossa e' una
+   misura — 0 pixel di differenza su 143.520, fondale neutralizzato,
+   390x844 a due volte (sonda _A2_verifica.mjs, prova 7).
+   Le sue tinte restano le sue: `--vetro`, `--acceso`, `--spento` vivono
+   su body[data-nav=c] e ombreggiano i token di :root dentro <body>.
+   E' voluto, ed e' il motivo per cui le classi `.vetro` del sistema non
+   leggono `var(--vetro)`.
+   I SUOI SEGNI restano i suoi: due versioni (contorno e pieno) con le
+   scale ottiche tarate a 48 px nella passata del 13/09. La libreria
+   `app/ui/segni.js` e' un'altra cosa — i segni a filo delle VISTE — e
+   usa la classe `.segno-filo` apposta, per non incrociare questa.
+   ═══════════════════════════════════════════════════════════════════ */
+/* ── LA FASCIA RISERVATA (solo per C) ───────────────────────────
+   La capsula galleggia SOPRA la sezione. Sopra il banco pero' ci sta il
+   menu delle cinque famiglie — e' li' che si tocca — quindi sotto la
+   capsula va lasciato del posto: questa fascia. Si colora come il fondo
+   della sezione attiva, cosi' la capsula si appoggia su una materia
+   coerente invece di sembrare incollata sotto lo schermo.
+   E NON E' ALTA UGUALE PER TUTTE. Il velo di un vetro che copre una
+   tinta piatta non vela niente: dove la sezione non ha niente da
+   proteggere in basso la fascia si accorcia a 46, la capsula scavalca
+   il bordo della cornice di 36 px e il `backdrop-filter` ha finalmente
+   della materia vera da sfocare. Sul cofanetto la fascia resta alta 80:
+   misurato, lascia 16 punti fra il menu delle famiglie e il bordo alto
+   della capsula — dentro la forbice 12-20 che tiene le due cose vicine
+   senza che una tocchi l'altra. */
+#fascia{flex:0 0 auto;height:0;background:var(--notte);
+  transition:background .25s ease, height .25s var(--ios)}
+body[data-nav="c"] #fascia{height:calc(46px + env(safe-area-inset-bottom))}
+body[data-nav="c"][data-sez="cofanetto"] #fascia{
+  height:calc(80px + env(safe-area-inset-bottom));background:var(--carta)}
+
+/* ══ LA BARRA — il tronco comune ══════════════════════════════ */
+nav{flex:0 0 auto;position:relative;display:flex}
+/* `isolation` serve ad A e B per tenere la pietra e il filo sotto le
+   voci. A C non si da': un elemento isolato diventa la radice del
+   proprio fondale e il vetro non vedrebbe piu' la sezione da sfocare. */
+nav[data-nav="a"],nav[data-nav="b"]{isolation:isolate}
+nav button{flex:1 1 0;min-width:0;border:0;background:none;cursor:pointer;
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform var(--tocco) var(--molla)}
+nav button:active{transform:scale(.94)}
+nav button:focus-visible{outline:2px solid var(--firma-fuoco);outline-offset:-3px;
+  border-radius:10px}
+/* I DUE STRATI DEL SEGNO stanno nella stessa cella: contorno e pieno si
+   incrociano, non si scambiano di posto. Cosi' la piccola differenza di
+   grandezza fra le due versioni — che e' il modo in cui si pareggiano i
+   pesi ottici — passa come un riempirsi, non come un salto. */
+.pos{position:relative;display:grid;place-items:center}
+.pos .segno{grid-area:1/1}
+.segno{width:22px;height:22px;display:block;flex:none;
+  transition:stroke .22s ease, transform .22s var(--molla)}
+.segno path,.segno circle{stroke-linecap:round;stroke-linejoin:round}
+.segno.contorno path,.segno.contorno circle{fill:none;stroke:currentColor}
+.segno.pieno path,.segno.pieno circle{fill:currentColor;stroke:none}
+.segno.pieno{opacity:0}
+/* A e B portano solo il contorno: il pieno resta spento la' dentro. */
+.nm{display:block;white-space:nowrap}
+
+/* ══ A · IL CABOCHON ══════════════════════════════════════════
+   La barra resta agganciata, da bordo a bordo, col filetto caldo
+   sopra. L'attiva sta su una pietra: una pastiglia ellittica col
+   suo lume dentro, come la pietra dell'anello — un gradiente
+   contenuto, non un neon. Durante il tragitto si stira come una
+   goccia (scaleX cresce con la velocita', scaleY cala) e all'arrivo
+   si ricompone.
+   Le voci spente mostrano SOLO il segno: il nome in Bodoni e' l'altra
+   meta' dell'evento, e quattro nomi accesi tutti insieme lo
+   spengono. Il nome di ciascuna resta nell'`aria-label`.
+   Altezza dichiarata: 70 px + safe-area. */
+nav[data-nav="a"]{height:70px;background:var(--notte);
+  border-top:1px solid var(--filo);
+  padding-bottom:env(safe-area-inset-bottom)}
+nav[data-nav="a"] button{justify-content:flex-start;padding:9px 4px 0;
+  color:var(--tenue)}
+nav[data-nav="a"] .pos{height:34px;display:grid;place-items:center}
+nav[data-nav="a"] .nm{height:16px;
+  font:400 16px/16px Bodoni,Didot,Georgia,serif;color:var(--luce);
+  opacity:0;transition:opacity .16s ease}
+nav[data-nav="a"] button[aria-current] .nm{opacity:1;transition:opacity .22s ease .1s}
+nav[data-nav="a"] button[aria-current]{color:var(--notte)}
+
+#gemma{position:absolute;left:0;top:9px;width:46px;height:30px;z-index:0;
+  border-radius:999px;pointer-events:none;opacity:0;
+  transform-origin:50% 50%;
+  background:radial-gradient(118% 150% at 50% 26%,
+    #4FAAB1 0%, #1B7178 46%, #0C4C52 100%);
+  box-shadow:0 1px 0 rgba(255,240,215,.13) inset,
+             0 3px 8px rgba(12,76,82,.34);
+  transition:opacity .2s ease}
+body[data-nav="a"] #gemma{opacity:1}
+
+/* ══ B · LA CATENA ════════════════════════════════════════════
+   Un filo di 1 px corre per tutta la larghezza, e le quattro voci
+   sono charm appesi. Sotto l'attiva il filo si INCURVA, il charm
+   sale di 6 px dentro la curva e prende un lume caldo.
+   La curva non e' un morphing fra quattro tracciati disegnati a mano:
+   il tracciato si GENERA da un solo numero — il centro della conca —
+   e quel numero e' la molla. Interpolare un parametro e' esatto;
+   interpolare due path e' un'approssimazione. Misurato: nessun
+   bisogno di cross-fade.
+   Qui le voci spente PORTANO il nome, in Inter 9,5 px maiuscoletto:
+   una collana si legge se i pendenti sono pari, e l'attiva si
+   distingue salendo e passando al Bodoni.
+   Altezza dichiarata: 72 px + safe-area. */
+nav[data-nav="b"]{height:72px;background:var(--notte);
+  padding-bottom:env(safe-area-inset-bottom)}
+#catena{position:absolute;left:0;top:0;width:100%;height:20px;z-index:0;
+  display:none;pointer-events:none}
+body[data-nav="b"] #catena{display:block}
+#catena path{fill:none;stroke:rgba(237,231,223,.34);stroke-width:1;
+  stroke-linecap:round}
+nav[data-nav="b"] button{justify-content:flex-start;padding:18px 4px 0;
+  color:var(--tenue)}
+nav[data-nav="b"] .pos{position:relative;height:26px;display:grid;place-items:center}
+nav[data-nav="b"] .alone{position:absolute;width:46px;height:46px;
+  border-radius:50%;opacity:0;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,226,178,.22) 0%,rgba(255,226,178,0) 68%);
+  transition:opacity .26s ease}
+nav[data-nav="b"] .nm{height:15px;
+  font:600 9.5px/15px Inter,system-ui,sans-serif;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--tenue);
+  transition:opacity .14s ease}
+nav[data-nav="b"] button[aria-current]{color:var(--luce)}
+nav[data-nav="b"] button[aria-current] .segno{transform:translateY(-6px)}
+nav[data-nav="b"] button[aria-current] .alone{opacity:1;transform:translateY(-6px)}
+nav[data-nav="b"] button[aria-current] .nm{
+  font:400 16px/15px Bodoni,Didot,Georgia,serif;letter-spacing:0;
+  text-transform:none;color:var(--luce)}
+
+/* ══ C · LA CAPSULA DI VETRO ══════════════════════════════════
+   La tab bar flottante di iOS, detta con la materia di Regina.
+   · staccata dal bordo: 16 punti piu' la safe-area, larga il 90%
+     centrata, raggio pieno, alta 66.
+   · VETRO VERO: fondo in rgba e `blur(20px) saturate(1.4)`. La
+     saturazione e' meta' del mestiere — un vetro che sfoca e basta
+     ingrigisce cio' che copre; quello di iOS lo sfoca e lo RAVVIVA.
+   · il riflesso: un filetto chiaro di 1 px che vive in alto e si spegne
+     scendendo (maschera verticale). E' l'unico posto dove un vetro
+     prende luce; se corre tutt'intorno diventa un bordo, e un bordo e'
+     un'altra cosa.
+   · l'ombra e' morbida e sta SOTTO: -10 di spread e 30 di raggio. Una
+     capsula con l'ombra dura sembra ritagliata e incollata.
+   Le quattro voci hanno intervalli uguali e non si muovono mai: si
+   muove la PASTIGLIA, e lo fa con la molla. Prima l'attiva si allargava
+   mangiando le altre — la riga ballava a ogni tocco.  */
+nav[data-nav="c"]{position:fixed;z-index:5;left:5%;width:90%;
+  bottom:calc(16px + env(safe-area-inset-bottom));
+  height:66px;padding:7px 6px;border-radius:999px;
+  background:var(--vetro);
+  -webkit-backdrop-filter:blur(20px) saturate(1.4);
+  backdrop-filter:blur(20px) saturate(1.4);
+  box-shadow:var(--stacco), 0 10px 30px -10px rgba(0,0,0,.35)}
+/* la tinta del vetro segue la sezione: crema sul cofanetto, scura calda
+   sulle altre tre. Lo stesso vetro su due fondi diversi e' vetro finto. */
+body[data-nav="c"]{--vetro:rgba(30,26,21,.58);
+  --riflesso:rgba(255,240,215,.45);
+  --pastiglia:rgba(255,240,215,.11);
+  --pastiglia-orlo:rgba(255,240,215,.10);
+  --pastiglia-posa:0 0 0 0 rgba(0,0,0,0);   /* «niente», in una lista di ombre */
+  --stacco:0 0 0 .5px rgba(0,0,0,.28);
+  /* SULLO SCURO L'ACCENTO E' IL TURCHESE CHIARO. Il #106068 di Regina sulla
+     pastiglia scura misura 4,10:1 — sotto la soglia di 4,5 per un testo
+     piccolo. Il #4FAAB1 (lo stesso lume che sta in cima al cabochon) ne
+     fa 4,98. Non e' un altro turchese: e' lo stesso, alla luce giusta. */
+  --acceso:#4FAAB1;
+  --spento:rgba(237,231,223,.70);
+  --spento-su:rgba(237,231,223,1)}
+/* SUL CHIARO IL VETRO DEVE ESSERE PIU' CHIARO DELLA CARTA, altrimenti la
+   capsula sparisce: crema su crema non e' un oggetto appoggiato, e' una
+   macchia. Si sbianca il vetro e si da' peso all'ombra — e' l'ombra che
+   dice «questa cosa sta SOPRA la pagina». */
+body[data-nav="c"][data-sez="cofanetto"]{--vetro:rgba(255,255,255,.74);
+  --riflesso:rgba(255,255,255,.90);
+  --pastiglia:rgba(255,255,255,.98);
+  --pastiglia-orlo:rgba(26,22,20,.055);
+  --pastiglia-posa:0 1px 2px rgba(40,30,20,.07);
+  --stacco:0 0 0 .5px rgba(26,22,20,.07), 0 2px 8px -4px rgba(40,30,20,.16);
+  --acceso:var(--firma);
+  --spento:rgba(42,33,27,.70);
+  --spento-su:rgba(42,33,27,1)}
+nav[data-nav="c"]::before{content:"";position:absolute;inset:0;
+  border-radius:inherit;pointer-events:none;
+  border:1px solid var(--riflesso);
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.34) 34%,transparent 70%);
+  mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.34) 34%,transparent 70%)}
+
+/* LA PASTIGLIA DELL'ATTIVA. Un solo elemento che scivola: non e' un
+   fondo che si accende su quattro tasti (quello lampeggia), e' una cosa
+   sola che si sposta — che e' poi il motivo per cui in iOS si capisce
+   dove si e' anche senza guardare l'etichetta. */
+#capsula{position:absolute;left:0;top:7px;height:52px;z-index:0;
+  border-radius:999px;pointer-events:none;opacity:0;
+  background:var(--pastiglia);
+  box-shadow:inset 0 0 0 .5px var(--pastiglia-orlo),
+             inset 0 .5px 0 rgba(255,255,255,.22), var(--pastiglia-posa);
+  transition:opacity .2s ease, background .25s ease}
+body[data-nav="c"] #capsula{opacity:1}
+
+nav[data-nav="c"] button{flex-direction:column;justify-content:center;
+  align-items:center;gap:3px;height:52px;border-radius:999px;
+  color:var(--spento);
+  transition:color .25s ease, transform var(--tocco) var(--molla)}
+nav[data-nav="c"] button:active{transform:scale(.92)}
+nav[data-nav="c"] button[aria-current]{color:var(--acceso)}
+nav[data-nav="c"] .segno{width:25px;height:25px;
+  transition:opacity .18s ease}
+nav[data-nav="c"] button[aria-current] .segno.contorno{opacity:0}
+nav[data-nav="c"] button[aria-current] .segno.pieno{opacity:1}
+/* L'ETICHETTA C'E' SEMPRE, su tutte e quattro. In iOS la barra non ha
+   carattere da display: e' Inter — il nostro SF — a 10,5, e la
+   differenza fra attiva e spenta la fa il PESO, non il corpo. Stessa
+   riga di base per tutte, perche' e' cosi' che quattro voci si leggono
+   come una riga sola e non come quattro tasti. */
+nav[data-nav="c"] .nm{font:500 10.5px/12px Inter,system-ui,sans-serif;
+  letter-spacing:.005em;transition:color .25s ease}
+nav[data-nav="c"] button[aria-current] .nm{font-weight:600}
+nav[data-nav="c"] button:focus-visible{outline:2px solid var(--acceso);
+  outline-offset:-4px;border-radius:999px}
+
+/* ── LA MANO CHE PASSA, dove esiste davvero una mano che passa ── */
+@media (hover:hover){
+  nav[data-nav="a"] button:hover:not([aria-current]),
+  nav[data-nav="b"] button:hover:not([aria-current]){color:#B3A795}
+  /* la mano che passa TOGLIE il velo del 70%, non accende l'accento:
+     una voce spenta col colore dell'attiva dice una bugia. */
+  nav[data-nav="c"] button:hover:not([aria-current]){color:var(--spento-su)}
+}
+
+/* ── CHI HA CHIESTO MENO MOVIMENTO ──────────────────────────────
+   Non «un po' meno»: solo dissolvenze, e non oltre 120 ms. La molla
+   in JS si spegne da sola (vedi RIDOTTO piu' sotto), qui si spengono
+   le transizioni che il CSS fa per conto suo. */
+@media (prefers-reduced-motion: reduce){
+  nav button, nav button:active, .segno, .nm, #gemma, #capsula, #fascia,
+  nav[data-nav="b"] .alone, nav[data-nav="c"] button, nav[data-nav="c"] .nm,
+  nav[data-nav="c"], nav[data-nav="c"] .segno{
+    transition-duration:.12s !important;transition-timing-function:linear !important;
+    transition-delay:0s !important}
+  nav button:active{transform:none}
+}

@@ -1,4 +1,9 @@
 <!doctype html>
+<!-- `lang` NON e' una formalita': e' la voce. Senza, VoiceOver legge
+     «Cofanetto» con la fonetica inglese, e un'app di gioielleria italiana
+     che si presenta con l'accento sbagliato ha gia' perso un pezzo di
+     quello che stava provando a costruire. -->
+<html lang="it">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#14110E">
@@ -10,15 +15,44 @@
 <link rel="icon" href="data:,">
 <title>Regina Jewels</title>
 <!--
-  LA BOZZA DELL'APP, in quattro sezioni.
-  Fino a ieri questo indirizzo apriva soltanto il banco in tre dimensioni.
-  Il banco pero' e' UNA delle quattro sezioni, non l'app: il cofanetto e'
-  la collezione di chi possiede i pezzi, la vetrina e' il negozio, «per te»
-  sono le proposte, il profilo e' la persona. Qui le quattro stanno
-  insieme, con la barra che le tiene.
-  Ogni sezione e' una pagina sua dentro una cornice: il banco pesa dieci
-  mega di modelli e non si carica finche' non lo si apre, e le altre tre
-  restano leggere.
+  ══════════════════════════════════════════════════════════════════
+  L'APP, IN UNA PAGINA SOLA.
+  Fino al 14/09 questo file era un TELAIO con quattro cornici: quattro
+  documenti separati, quattro contesti, quattro volte i caratteri, e una
+  navigazione che si poteva solo mimare — perche' fra due cornici non
+  passa ne' uno stato ne' un gesto.
+  Da qui in poi index.html E' l'app. Tre sezioni su quattro sono VISTE
+  sempre montate dentro questa stessa pagina (`app/viste/*.js`), con la
+  loro pila e la loro posizione di scorrimento. La quarta — il banco in
+  tre dimensioni — resta in una cornice, e per una ragione sola: pesa
+  dieci mega di modelli e di three.js, e quando la GPU tossisce deve
+  tossire LI'. Il prezzo di quella scelta e' che scocca e banco non si
+  vedono le variabili: si parlano, su BroadcastChannel("regina"). Il
+  contratto dei messaggi sta scritto per intero in `app/canale3d.js`.
+
+  Il resto del sistema sta in `app/`:
+    sistema.css   i token (questi, gli stessi), la scocca, i componenti
+    stato.js      un solo stato, si cambia solo mandandogli un evento
+    rotta.js      tab + pila per tab, indirizzo, gesto dal bordo
+    moto.js       una molla sola, per tutto cio' che si muove
+    ui/           barra-nav, cella, tasto, campo, foglio, toast, vuoto,
+                  redatto (scheletro), segni
+    dati/         il seme, il catalogo, le collezioni (altro esecutore)
+
+  ══════════════════════════════════════════════════════════════════
+  IL SISTEMA DI DESIGN (F0.2) — dove vive e cosa vincola.
+  Tutto sta in `app/sistema.css`, che e' la trascrizione fedele di
+  E:/OK.AGENZIA/regina-jewels/studio/SISTEMA-DESIGN.md: i token coi
+  contrasti gia' misurati accanto, i due temi, la scala tipografica, i
+  materiali, le sei durate e le due curve, e le classi di base.
+  Da qui in poi NESSUN file di `app/ui` o `app/viste` porta un hex, una
+  durata o un corpo di carattere: solo ruoli e classi. Il controllo e'
+  automatico (sonda `_A2_verifica.mjs`, prove 2, 3 e 4).
+  IL TEMA: le tre viste di elenco sono di VELLUTO (`data-tema=scuro` sul
+  <main>), il cofanetto e' di CARTA (`data-tema=chiaro` sulla sua
+  sezione, perche' il banco in tre dimensioni e' crema). Su scuro
+  l'accento e' --firma-fuoco, mai --firma: il turchese di Regina sul
+  nero misura 2,6:1.
 
   ══════════════════════════════════════════════════════════════════
   LA BARRA — tre impianti, si sceglie.
@@ -48,300 +82,122 @@
   di iOS 26 — vetro traslucido con velo e riflesso di bordo, pastiglia
   dell'attiva che scivola con la molla, simboli in stile SF con
   l'etichetta sotto, sempre tutte e quattro.
-  Le due cose che erano sbagliate e ora non lo sono:
-   · il vetro era una tinta piatta all'89% di coprenza — un velo che non
-     vela niente. Ora la fascia riservata si accorcia dove puo' e la
-     capsula si sovrappone alla sezione: il `backdrop-filter` ha
-     davvero qualcosa da sfocare.
-   · l'attiva si allargava mangiando le altre: le quattro voci non
-     avevano piu' lo stesso passo e la riga ballava a ogni tocco. Ora
-     gli intervalli sono UGUALI e si muove solo la pastiglia.
   I segni sono ridisegnati da capo su griglia 24×24, tratto 1,7 con
   terminali tondi, in due versioni (contorno e pieno), e PESATI: vedi
   la nota sui pesi ottici accanto a SEGNI.
+
+  ── TERZA PASSATA (15/09) ──────────────────────────────────────────
+  LA BARRA NON E' STATA TOCCATA. E' approvata: stessi segni, stesse
+  misure, stessa molla, stessi contrasti, stesso foglio di stile —
+  qui sotto, riga per riga come stava. L'unica differenza e' da chi
+  prende gli ordini: prima chiamava `apri()`, che montava una cornice;
+  ora chiama `window.__vai()`, che e' il navigatore. Cambia il
+  destinatario, non il gesto.
   ══════════════════════════════════════════════════════════════════
 -->
-<style>
-@font-face{font-family:Bodoni;src:url("font/bodoni.woff2") format("woff2");font-weight:400 500}
-@font-face{font-family:Inter;src:url("font/inter.woff2") format("woff2");font-weight:400 600}
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden;background:#14110E}
-body{display:flex;flex-direction:column;
-     font:400 15px/1.5 Inter,system-ui,sans-serif;color:#EDE7DF}
 
-:root{
-  --notte:#14110E;      /* il fondo della barra agganciata */
-  --vano:#1C1813;
-  --carta:#FAF8F5;      /* il fondo del cofanetto: la fascia di C lo copia */
-  --cipria:#F4EBE6;
-  --luce:#EDE7DF;       /* i nomi sul fondo scuro: 15,4:1 */
-  --tenue:#8A7E70;      /* i segni spenti sul fondo scuro: 4,75:1 */
-  --firma:#106068;      /* il turchese di Regina */
-  --firma-fuoco:#3E9AA1;/* il turchese che si vede sul nero: per il fuoco */
-  --filo:rgba(255,240,215,.10);
-  /* LA MOLLA E' UNA SOLA, e sta scritta una volta. 0,5 s, smorzamento
-     0,825: si posa senza rimbalzare. La curva qui sotto e' la sua
-     approssimazione per le transizioni che il CSS puo' reggere da solo. */
-  --molla:cubic-bezier(.22,1,.36,1);
-  --tocco:100ms;
-  /* la curva di iOS per cio' che non passa dalla molla a rAF */
-  --ios:cubic-bezier(.2,.8,.2,1);
-}
+<!-- I MODULI PORTANO LA VERSIONE. Non e' una precauzione: e' successo.
+     Safari serve volentieri un modulo vecchio a un telaio nuovo, e il
+     risultato e' un'app che sembra rotta a caso. Le mappe d'importazione
+     sono l'unico posto dove il timbro si scrive UNA volta per modulo,
+     invece che a ogni `import` in ogni file.
+     La stringa qui sotto deve combaciare con `const VERSIONE` in fondo:
+     se non combacia, il pannello `?diag=1` lo dice.
 
-/* ── LA CORNICE ─────────────────────────────────────────────────
-   Come in iOS: incrocio di 250 ms e la cornice entrante che si apre da
-   0,98 a 1. Nessuna traslazione laterale — quella racconta un percorso
-   («sono andato a destra») che in una tab bar non esiste: le quattro
-   sezioni sono pari, non in fila. */
-#dentro{flex:1 1 auto;position:relative;min-height:0}
-#dentro iframe{position:absolute;inset:0;width:100%;height:100%;border:0;
-  background:#14110E;opacity:0;pointer-events:none;
-  transform:scale(.98);transform-origin:50% 42%;
-  transition:opacity .25s ease, transform .25s var(--ios)}
-#dentro iframe.qui{opacity:1;pointer-events:auto;transform:none}
+     E c'e' una RETE, in fondo alla mappa: `"app/": "./app/"`. Costo di
+     un modulo dimenticato senza la rete: l'app non parte affatto
+     («Failed to resolve module specifier»), ed e' successo mentre si
+     scriveva questo file. Con la rete, un modulo dimenticato si carica
+     lo stesso — soltanto senza timbro, cioe' con la cache del browser
+     invece che con la nostra. Un difetto che si vede solo dopo un
+     aggiornamento e' meglio di uno schermo nero. Le voci esplicite
+     vincono sul prefisso: la rete non toglie il timbro a nessuno. -->
+<script type="importmap">
+{"imports":{
+  "app/": "./app/",
+  "app/avvio.js":         "./app/avvio.js?v=2026-09-15b",
+  "app/innesto.js":       "./app/innesto.js?v=2026-09-15b",
+  "app/stato.js":         "./app/stato.js?v=2026-09-15b",
+  "app/rotta.js":         "./app/rotta.js?v=2026-09-15b",
+  "app/moto.js":          "./app/moto.js?v=2026-09-15b",
+  "app/canale3d.js":      "./app/canale3d.js?v=2026-09-15b",
+  "app/ripiego.js":       "./app/ripiego.js?v=2026-09-15b",
+  "app/ui/dom.js":        "./app/ui/dom.js?v=2026-09-15b",
+  "app/ui/cella.js":      "./app/ui/cella.js?v=2026-09-15b",
+  "app/ui/tasto.js":      "./app/ui/tasto.js?v=2026-09-15b",
+  "app/ui/vuoto.js":      "./app/ui/vuoto.js?v=2026-09-15b",
+  "app/ui/scheletro.js":  "./app/ui/scheletro.js?v=2026-09-15b",
+  "app/ui/segni.js":      "./app/ui/segni.js?v=2026-09-15b",
+  "app/ui/barra-nav.js":  "./app/ui/barra-nav.js?v=2026-09-15b",
+  "app/ui/toast.js":      "./app/ui/toast.js?v=2026-09-15b",
+  "app/ui/foglio.js":     "./app/ui/foglio.js?v=2026-09-15b",
+  "app/viste/vetrina.js": "./app/viste/vetrina.js?v=2026-09-15b",
+  "app/viste/perte.js":   "./app/viste/perte.js?v=2026-09-15b",
+  "app/viste/profilo.js": "./app/viste/profilo.js?v=2026-09-15b",
+  "app/dati/seme.js":     "./app/dati/seme.js?v=2026-09-15b",
+  "app/dati/catalogo.js": "./app/dati/catalogo.js?v=2026-09-15b",
+  "app/dati/collezioni.js":"./app/dati/collezioni.js?v=2026-09-15b"
+}}
+</script>
+<link rel="stylesheet" href="app/sistema.css?v=2026-09-15b">
 
-/* ── LA FASCIA RISERVATA (solo per C) ───────────────────────────
-   La capsula galleggia SOPRA la sezione. Sopra il banco pero' ci sta il
-   menu delle cinque famiglie — e' li' che si tocca — quindi sotto la
-   capsula va lasciato del posto: questa fascia. Si colora come il fondo
-   della sezione attiva, cosi' la capsula si appoggia su una materia
-   coerente invece di sembrare incollata sotto lo schermo.
-   E NON E' ALTA UGUALE PER TUTTE. Il velo di un vetro che copre una
-   tinta piatta non vela niente: dove la sezione non ha niente da
-   proteggere in basso la fascia si accorcia a 46, la capsula scavalca
-   il bordo della cornice di 36 px e il `backdrop-filter` ha finalmente
-   della materia vera da sfocare. Sul cofanetto la fascia resta alta 80:
-   misurato, lascia 16 punti fra il menu delle famiglie e il bordo alto
-   della capsula — dentro la forbice 12-20 che tiene le due cose vicine
-   senza che una tocchi l'altra. */
-#fascia{flex:0 0 auto;height:0;background:var(--notte);
-  transition:background .25s ease, height .25s var(--ios)}
-body[data-nav="c"] #fascia{height:calc(46px + env(safe-area-inset-bottom))}
-body[data-nav="c"][data-sez="cofanetto"] #fascia{
-  height:calc(80px + env(safe-area-inset-bottom));background:var(--carta)}
+<!-- LA BARRA E' NEL SISTEMA. Fino al 15/09 il suo foglio di stile
+     stava qui, e stava qui per una ragione buona: e' l'unico pezzo
+     approvato dal cliente, e un pezzo approvato non si sposta di file
+     mentre gli si cambia il mondo intorno.
+     Adesso si e' spostato, e il permesso l'ha dato una misura, non una
+     opinione: schermata a 390x844 a due volte, fondale neutralizzato
+     (contenuto delle viste nascosto), ritaglio degli ultimi 92 punti —
+     143.520 pixel — prima e dopo. DIFFERENZA: 0 pixel, delta massimo 0.
+     Sonda: E:/OK.AGENZIA/regina-jewels/studio/prova3d/_A2_barra.mjs e
+     _A2_verifica.mjs (prova 7). Se un giorno quel numero non e' piu' 0,
+     la barra e' cambiata: si torna indietro, non si aggiorna la linea
+     di base. -->
 
-#velo{position:absolute;inset:0;display:grid;place-items:center;z-index:2;
-  background:#14110E;color:#8A7E70;font-size:13px;letter-spacing:.06em;
-  transition:opacity .3s ease}
-#velo[hidden]{opacity:0;pointer-events:none;display:grid}
+<body>
+<!-- LA SCOCCA. #app sta dentro body perche' il foglio dal basso debba
+     poterla far arretrare (scala .92, raggio 12) senza toccare se
+     stesso: un <dialog> modale vive nel top layer e non eredita le
+     trasformazioni dell'antenato. -->
+<div id="app">
+  <!-- IL TEMA. Le tre viste di elenco sono DI VELLUTO (tema scuro): e'
+       cio' che erano le vecchie pagine, coi vassoi, ed e' cio' che una
+       gioielleria fa da sempre — il metallo e la pietra si leggono sul
+       buio, non sulla carta. Il COFANETTO resta di carta (tema chiaro)
+       perche' il banco in tre dimensioni e' crema: un fondo scuro
+       intorno a un banco crema sarebbe una cornice, non una stanza.
+       Cosi' il sistema mostra tutt'e due i temi, e su scuro l'accento e'
+       --firma-fuoco, mai --firma (che sul nero fa 2,6:1). -->
+  <main id="dentro" data-tema="scuro">
+    <section class="vista" data-vista="cofanetto" aria-label="Cofanetto" data-tema="chiaro" hidden>
+      <div class="strato"><div id="velo">apparecchio il banco&hellip;</div></div>
+    </section>
+    <section class="vista" data-vista="vetrina" aria-label="Vetrina" hidden>
+      <div class="strato"></div>
+    </section>
+    <section class="vista" data-vista="perte" aria-label="Per te" hidden>
+      <div class="strato"></div>
+    </section>
+    <section class="vista" data-vista="profilo" aria-label="Profilo" hidden>
+      <div class="strato"></div>
+    </section>
+  </main>
+  <div id="fascia"></div>
+  <nav id="barra" data-nav="a" aria-label="Sezioni"></nav>
+</div>
 
-/* ══ LA BARRA — il tronco comune ══════════════════════════════ */
-nav{flex:0 0 auto;position:relative;display:flex}
-/* `isolation` serve ad A e B per tenere la pietra e il filo sotto le
-   voci. A C non si da': un elemento isolato diventa la radice del
-   proprio fondale e il vetro non vedrebbe piu' la sezione da sfocare. */
-nav[data-nav="a"],nav[data-nav="b"]{isolation:isolate}
-nav button{flex:1 1 0;min-width:0;border:0;background:none;cursor:pointer;
-  position:relative;z-index:1;
-  display:flex;flex-direction:column;align-items:center;
-  -webkit-tap-highlight-color:transparent;
-  transition:transform var(--tocco) var(--molla)}
-nav button:active{transform:scale(.94)}
-nav button:focus-visible{outline:2px solid var(--firma-fuoco);outline-offset:-3px;
-  border-radius:10px}
-/* I DUE STRATI DEL SEGNO stanno nella stessa cella: contorno e pieno si
-   incrociano, non si scambiano di posto. Cosi' la piccola differenza di
-   grandezza fra le due versioni — che e' il modo in cui si pareggiano i
-   pesi ottici — passa come un riempirsi, non come un salto. */
-.pos{position:relative;display:grid;place-items:center}
-.pos .segno{grid-area:1/1}
-.segno{width:22px;height:22px;display:block;flex:none;
-  transition:stroke .22s ease, transform .22s var(--molla)}
-.segno path,.segno circle{stroke-linecap:round;stroke-linejoin:round}
-.segno.contorno path,.segno.contorno circle{fill:none;stroke:currentColor}
-.segno.pieno path,.segno.pieno circle{fill:currentColor;stroke:none}
-.segno.pieno{opacity:0}
-/* A e B portano solo il contorno: il pieno resta spento la' dentro. */
-.nm{display:block;white-space:nowrap}
+<!-- IL FOGLIO. Uno solo, riusato: due <dialog> aperti insieme sono due
+     top layer sovrapposti, e da li' non si torna indietro. -->
+<dialog id="foglio" aria-labelledby="foglio-titolo">
+  <button type="button" class="maniglia" aria-label="Alza o abbassa il foglio"><i></i></button>
+  <h2 id="foglio-titolo" tabindex="-1"></h2>
+  <div class="corpo"></div>
+</dialog>
 
-/* ══ A · IL CABOCHON ══════════════════════════════════════════
-   La barra resta agganciata, da bordo a bordo, col filetto caldo
-   sopra. L'attiva sta su una pietra: una pastiglia ellittica col
-   suo lume dentro, come la pietra dell'anello — un gradiente
-   contenuto, non un neon. Durante il tragitto si stira come una
-   goccia (scaleX cresce con la velocita', scaleY cala) e all'arrivo
-   si ricompone.
-   Le voci spente mostrano SOLO il segno: il nome in Bodoni e' l'altra
-   meta' dell'evento, e quattro nomi accesi tutti insieme lo
-   spengono. Il nome di ciascuna resta nell'`aria-label`.
-   Altezza dichiarata: 70 px + safe-area. */
-nav[data-nav="a"]{height:70px;background:var(--notte);
-  border-top:1px solid var(--filo);
-  padding-bottom:env(safe-area-inset-bottom)}
-nav[data-nav="a"] button{justify-content:flex-start;padding:9px 4px 0;
-  color:var(--tenue)}
-nav[data-nav="a"] .pos{height:34px;display:grid;place-items:center}
-nav[data-nav="a"] .nm{height:16px;
-  font:400 16px/16px Bodoni,Didot,Georgia,serif;color:var(--luce);
-  opacity:0;transition:opacity .16s ease}
-nav[data-nav="a"] button[aria-current] .nm{opacity:1;transition:opacity .22s ease .1s}
-nav[data-nav="a"] button[aria-current]{color:var(--notte)}
-
-#gemma{position:absolute;left:0;top:9px;width:46px;height:30px;z-index:0;
-  border-radius:999px;pointer-events:none;opacity:0;
-  transform-origin:50% 50%;
-  background:radial-gradient(118% 150% at 50% 26%,
-    #4FAAB1 0%, #1B7178 46%, #0C4C52 100%);
-  box-shadow:0 1px 0 rgba(255,240,215,.13) inset,
-             0 3px 8px rgba(12,76,82,.34);
-  transition:opacity .2s ease}
-body[data-nav="a"] #gemma{opacity:1}
-
-/* ══ B · LA CATENA ════════════════════════════════════════════
-   Un filo di 1 px corre per tutta la larghezza, e le quattro voci
-   sono charm appesi. Sotto l'attiva il filo si INCURVA, il charm
-   sale di 6 px dentro la curva e prende un lume caldo.
-   La curva non e' un morphing fra quattro tracciati disegnati a mano:
-   il tracciato si GENERA da un solo numero — il centro della conca —
-   e quel numero e' la molla. Interpolare un parametro e' esatto;
-   interpolare due path e' un'approssimazione. Misurato: nessun
-   bisogno di cross-fade.
-   Qui le voci spente PORTANO il nome, in Inter 9,5 px maiuscoletto:
-   una collana si legge se i pendenti sono pari, e l'attiva si
-   distingue salendo e passando al Bodoni.
-   Altezza dichiarata: 72 px + safe-area. */
-nav[data-nav="b"]{height:72px;background:var(--notte);
-  padding-bottom:env(safe-area-inset-bottom)}
-#catena{position:absolute;left:0;top:0;width:100%;height:20px;z-index:0;
-  display:none;pointer-events:none}
-body[data-nav="b"] #catena{display:block}
-#catena path{fill:none;stroke:rgba(237,231,223,.34);stroke-width:1;
-  stroke-linecap:round}
-nav[data-nav="b"] button{justify-content:flex-start;padding:18px 4px 0;
-  color:var(--tenue)}
-nav[data-nav="b"] .pos{position:relative;height:26px;display:grid;place-items:center}
-nav[data-nav="b"] .alone{position:absolute;width:46px;height:46px;
-  border-radius:50%;opacity:0;pointer-events:none;
-  background:radial-gradient(circle,rgba(255,226,178,.22) 0%,rgba(255,226,178,0) 68%);
-  transition:opacity .26s ease}
-nav[data-nav="b"] .nm{height:15px;
-  font:600 9.5px/15px Inter,system-ui,sans-serif;letter-spacing:.11em;
-  text-transform:uppercase;color:var(--tenue);
-  transition:opacity .14s ease}
-nav[data-nav="b"] button[aria-current]{color:var(--luce)}
-nav[data-nav="b"] button[aria-current] .segno{transform:translateY(-6px)}
-nav[data-nav="b"] button[aria-current] .alone{opacity:1;transform:translateY(-6px)}
-nav[data-nav="b"] button[aria-current] .nm{
-  font:400 16px/15px Bodoni,Didot,Georgia,serif;letter-spacing:0;
-  text-transform:none;color:var(--luce)}
-
-/* ══ C · LA CAPSULA DI VETRO ══════════════════════════════════
-   La tab bar flottante di iOS, detta con la materia di Regina.
-   · staccata dal bordo: 16 punti piu' la safe-area, larga il 90%
-     centrata, raggio pieno, alta 66.
-   · VETRO VERO: fondo in rgba e `blur(20px) saturate(1.4)`. La
-     saturazione e' meta' del mestiere — un vetro che sfoca e basta
-     ingrigisce cio' che copre; quello di iOS lo sfoca e lo RAVVIVA.
-   · il riflesso: un filetto chiaro di 1 px che vive in alto e si spegne
-     scendendo (maschera verticale). E' l'unico posto dove un vetro
-     prende luce; se corre tutt'intorno diventa un bordo, e un bordo e'
-     un'altra cosa.
-   · l'ombra e' morbida e sta SOTTO: -10 di spread e 30 di raggio. Una
-     capsula con l'ombra dura sembra ritagliata e incollata.
-   Le quattro voci hanno intervalli uguali e non si muovono mai: si
-   muove la PASTIGLIA, e lo fa con la molla. Prima l'attiva si allargava
-   mangiando le altre — la riga ballava a ogni tocco.  */
-nav[data-nav="c"]{position:fixed;z-index:5;left:5%;width:90%;
-  bottom:calc(16px + env(safe-area-inset-bottom));
-  height:66px;padding:7px 6px;border-radius:999px;
-  background:var(--vetro);
-  -webkit-backdrop-filter:blur(20px) saturate(1.4);
-  backdrop-filter:blur(20px) saturate(1.4);
-  box-shadow:var(--stacco), 0 10px 30px -10px rgba(0,0,0,.35)}
-/* la tinta del vetro segue la sezione: crema sul cofanetto, scura calda
-   sulle altre tre. Lo stesso vetro su due fondi diversi e' vetro finto. */
-body[data-nav="c"]{--vetro:rgba(30,26,21,.58);
-  --riflesso:rgba(255,240,215,.45);
-  --pastiglia:rgba(255,240,215,.11);
-  --pastiglia-orlo:rgba(255,240,215,.10);
-  --pastiglia-posa:0 0 0 0 rgba(0,0,0,0);   /* «niente», in una lista di ombre */
-  --stacco:0 0 0 .5px rgba(0,0,0,.28);
-  /* SULLO SCURO L'ACCENTO E' IL TURCHESE CHIARO. Il #106068 di Regina sulla
-     pastiglia scura misura 4,10:1 — sotto la soglia di 4,5 per un testo
-     piccolo. Il #4FAAB1 (lo stesso lume che sta in cima al cabochon) ne
-     fa 4,98. Non e' un altro turchese: e' lo stesso, alla luce giusta. */
-  --acceso:#4FAAB1;
-  --spento:rgba(237,231,223,.70);
-  --spento-su:rgba(237,231,223,1)}
-/* SUL CHIARO IL VETRO DEVE ESSERE PIU' CHIARO DELLA CARTA, altrimenti la
-   capsula sparisce: crema su crema non e' un oggetto appoggiato, e' una
-   macchia. Si sbianca il vetro e si da' peso all'ombra — e' l'ombra che
-   dice «questa cosa sta SOPRA la pagina». */
-body[data-nav="c"][data-sez="cofanetto"]{--vetro:rgba(255,255,255,.74);
-  --riflesso:rgba(255,255,255,.90);
-  --pastiglia:rgba(255,255,255,.98);
-  --pastiglia-orlo:rgba(26,22,20,.055);
-  --pastiglia-posa:0 1px 2px rgba(40,30,20,.07);
-  --stacco:0 0 0 .5px rgba(26,22,20,.07), 0 2px 8px -4px rgba(40,30,20,.16);
-  --acceso:var(--firma);
-  --spento:rgba(42,33,27,.70);
-  --spento-su:rgba(42,33,27,1)}
-nav[data-nav="c"]::before{content:"";position:absolute;inset:0;
-  border-radius:inherit;pointer-events:none;
-  border:1px solid var(--riflesso);
-  -webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.34) 34%,transparent 70%);
-  mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.34) 34%,transparent 70%)}
-
-/* LA PASTIGLIA DELL'ATTIVA. Un solo elemento che scivola: non e' un
-   fondo che si accende su quattro tasti (quello lampeggia), e' una cosa
-   sola che si sposta — che e' poi il motivo per cui in iOS si capisce
-   dove si e' anche senza guardare l'etichetta. */
-#capsula{position:absolute;left:0;top:7px;height:52px;z-index:0;
-  border-radius:999px;pointer-events:none;opacity:0;
-  background:var(--pastiglia);
-  box-shadow:inset 0 0 0 .5px var(--pastiglia-orlo),
-             inset 0 .5px 0 rgba(255,255,255,.22), var(--pastiglia-posa);
-  transition:opacity .2s ease, background .25s ease}
-body[data-nav="c"] #capsula{opacity:1}
-
-nav[data-nav="c"] button{flex-direction:column;justify-content:center;
-  align-items:center;gap:3px;height:52px;border-radius:999px;
-  color:var(--spento);
-  transition:color .25s ease, transform var(--tocco) var(--molla)}
-nav[data-nav="c"] button:active{transform:scale(.92)}
-nav[data-nav="c"] button[aria-current]{color:var(--acceso)}
-nav[data-nav="c"] .segno{width:25px;height:25px;
-  transition:opacity .18s ease}
-nav[data-nav="c"] button[aria-current] .segno.contorno{opacity:0}
-nav[data-nav="c"] button[aria-current] .segno.pieno{opacity:1}
-/* L'ETICHETTA C'E' SEMPRE, su tutte e quattro. In iOS la barra non ha
-   carattere da display: e' Inter — il nostro SF — a 10,5, e la
-   differenza fra attiva e spenta la fa il PESO, non il corpo. Stessa
-   riga di base per tutte, perche' e' cosi' che quattro voci si leggono
-   come una riga sola e non come quattro tasti. */
-nav[data-nav="c"] .nm{font:500 10.5px/12px Inter,system-ui,sans-serif;
-  letter-spacing:.005em;transition:color .25s ease}
-nav[data-nav="c"] button[aria-current] .nm{font-weight:600}
-nav[data-nav="c"] button:focus-visible{outline:2px solid var(--acceso);
-  outline-offset:-4px;border-radius:999px}
-
-/* ── LA MANO CHE PASSA, dove esiste davvero una mano che passa ── */
-@media (hover:hover){
-  nav[data-nav="a"] button:hover:not([aria-current]),
-  nav[data-nav="b"] button:hover:not([aria-current]){color:#B3A795}
-  /* la mano che passa TOGLIE il velo del 70%, non accende l'accento:
-     una voce spenta col colore dell'attiva dice una bugia. */
-  nav[data-nav="c"] button:hover:not([aria-current]){color:var(--spento-su)}
-}
-
-/* ── CHI HA CHIESTO MENO MOVIMENTO ──────────────────────────────
-   Non «un po' meno»: solo dissolvenze, e non oltre 120 ms. La molla
-   in JS si spegne da sola (vedi RIDOTTO piu' sotto), qui si spengono
-   le transizioni che il CSS fa per conto suo. */
-@media (prefers-reduced-motion: reduce){
-  #dentro iframe{transform:none;transition:opacity .12s linear}
-  nav button, nav button:active, .segno, .nm, #gemma, #capsula, #fascia,
-  nav[data-nav="b"] .alone, nav[data-nav="c"] button, nav[data-nav="c"] .nm,
-  nav[data-nav="c"], nav[data-nav="c"] .segno{
-    transition-duration:.12s !important;transition-timing-function:linear !important;
-    transition-delay:0s !important}
-  nav button:active{transform:none}
-}
-</style>
-
-<div id="dentro"><div id="velo">apparecchio il banco…</div></div>
-<div id="fascia"></div>
-<nav id="barra" data-nav="a"></nav>
+<div id="toast-zona"></div>
+<!-- UNA SOLA regione di annunci in tutta l'app: due regioni che parlano
+     insieme si coprono, e chi ascolta sente una parola e mezza. -->
+<p id="annunci" role="status" aria-live="polite" aria-atomic="true"></p>
 
 <script>
 /* ── I SEGNI ───────────────────────────────────────────────────
@@ -396,20 +252,18 @@ const disegnoSegno = (id, modo) => {
 };
 
 const SEZIONI = [
-  {id:"cofanetto", nome:"Cofanetto", dove:"spazio.html"},
-  {id:"vetrina",   nome:"Vetrina",   dove:"vetrina.html"},
-  {id:"perte",     nome:"Per te",    dove:"perte.html"},
-  {id:"profilo",   nome:"Profilo",   dove:"profilo.html"},
+  {id:"cofanetto", nome:"Cofanetto"},
+  {id:"vetrina",   nome:"Vetrina"},
+  {id:"perte",     nome:"Per te"},
+  {id:"profilo",   nome:"Profilo"},
 ];
 /* «Cofanetto» apre il banco in tre dimensioni; la scheda cofanetto.html
    costruita a parte resta come vista d'elenco e la si raggiunge da dentro. */
-/* E OGNI SEZIONE PORTA LA SUA VERSIONE. */
-const VERSIONE = "2026-09-14d";
+/* E LA VERSIONE, che timbra i moduli e la cornice del banco. */
+const VERSIONE = "2026-09-15b";
+window.VERSIONE = VERSIONE;
 
-const dentro = document.getElementById("dentro");
-const barra  = document.getElementById("barra");
-const velo   = document.getElementById("velo");
-const telai  = {};
+const barra = document.getElementById("barra");
 let attiva = null;
 
 const RIDOTTO = matchMedia("(prefers-reduced-motion: reduce)");
@@ -417,7 +271,10 @@ const RIDOTTO = matchMedia("(prefers-reduced-motion: reduce)");
 /* ── LA MOLLA ──────────────────────────────────────────────────
    Una sola, e sta qui. 0,5 s di assestamento, smorzamento 0,825:
    l'oscillazione smorzata sorpassa il bersaglio dell'1,3% e si posa.
-   Non e' un rimbalzo, e' il peso di una cosa che si appoggia. */
+   Non e' un rimbalzo, e' il peso di una cosa che si appoggia.
+   (La stessa legge, come modulo, sta in app/moto.js: la usano il
+   foglio, il toast e il gesto dal bordo. Qui resta scritta com'era
+   perche' la barra non cambi neanche di una cifra.) */
 const OMEGA = 14.0, ZETA = 0.825;
 function Molla(x0){ this.x = x0; this.v = 0; this.meta = x0; this.viva = false; }
 Molla.prototype.passo = function(dt){
@@ -437,7 +294,7 @@ barra.innerHTML =
   '<span id="capsula"></span>' +
   '<svg id="catena" aria-hidden="true" viewBox="0 0 390 20"><path d=""/></svg>' +
   SEZIONI.map(s =>
-    '<button type="button" data-id="'+s.id+'">'+
+    '<button type="button" data-id="'+s.id+'" aria-label="'+s.nome+'">'+
       '<span class="pos"><span class="alone"></span>'+
         disegnoSegno(s.id,"contorno") + disegnoSegno(s.id,"pieno") +
       '</span>'+
@@ -449,11 +306,21 @@ const capsula = document.getElementById("capsula");
 const catena = document.getElementById("catena");
 const filoPath = catena.querySelector("path");
 const tasti = [...barra.querySelectorAll("button")];
-tasti.forEach(b => b.onclick = () => apri(b.dataset.id));
+/* IL GESTO NON CAMBIA, CAMBIA IL DESTINATARIO. Prima montava una
+   cornice; ora chiama il navigatore, che sa anche cosa significa
+   toccare la voce gia' attiva (tornare alla radice di quel tab). */
+tasti.forEach(b => {
+  b.onclick = () => { if(window.__vai) window.__vai(b.dataset.id); };
+  /* la stessa marcatura che `app/ui/dom.js` mette da sola sui comandi
+     costruiti dalle viste: il banco di collaudo conta i tasti morti, e
+     queste quattro voci non devono comparire nel conto per il solo
+     motivo di essere nate qui invece che la'. */
+  b.setAttribute("data-vivo", "1");
+});
 
 /* ── QUALE BARRA ───────────────────────────────────────────────
    `?nav=a|b|c` decide e resta; senza, l'ultima scelta; senza neanche
-   quella, A. `window.__nav("b")` per provarle in sequenza. */
+   quella, C. `window.__nav("b")` per provarle in sequenza. */
 function quale(){
   const q = new URLSearchParams(location.search).get("nav");
   if(q && "abc".includes(q)){ try{ localStorage.setItem("rj.nav", q); }catch(_){} return q; }
@@ -538,55 +405,34 @@ function posa(subito){
   if(!girando){ girando = true; ultimo = performance.now(); requestAnimationFrame(giro); }
 }
 
-/* ── SI APRE UNA SEZIONE ───────────────────────────────────────── */
-function apri(id){
-  if(attiva === id) return;
-  const s = SEZIONI.find(x => x.id === id);
-  if(!telai[id]){
-    const t = document.createElement("iframe");
-    t.src = s.dove + "?v=" + VERSIONE;
-    t.title = s.nome;
-    t.loading = "eager";
-    if(id === "cofanetto") t.allow = "fullscreen";   /* solo il banco chiede lo schermo intero */
-    dentro.appendChild(t);
-    telai[id] = t;
-    t.addEventListener("load", () => { if(id === "cofanetto") velo.hidden = true; });
-  } else if(id === "cofanetto") velo.hidden = true;
-  for(const k in telai) telai[k].classList.toggle("qui", k === id);
-  for(const b of tasti){
-    if(b.dataset.id === id) b.setAttribute("aria-current", "page");
-    else b.removeAttribute("aria-current");
-  }
-  if(id !== "cofanetto") velo.hidden = true;
-  const primo = attiva === null;
-  attiva = id;
-  /* la sezione attiva si dichiara sul BODY: da li' la leggono la fascia
-     riservata (altezza e tinta) e il vetro della barra (tinta, riflesso,
-     accento). Una dichiarazione sola, tre cose che ubbidiscono. */
-  document.body.dataset.sez = id;
-  document.querySelector('meta[name=theme-color]')
-    .setAttribute("content", NAV === "c" && id === "cofanetto" ? "#FAF8F5" : "#14110E");
-  posa(primo);
-  try { history.replaceState(null, "", "#" + id); } catch(_) {}
-}
+/* ── CIO' CHE IL TELAIO ESPONE ALL'APP ─────────────────────────
+   Due funzioni, e due bastano: `segna` accende la voce e fa partire la
+   molla, `posa` rimette la pastiglia al suo posto quando lo schermo
+   cambia misura. Tutto il resto della barra resta affar suo. */
+window.__barra = {
+  segna(id){
+    const primo = attiva === null;
+    if(attiva === id) return;
+    attiva = id;
+    for(const b of tasti){
+      if(b.dataset.id === id) b.setAttribute("aria-current", "page");
+      else b.removeAttribute("aria-current");
+    }
+    document.querySelector('meta[name=theme-color]')
+      .setAttribute("content", NAV === "c" && id === "cofanetto" ? "#FAF8F5" : "#14110E");
+    posa(primo);
+  },
+  posa
+};
 
-/* e il tasto indietro del telefono cambia sezione invece di uscire
-   dall'app: senza, chi tornava indietro dal profilo si ritrovava fuori */
-function daIndirizzo(){
-  const c = location.hash.replace("#", "");
-  apri(SEZIONI.some(s => s.id === c) ? c : "cofanetto");
-}
-addEventListener("hashchange", daIndirizzo);
 addEventListener("resize", () => posa(true));
 RIDOTTO.addEventListener && RIDOTTO.addEventListener("change", () => posa(true));
 
 vestiLaBarra(NAV);
-daIndirizzo();
-posa(true);
 
-/* IL TELAIO SI CONTROLLA DA SOLO. Le sezioni portano ?v=VERSIONE, ma il
+/* IL TELAIO SI CONTROLLA DA SOLO. I moduli portano ?v=VERSIONE, ma il
    telaio no: Safari lo tiene in cache anche dopo «ricarica» e anche
-   chiudendo il browser, e un telaio vecchio chiede sezioni vecchie — con
+   chiudendo il browser, e un telaio vecchio chiede moduli vecchi — con
    il loro ?v= vecchio, che la cache serve volentieri. Massimo ha
    ricaricato piu' volte e vedeva sempre la versione di prima. Appena
    aperto, il telaio chiede se stesso con un timbro che nessuna cache ha
@@ -605,8 +451,22 @@ fetch(location.pathname + "?t=" + Date.now(), {cache:"no-store"})
 if(new URLSearchParams(location.search).get("diag")){
   const v = document.createElement("div");
   v.textContent = "telaio " + VERSIONE;
-  v.style.cssText = "position:fixed;left:8px;top:8px;z-index:9;padding:4px 7px;" +
-    "background:rgba(20,17,14,.7);color:#8FE3C9;font:11px/1.3 ui-monospace,monospace";
+  v.style.cssText = "position:fixed;left:8px;top:calc(8px + env(safe-area-inset-top));" +
+    "z-index:90;padding:4px 7px;background:rgba(20,17,14,.7);color:#8FE3C9;" +
+    "font:11px/1.3 ui-monospace,monospace";
   document.body.appendChild(v);
+  /* e si controlla che la mappa d'importazione porti lo stesso timbro:
+     una mappa rimasta indietro serve moduli vecchi in silenzio. */
+  const mp = document.querySelector('script[type=importmap]');
+  const t = mp && mp.textContent.match(/\?v=([^"]+)"/);
+  if(t && t[1] !== VERSIONE){
+    v.textContent += "  ⚠ importmap " + t[1];
+    v.style.color = "#E8A33D";
+  }
 }
+</script>
+
+<script type="module">
+import { avviaApp } from "app/avvio.js";
+avviaApp(window.VERSIONE).catch(e => console.error(e));
 </script>
