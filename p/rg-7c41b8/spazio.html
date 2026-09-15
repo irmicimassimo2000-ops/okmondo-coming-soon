@@ -148,9 +148,23 @@
          `--menu-zona` è quanto spazio si tiene libero sotto il velo di
          carta: la capsula più la sua aria più i dodici punti che la
          staccano dal cartellino. */
+      /* ── E DODICI PUNTI DAL FONDO, NON QUARANTAQUATTRO (16/09) ───
+         `--menu-giu` valeva `10 + max(env(safe-area-inset-bottom), 8)`.
+         Misurato dentro l'app su un iPhone grande in standalone: env()
+         ARRIVA anche nella cornice (59 in cima, 34 in fondo), e la
+         scocca l'aveva già riservata per conto suo nella fascia sotto
+         l'iframe. Cioè la safe area si pagava DUE VOLTE — 34 punti di
+         carta vuota fra la capsula e la tab bar, dentro quella che il
+         cliente ha chiamato «fascia di scena morta». Qui la capsula sta
+         a 12 punti dal fondo della CORNICE e la safe area la tiene la
+         scocca, che è l'unica che tocca il bordo dello schermo.
+         Quando invece questa pagina si apre DA SOLA (senza scocca:
+         `data-solo`, lo scrive lo spillo qui sotto al foglio di stile)
+         il bordo dello schermo è suo e la safe area torna sua. */
       --menu-h:56px;
-      --menu-giu:calc(10px + max(env(safe-area-inset-bottom), 8px));
+      --menu-giu:12px;
       --menu-zona:calc(var(--menu-h) + var(--menu-giu) + 12px)}
+:root[data-solo]{--menu-giu:calc(12px + max(env(safe-area-inset-bottom), 0px))}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-serif}
@@ -297,12 +311,35 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
    Il gradiente passa su uno pseudo perché deve stare DIETRO ai figli:
    `#fondo` ha già il suo z-index, quindi è una radice di
    impilamento e un `z-index:-1` qui dentro non scavalca niente fuori. */
+/* ── E IL VELO ARRIVA FINO IN FONDO (16/09) ────────────────────────
+   Il velo si fermava dodici punti sopra la capsula perché il vetro
+   avesse della materia vera da sfocare. Verdetto del cliente: sotto la
+   capsula restava una STRISCIA DI SCENA SFOCATA — nella sua misura una
+   «fascia di scena morta» fra il cartellino e la tab bar della scocca.
+   Una striscia di ambiente alta trenta punti, tagliata sopra e sotto,
+   non è ambiente: è un ritaglio. Quindi il velo scende a zero e la
+   capsula galleggia sulla CARTA, come la tab bar della scocca fa sul
+   cofanetto — dove il vetro è sbiancato e il suo stacco è l'ombra, non
+   la sfocatura.
+   E LA SFUMATURA NON DIPENDE PIÙ DALL'ALTEZZA DEL CARTELLINO. Prima le
+   fermate erano in per cento di un'altezza che cambia col livello: al
+   62% di un pannello basso la carta piena cominciava sotto il nome del
+   pezzo. Adesso la coda trasparente è una MISURA — `--velo-coda`, la
+   stessa imbottitura che #fondo si tiene sopra il cartellino — e la
+   carta è piena da lì in giu', sempre. */
 #fondo{position:fixed;left:0;right:0;bottom:0;z-index:3;pointer-events:none;
-       padding-top:52px;background:none}
+       --velo-coda:30px;
+       padding-top:var(--velo-coda);background:none}
+/* col pezzo aperto la coda resta quella di prima: lì dentro ci sta il
+   bersaglio allargato della maniglia, che vive nei punti trasparenti */
+#fondo.apribile{--velo-coda:52px}
+#fondo.apribile.ritirato{--velo-coda:38px}
 #fondo::before{content:"";position:absolute;z-index:-1;
-       left:0;right:0;top:0;bottom:var(--menu-zona);
-       background:linear-gradient(to top, var(--carta) 62%,
-                  rgba(250,248,245,.90) 82%, transparent);
+       left:0;right:0;top:0;bottom:0;
+       background:linear-gradient(to bottom,
+                  transparent 0,
+                  rgba(250,248,245,.90) calc(var(--velo-coda) * .58),
+                  var(--carta) var(--velo-coda));
        transition:bottom var(--d-push) var(--ios)}
 
 /* la transizione non sta più qui: sta nel blocco del CONGEDO, con quella
@@ -370,7 +407,8 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
              margin-top var(--esce) var(--curva-esce),
              padding-top var(--esce) var(--curva-esce),
              visibility 0s linear 0s}
-#fondo.ritirato{padding-top:38px}
+/* il padding non si riscrive più qui: lo porta `--velo-coda` (vedi sopra),
+   così il velo e l'imbottitura non possono divergere. */
 #fondo.ritirato #sotto, #fondo.ritirato #insieme{
   opacity:0;max-height:0;margin-top:0;padding-top:0;border-top-width:0;
   visibility:hidden;pointer-events:none;
@@ -437,10 +475,21 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
    destra. Nessuno dei due perde niente. */
 #basso{display:flex;flex-direction:column;align-items:stretch;gap:10px;
        margin-top:11px}
+/* e quando il gesto è già stato imparato il blocco si ritira DAVVERO:
+   con `margin-top` fisso restavano undici punti di aria intorno al
+   niente. Al livello 2 il tasto dei suggerimenti resta, e l'aria la
+   riprende lui. */
+#cartello.imparato #basso{margin-top:0}
+#cartello.imparato #tasto-insieme{margin-top:11px}
 #gesto{min-width:0}
 #gesto span{display:block}
+/* LA RIGA DELLA MATERIA: il testo a sinistra, i dischetti a destra. Il
+   testo può andare a capo (al banco la frase è lunga), i dischetti no. */
+.riga2{display:flex;align-items:center;justify-content:space-between;
+       gap:16px;margin-top:7px}
+.riga2 #sotto{margin-top:0;min-width:0}
 #vesti{display:flex;gap:12px;pointer-events:auto;flex:none;
-       align-self:flex-end}
+       align-self:center}
 /* ── IL TASTO CHE SPEGNE I SUGGERIMENTI ──────────────────────────
    Massimo: «devo avere la possibilita' di nasconderli». Due carte da
    centoquattro punti su uno schermo da trecentonovanta ne prendono più
@@ -1383,7 +1432,10 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
    un corpo secondario e un'azione (anatomia iOS del sistema). Due titoli
    di display incolonnati sono due voci che si contendono la stessa
    frase. */
-#cartello.vuoto .riga, #cartello.vuoto #sotto, #cartello.vuoto #basso,
+/* `.riga2` è la riga che porta la materia E i dischetti delle fodere:
+   da quando stanno insieme (16/09) si spegne la riga, non i due nodi. */
+#cartello.vuoto .riga, #cartello.vuoto .riga2, #cartello.vuoto #sotto,
+#cartello.vuoto #basso,
 #cartello.vuoto #insieme, #cartello.vuoto #rail-sugg{display:none}
 #cartello.vuoto #vuoto{margin-top:4px}
 #vuoto b{display:block;font:400 22px/1.2 Bodoni,Didot,Georgia,serif;
@@ -2140,8 +2192,13 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
      senza nome accanto è una decorazione. Nel pannello tornano a
      sinistra e si portano dietro l'etichetta — che il tag `aria-label`
      già diceva a chi ascolta e nessuno diceva a chi guarda. */
+  /* nel pannello la riga della materia torna una COLONNA: 304 punti di
+     larghezza sono una misura di lettura, non una riga di comandi, e
+     l'etichetta «La fodera» qui sotto vuole il suo posto. */
+  .riga2{display:block; margin-top:0}
+  .riga2 #sotto{margin-top:14px}
   #basso{gap:14px}
-  #vesti{align-self:flex-start; align-items:center}
+  #vesti{align-self:flex-start; align-items:center; margin-top:14px}
   #vesti::before{content:"La fodera"; font:700 11px/1 Inter,sans-serif;
                  letter-spacing:.12em; text-transform:uppercase;
                  color:var(--quieto); margin-right:4px}
@@ -2285,6 +2342,8 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
   #cartello b{font-size:32px}
   #cartello .prezzo{margin-top:7px; font-size:17px}
   #cartello p{margin-top:9px; font-size:13px}
+  .riga2 #sotto{margin-top:9px}
+  #vesti{margin-top:9px}
   #cartello .gesto{font-size:13px}
   #basso{gap:9px; margin-top:9px}
   #fondo.ritirato #sotto{margin-top:9px}
@@ -2324,6 +2383,18 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
   #foglio .retro .dentro-carta{padding:18px 18px}
 }
 </style>
+
+<!-- ══ CHI TIENE LA SAFE AREA ═══════════════════════════════════════
+     Una riga sola, e sta QUI perché deve girare prima che il browser
+     impagini il cromo: dentro l'applicazione questa pagina vive in una
+     cornice, e la safe area del telefono la riserva la SCOCCA, che è
+     l'unica che tocca il bordo dello schermo. Misurato su un iPhone
+     grande in standalone: `env(safe-area-inset-bottom)` arriva anche
+     qui dentro e vale 34 — sommato a quello che la scocca aveva già
+     riservato faceva 34 punti di carta vuota fra la capsula dei reparti
+     e la tab bar. Quando invece la pagina si apre DA SOLA il bordo è
+     suo, e `data-solo` le ridà la sua safe area (vedi `--menu-giu`). -->
+<script>if(window.parent === window) document.documentElement.dataset.solo = "1";</script>
 
 <div id="stanza"></div>
 <div id="accanto" aria-hidden="true"></div>
@@ -2442,7 +2513,18 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
          dal blocco che si ritira (#sotto, #insieme), quindi si vede
          anche a scheda chiusa senza coprire un pixel di ambiente. -->
     <div id="rail-sugg" hidden></div>
-    <p id="sotto">Gli espositori di Regina, in scala vera.</p>
+    <!-- LA MATERIA E LE FODERE STANNO SULLA STESSA RIGA (16/09). Erano
+         due righe: la materia sotto il nome, e più giu' i quattro
+         dischetti da soli in fondo a destra, con una riga di gesto in
+         mezzo. Trentuno punti di cartellino per quattro pallini larghi
+         centoventi su uno schermo da quattrocentotrenta — spazio
+         tolto all'ambiente per tenere in piedi una colonna. La materia
+         è corta («Acciaio dorato · 45 cm»), i dischetti stanno a
+         destra di essa, e la riga è una. -->
+    <div class="riga2">
+      <p id="sotto">Gli espositori di Regina, in scala vera.</p>
+      <div id="vesti" aria-label="il colore dell&#39;espositore"></div>
+    </div>
     <!-- IL COFANETTO VUOTO. Non una barra a zero e non uno stato d'errore:
          un cofanetto pronto, coi vani foderati che si vedono, e la porta
          per andare a prendere il primo pezzo. -->
@@ -2457,7 +2539,6 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
           fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
         <span id="gesto-testo">trascina per scorrere il banco</span>
       </div>
-      <div id="vesti" aria-label="il colore dell&#39;espositore"></div>
       <button id="tasto-insieme" class="capsula" aria-pressed="true">suggerimenti</button>
     </div>
     <div id="insieme" hidden>
@@ -2971,7 +3052,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perché il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova è una correzione che non arriva. */
-const VERSIONE = "2026-09-15f";
+const VERSIONE = "2026-09-15g";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non è zero, è un ReferenceError, e un ReferenceError lì
@@ -8488,7 +8569,17 @@ function adattaTitolo(){
     }
     return;
   }
-  let px = fondo.classList.contains("ritirato") ? 27 : 34;
+  /* ── E IL 34 È DEL PEZZO, NON DEL BANCO (16/09) ──────────────
+     Trentaquattro punti di Bodoni sono la testata di una SCHEDA
+     PRODOTTO: al livello 2, col pezzo in mano e la carta che si apre,
+     il nome È il titolo della pagina. Al banco e dentro una famiglia
+     no — lì il cartellino è l'ETICHETTA sotto un oggetto che si sta
+     guardando, e quel 34 costava: verdetto del cliente, «gli elementi
+     prendono troppo spazio togliendo visibilita' all'ambiente».
+     Ventotto è `--t-1` (Title 1) del sistema di design, e col prezzo a
+     17 e la materia a 13 la gerarchia nome > prezzo > materia resta
+     intera. Il 34 resta dove è nato: al pezzo, con la scheda aperta. */
+  let px = (livello === 2 && !fondo.classList.contains("ritirato")) ? 34 : 28;
   titolo.style.fontSize = px + "px";
   while(px > 21 && titolo.offsetHeight > px * 1.5){
     px -= 2;

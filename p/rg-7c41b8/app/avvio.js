@@ -167,9 +167,13 @@ export async function avviaApp(V){
 
   avviaRotta({suCambio: (tab) => {
     document.body.dataset.sez = tab;
-    const m = document.querySelector('meta[name=theme-color]');
-    if(m) m.setAttribute("content",
-      document.body.dataset.nav === "c" && tab === "cofanetto" ? "#FAF8F5" : "#14110E");
+    /* IL FONDO DELLA SCOCCA LO DECIDE IL TELAIO, IN UN POSTO SOLO.
+       Qui c'era una seconda copia della regola del `theme-color`, e
+       nel telaio ce n'erano altre due: tre scritture della stessa
+       cosa, e nessuna delle tre toccava il fondo di `html` — che e'
+       quello che si vedeva nero sotto il banco crema. Adesso la regola
+       vive in `index.html` (`fondoScocca`) e scrive tutt'e due. */
+    if(window.__fondoScocca) window.__fondoScocca(tab);
     if(window.__barra) window.__barra.segna(tab);
     vaiAlBanco(tab === "cofanetto");
   }});

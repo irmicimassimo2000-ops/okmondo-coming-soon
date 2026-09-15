@@ -1515,3 +1515,70 @@ body[data-nav="c"][data-sez="cofanetto"]{
 @media (prefers-reduced-motion:reduce){
   .f6-render img{transition-duration:150ms}
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   ALTEZZA — la scocca misura lo schermo, e il fondo non e' mai nudo
+   Scritto il 16/09/2026 su un difetto misurato da Massimo sull'iPhone
+   grande (430x932) aperto DALL'ICONA IN HOME: sotto la tab bar 43 punti
+   di crema vuota e poi 79 punti di NERO fino al fondo dello schermo.
+
+   LE TRE CAUSE, in ordine di gravita'.
+
+   1 · IL NERO E' `html`. `html,body` portavano `background-color:
+   var(--notte)` fisso, e il fondo del documento non si dipinge dentro
+   il suo riquadro: si propaga al CANVAS, cioe' a TUTTA la finestra,
+   compreso quello che sta oltre il viewport di impaginazione. Sul
+   cofanetto — che e' di CARTA — bastava un punto di finestra non
+   coperto dalla scocca per vedere il nero della notte sotto un banco
+   crema. Adesso il fondo del documento SEGUE LA SEZIONE
+   (`:root[data-fondo]`, scritto da `avvio.js` insieme al
+   `theme-color`): qualunque cosa resti scoperta e' della materia
+   giusta. Questa e' la rete di sicurezza, ed e' quella che vale
+   sempre — anche quando iOS dichiara un'altezza che non e' quella
+   dello schermo.
+
+   2 · L'ALTEZZA. `html,body,#app` stavano a `position:fixed;inset:0`,
+   cioe' alti quanto il viewport di IMPAGINAZIONE. Su iOS quel numero
+   non e' sempre l'altezza visibile: in Safari il viewport grande
+   comprende la striscia dietro la barra degli indirizzi, e in
+   standalone c'e' piu' di una versione che dichiara un'altezza corta.
+   Adesso l'altezza e' `100dvh` — il viewport DINAMICO, cioe' quello
+   che si vede adesso — con tre ripieghi in ordine di anzianita':
+   `100vh` (sempre), `-webkit-fill-available` (WebKit, l'altezza
+   disponibile vera), `100dvh` (l'unita' giusta, e vince perche' e'
+   l'ultima). Sopra tutto, `--alt-vera`: la misura che `avvio.js`
+   prende da `visualViewport` a ogni `resize` — se il primo
+   impaginato e' corto, il primo ridimensionamento lo corregge.
+   `bottom:auto` serve perche' con `top`, `bottom` e `height` tutti
+   scritti il browser butterebbe via l'altezza.
+
+   3 · LA FASCIA CONTAVA DUE VOLTE LA SAFE AREA. La fascia riservata
+   sotto la capsula di vetro era alta `80 + env(safe-area-inset-bottom)`
+   = 114 punti, e DENTRO la cornice il banco si riservava a sua volta
+   `10 + env(safe-area-inset-bottom)` sotto la capsula dei reparti
+   (env() arriva anche nelle cornici: misurato, 34). Fra la capsula dei
+   reparti e la tab bar restavano 42 punti di niente. Adesso la fascia
+   e' `84 + env()` e il banco sta a 12 dal fondo della cornice: fra le
+   due capsule ci sono 14 punti, dentro la forbice 12-20 che le tiene
+   vicine senza che una tocchi l'altra.
+   ══════════════════════════════════════════════════════════════════ */
+:root{--alt-app:100vh}
+@supports (height:-webkit-fill-available){ :root{--alt-app:-webkit-fill-available} }
+@supports (height:100dvh){ :root{--alt-app:100dvh} }
+html,body{bottom:auto;height:var(--alt-vera, var(--alt-app));
+  min-height:var(--alt-vera, var(--alt-app))}
+#app{bottom:auto;height:var(--alt-vera, var(--alt-app))}
+
+/* IL FONDO DEL DOCUMENTO SEGUE LA SEZIONE. Nessun hex nuovo: sono i due
+   ruoli che il sistema ha gia' — la notte delle viste di velluto e la
+   carta del cofanetto. `data-fondo` sta sulla RADICE e non sul body
+   perche' e' `html` a dipingere il canvas. */
+:root{--scocca:var(--notte)}
+:root[data-fondo="carta"]{--scocca:var(--carta)}
+html,body{background-color:var(--scocca);
+  transition:background-color .25s ease}
+@media (prefers-reduced-motion:reduce){ html,body{transition:none} }
+
+/* LA FASCIA DEL COFANETTO, rimisurata (vedi causa 3). */
+body[data-nav="c"][data-sez="cofanetto"] #fascia{
+  height:calc(84px + env(safe-area-inset-bottom))}
