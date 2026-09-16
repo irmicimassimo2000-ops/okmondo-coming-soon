@@ -24,9 +24,13 @@
      Home apre come web app, ma quelle due versioni restano in giro fino
      al 2028 e senza `display:standalone` (o il meta qui sotto) partono
      come segnalibro.
-     `black-translucent` porta la pagina SOTTO la status bar; funziona
-     insieme a `viewport-fit=cover` e a `env(safe-area-inset-*)`, che il
-     sistema di design usa già ovunque.
+     STATUS BAR: `default`, non `black-translucent`. Misurato il 16/09 sul
+     telefono (393×852, iOS 18.7, Safari 26.6.1) con `black-translucent`:
+     la pagina veniva impaginata 793 (schermo meno status bar) MA con
+     env(safe-area-inset-top) 59 e viewport da y=0 — e il telefono NON
+     dipingeva sotto i 793: tab bar tagliata sul fondo e 59 pt vuoti. Con
+     `default` il web view parte sotto la status bar (che il sistema tinge
+     col theme-color, lo stesso crema) e i 793 arrivano fino in fondo.
      Gli SPLASH: iOS non li genera, e senza serve un bianco di default.
      Uno per risoluzione, con la sua media query esatta. Ognuno è la
      PRIMA SCHERMATA SENZA CONTENUTO — crema col marchio nello stesso
@@ -35,7 +39,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Regina">
 <link rel="apple-touch-icon" sizes="180x180" href="app/pwa/icona-180.png">
 <link rel="apple-touch-startup-image" href="app/pwa/avvio-iphone-390x844.png"
@@ -146,37 +150,37 @@
 <script type="importmap">
 {"imports":{
   "app/": "./app/",
-  "app/avvio.js":         "./app/avvio.js?v=2026-09-16c",
-  "app/innesto.js":       "./app/innesto.js?v=2026-09-16c",
-  "app/stato.js":         "./app/stato.js?v=2026-09-16c",
-  "app/rotta.js":         "./app/rotta.js?v=2026-09-16c",
-  "app/moto.js":          "./app/moto.js?v=2026-09-16c",
-  "app/canale3d.js":      "./app/canale3d.js?v=2026-09-16c",
-  "app/ripiego.js":       "./app/ripiego.js?v=2026-09-16c",
-  "app/ui/dom.js":        "./app/ui/dom.js?v=2026-09-16c",
-  "app/ui/cella.js":      "./app/ui/cella.js?v=2026-09-16c",
-  "app/ui/tasto.js":      "./app/ui/tasto.js?v=2026-09-16c",
-  "app/ui/vuoto.js":      "./app/ui/vuoto.js?v=2026-09-16c",
-  "app/ui/scheletro.js":  "./app/ui/scheletro.js?v=2026-09-16c",
-  "app/ui/segni.js":      "./app/ui/segni.js?v=2026-09-16c",
-  "app/ui/barra-nav.js":  "./app/ui/barra-nav.js?v=2026-09-16c",
-  "app/ui/toast.js":      "./app/ui/toast.js?v=2026-09-16c",
-  "app/ui/tessera.js":    "./app/ui/tessera.js?v=2026-09-16c",
-  "app/ui/foglio.js":     "./app/ui/foglio.js?v=2026-09-16c",
-  "app/viste/ingresso.js": "./app/viste/ingresso.js?v=2026-09-16c",
-  "app/viste/cofanetto.js":"./app/viste/cofanetto.js?v=2026-09-16c",
-  "app/viste/vetrina.js": "./app/viste/vetrina.js?v=2026-09-16c",
-  "app/viste/perte.js":   "./app/viste/perte.js?v=2026-09-16c",
-  "app/viste/profilo.js": "./app/viste/profilo.js?v=2026-09-16c",
-  "app/viste/azioni.js":  "./app/viste/azioni.js?v=2026-09-16c",
-  "app/dati/negozio.js":  "./app/dati/negozio.js?v=2026-09-16c",
-  "app/dati/provini.js":  "./app/dati/provini.js?v=2026-09-16c",
-  "app/dati/seme.js":     "./app/dati/seme.js?v=2026-09-16c",
-  "app/dati/catalogo.js": "./app/dati/catalogo.js?v=2026-09-16c",
-  "app/dati/collezioni.js":"./app/dati/collezioni.js?v=2026-09-16c"
+  "app/avvio.js":         "./app/avvio.js?v=2026-09-16d",
+  "app/innesto.js":       "./app/innesto.js?v=2026-09-16d",
+  "app/stato.js":         "./app/stato.js?v=2026-09-16d",
+  "app/rotta.js":         "./app/rotta.js?v=2026-09-16d",
+  "app/moto.js":          "./app/moto.js?v=2026-09-16d",
+  "app/canale3d.js":      "./app/canale3d.js?v=2026-09-16d",
+  "app/ripiego.js":       "./app/ripiego.js?v=2026-09-16d",
+  "app/ui/dom.js":        "./app/ui/dom.js?v=2026-09-16d",
+  "app/ui/cella.js":      "./app/ui/cella.js?v=2026-09-16d",
+  "app/ui/tasto.js":      "./app/ui/tasto.js?v=2026-09-16d",
+  "app/ui/vuoto.js":      "./app/ui/vuoto.js?v=2026-09-16d",
+  "app/ui/scheletro.js":  "./app/ui/scheletro.js?v=2026-09-16d",
+  "app/ui/segni.js":      "./app/ui/segni.js?v=2026-09-16d",
+  "app/ui/barra-nav.js":  "./app/ui/barra-nav.js?v=2026-09-16d",
+  "app/ui/toast.js":      "./app/ui/toast.js?v=2026-09-16d",
+  "app/ui/tessera.js":    "./app/ui/tessera.js?v=2026-09-16d",
+  "app/ui/foglio.js":     "./app/ui/foglio.js?v=2026-09-16d",
+  "app/viste/ingresso.js": "./app/viste/ingresso.js?v=2026-09-16d",
+  "app/viste/cofanetto.js":"./app/viste/cofanetto.js?v=2026-09-16d",
+  "app/viste/vetrina.js": "./app/viste/vetrina.js?v=2026-09-16d",
+  "app/viste/perte.js":   "./app/viste/perte.js?v=2026-09-16d",
+  "app/viste/profilo.js": "./app/viste/profilo.js?v=2026-09-16d",
+  "app/viste/azioni.js":  "./app/viste/azioni.js?v=2026-09-16d",
+  "app/dati/negozio.js":  "./app/dati/negozio.js?v=2026-09-16d",
+  "app/dati/provini.js":  "./app/dati/provini.js?v=2026-09-16d",
+  "app/dati/seme.js":     "./app/dati/seme.js?v=2026-09-16d",
+  "app/dati/catalogo.js": "./app/dati/catalogo.js?v=2026-09-16d",
+  "app/dati/collezioni.js":"./app/dati/collezioni.js?v=2026-09-16d"
 }}
 </script>
-<link rel="stylesheet" href="app/sistema.css?v=2026-09-16c">
+<link rel="stylesheet" href="app/sistema.css?v=2026-09-16d">
 
 <!-- LA BARRA È NEL SISTEMA. Fino al 15/09 il suo foglio di stile
      stava qui, e stava qui per una ragione buona: è l'unico pezzo
@@ -300,7 +304,7 @@ const SEZIONI = [
    dalla capsula di vetro «Elenco» in alto a destra, indirizzo
    #/cofanetto/elenco. La pagina statica resta sul disco come reperto. */
 /* E LA VERSIONE, che timbra i moduli e la cornice del banco. */
-const VERSIONE = "2026-09-16c";
+const VERSIONE = "2026-09-16d";
 window.VERSIONE = VERSIONE;
 
 const barra = document.getElementById("barra");
