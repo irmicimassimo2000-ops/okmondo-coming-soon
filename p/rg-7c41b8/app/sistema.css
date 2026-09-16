@@ -463,8 +463,8 @@ body[data-nav="a"] .pagina,body[data-nav="b"] .pagina{padding-bottom:calc(var(--
    <dialog> nativo: il top layer, il fuoco trattenuto e l'Esc li porta
    il browser. Noi mettiamo la maniglia 36x5 a 5 punti dal bordo, i due
    fermi e il trascinamento. Sale in 500 ms, senza rimbalzo. */
-#foglio{position:fixed;inset:auto 0 0 0;width:100%;max-width:100%;
-  max-height:100dvh;margin:0;padding:0;border:0;
+#foglio{position:fixed;inset:auto 0 var(--sborda, 0px) 0;width:100%;max-width:100%;
+  max-height:var(--alt-vera, var(--alt-app));margin:0;padding:0;border:0;
   border-radius:var(--r-sheet) var(--r-sheet) 0 0;
   background:var(--piano);color:var(--testo);
   box-shadow:var(--ombra-sheet), inset 0 0 0 1px var(--linea);
@@ -510,9 +510,9 @@ body[data-nav="a"] .pagina,body[data-nav="b"] .pagina{padding-bottom:calc(var(--
    com'e' scritto nel documento, e non lo usa nessuno. */
 #toast-zona{position:fixed;left:0;right:0;z-index:40;pointer-events:none;
   display:flex;justify-content:center;padding:0 16px;
-  bottom:calc(96px + var(--safe-b))}
-body[data-nav="a"] #toast-zona{bottom:calc(86px + var(--safe-b))}
-body[data-nav="b"] #toast-zona{bottom:calc(88px + var(--safe-b))}
+  bottom:calc(96px + var(--safe-b) + var(--sborda, 0px))}
+body[data-nav="a"] #toast-zona{bottom:calc(86px + var(--safe-b) + var(--sborda, 0px))}
+body[data-nav="b"] #toast-zona{bottom:calc(88px + var(--safe-b) + var(--sborda, 0px))}
 .toast{pointer-events:auto;display:flex;align-items:center;gap:10px;
   height:36px;max-width:min(440px,100%);padding:0 6px 0 16px;
   border-radius:var(--r-capsula);
@@ -702,7 +702,9 @@ nav[data-nav="b"] button[aria-current] .nm{
    muove la PASTIGLIA, e lo fa con la molla. Prima l'attiva si allargava
    mangiando le altre — la riga ballava a ogni tocco.  */
 nav[data-nav="c"]{position:fixed;z-index:5;left:5%;width:90%;
-  bottom:calc(16px + env(safe-area-inset-bottom));
+  /* 16 di stacco, la safe area, e `--sborda` che rimette il fondo dove
+     lo schermo finisce davvero (vedi il blocco ALTEZZA, causa 4) */
+  bottom:calc(16px + env(safe-area-inset-bottom) + var(--sborda, 0px));
   height:66px;padding:7px 6px;border-radius:999px;
   background:var(--vetro);
   -webkit-backdrop-filter:blur(20px) saturate(1.4);
@@ -1542,13 +1544,27 @@ body[data-nav="c"][data-sez="cofanetto"]{
    non e' sempre l'altezza visibile: in Safari il viewport grande
    comprende la striscia dietro la barra degli indirizzi, e in
    standalone c'e' piu' di una versione che dichiara un'altezza corta.
-   Adesso l'altezza e' `100dvh` — il viewport DINAMICO, cioe' quello
-   che si vede adesso — con tre ripieghi in ordine di anzianita':
-   `100vh` (sempre), `-webkit-fill-available` (WebKit, l'altezza
-   disponibile vera), `100dvh` (l'unita' giusta, e vince perche' e'
-   l'ultima). Sopra tutto, `--alt-vera`: la misura che `avvio.js`
-   prende da `visualViewport` a ogni `resize` — se il primo
-   impaginato e' corto, il primo ridimensionamento lo corregge.
+   L'unita' giusta e' `100dvh` — il viewport DINAMICO, cioe' quello
+   che si vede adesso — col solo ripiego di `100vh` per chi non la
+   conosce.
+   IL `-webkit-fill-available` NON C'E' PIU', e la ragione e' una
+   misura. Era il secondo di tre anelli, scritto per WebKit; ma i tre
+   `:root` hanno la stessa specificita' e VINCE L'ULTIMO, quindi su
+   qualunque telefono che conosca `dvh` — iOS 15.4 in avanti, cioe'
+   ogni iPhone da cui questa applicazione si apre — quell'anello non
+   veniva mai letto: verificato in cornice standalone a 393x852,
+   `--alt-app` risolve `100dvh`. Un anello che non si legge e' un
+   anello che qualcuno leggera' male: sulla carta prometteva
+   «l'altezza disponibile», e in standalone quella e' lo schermo MENO
+   l'inset di sopra. Tolto.
+   RESTA LA CINTURA, ed e' lei che cura davvero: `--alt-vera`, la
+   misura che il telaio prende da `innerHeight`/`visualViewport` e
+   scrive NEI DUE VERSI (`misuraAltezza`, in index.html). Quando iOS
+   impagina corto — dall'icona in Home dichiarava 792 su uno schermo
+   di 852, cioe' lo schermo meno i 59 della tacca — la cintura rialza;
+   quando lo schermo si accorcia per davvero, riabbassa. Scriverla in
+   un verso solo non bastava: una scocca gia' alta quanto il visto non
+   si poteva piu' correggere quando il visto cambiava.
    `bottom:auto` serve perche' con `top`, `bottom` e `height` tutti
    scritti il browser butterebbe via l'altezza.
 
@@ -1563,11 +1579,28 @@ body[data-nav="c"][data-sez="cofanetto"]{
    vicine senza che una tocchi l'altra.
    ══════════════════════════════════════════════════════════════════ */
 :root{--alt-app:100vh}
-@supports (height:-webkit-fill-available){ :root{--alt-app:-webkit-fill-available} }
 @supports (height:100dvh){ :root{--alt-app:100dvh} }
 html,body{bottom:auto;height:var(--alt-vera, var(--alt-app));
   min-height:var(--alt-vera, var(--alt-app))}
 #app{bottom:auto;height:var(--alt-vera, var(--alt-app))}
+
+/* ── 4 · E CHI STA ATTACCATO AL FONDO NON SEGUIVA LA CINTURA ─────
+   `--alt-vera` fa alti quanto lo schermo `html`, `body` e la scocca. Ma
+   la barra delle sezioni non sta DENTRO la scocca: e' `position:fixed`
+   con `bottom`, cioè attaccata al fondo del viewport di IMPAGINAZIONE
+   — lo stesso numero sbagliato. Misurato: forzando la scocca
+   all'altezza corta, `#app` torna a 852 e la barra resta dov'era.
+   Sull'iPhone di Massimo la barra finiva a 742 invece che a 802: i 110
+   punti di carta sotto sono 50 di stacco approvato PIU' i 60 che il
+   viewport non sa di avere.
+   `--sborda` è di quanto la scocca esce sotto quel viewport: zero
+   quando il browser dice la verita' (`--alt-vera` = `--alt-app`, che è
+   il caso di ogni desktop e di Safari con le sue barre), negativo di
+   quei 59-60 punti quando iOS in cornice impagina corto. Sommarlo a
+   `bottom` riporta al fondo VERO le tre cose che ci stanno attaccate:
+   la barra, i riscontri che le si posano sopra, e il foglio dal basso.
+   Non e' un numero nuovo: e' la differenza fra i due che ci sono gia'. */
+:root{--sborda:calc(var(--alt-app) - var(--alt-vera, var(--alt-app)))}
 
 /* IL FONDO DEL DOCUMENTO SEGUE LA SEZIONE. Nessun hex nuovo: sono i due
    ruoli che il sistema ha gia' — la notte delle viste di velluto e la
