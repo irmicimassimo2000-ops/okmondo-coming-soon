@@ -453,13 +453,61 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
    cui corre la ritirata quando il gesto è stato imparato. A 22 punti con
    un corpo di 13 la riga verrebbe tagliata a metà — 26 è il suo
    riquadro vero misurato, più l'aria del disegnino del dito. */
-#cartello .gesto{display:flex;align-items:center;gap:8px;min-width:0;
-                 font:400 13px/1.15 Inter,sans-serif;color:var(--voce);
-                 transition:opacity var(--esce) var(--curva-esce),
-                            max-height var(--esce) var(--curva-esce);
-                 max-height:26px;overflow:hidden}
-#cartello .gesto svg{width:34px;flex:none}
-#cartello.imparato .gesto{opacity:0;max-height:0;margin-top:0}
+/* ── E LA RIGA DEL GESTO NON STA PIU' DENTRO IL CARTELLINO ───────
+   Stava nel flusso e si RITIRAVA (`max-height` da 26 a 0) quando il
+   gesto era imparato. Funzionava alla lettera, ma pagava due volte.
+   (1) 26 punti di banda comparivano da un momento all'altro, a
+   trascinamento appena finito: la quota del banco — che si decide UNA
+   volta e non si muove piu' — o li seguiva (e la macchina saltava in
+   verticale, misurato a 375x667: camY da 0,1133 a 0,1270 subito dopo
+   il primo gesto) o li lasciava sul piatto per sempre. Misurato quanto
+   valgono: 6,0 % di riquadro a 393, 2,6 % a 390.
+   (2) Il cartellino aveva due altezze al livello 0, e una banda che
+   cambia e' una quota che cambia.
+   Adesso la riga vive SOPRA LA SCENA, fuori dal flusso, appoggiata al
+   filo del velo inferiore — cioe' al bordo alto del cartellino, che e'
+   dove il gradiente di `#fondo` finisce di schiarire. Il cartellino
+   resta a due righe fisse (nome · «N in vetrina» + dischetti), la
+   banda non cambia mai, e a gesto imparato la riga si DISSOLVE in 250
+   ms senza spostare un punto di niente.
+   IL COLORE E' `--voce` (#6E5F57), che e' l'`--incisa` della scocca
+   (#6F6459) con un altro nome: stessa mano, stesso ruolo. Non e' un
+   token nuovo, e' quello che la riga usava gia'.
+   (Nel pannello largo resta nel flusso: li' il cartellino e' una
+   colonna laterale e una riga appesa sopra di lui finirebbe fuori dal
+   pannello, sulla scena, dove non e' stata disegnata.) */
+/* ── E IL VELO, PERCHE' IL CONTRASTO NON REGGEVA ────────────────
+   Sulla carta del cartellino `--voce` faceva 5,4:1 e non c'era niente
+   da decidere. Sopra la scena no: dietro la riga ci sono il piano
+   crema, il plinto turchese e le mensole scure, e cambiano da una
+   famiglia all'altra. MISURATO sui pixel veri, famiglia per famiglia,
+   col testo spento (`_H3_gesto.mjs`): il rapporto peggiore cadeva a
+   1,55 sulle collane e sui bracciali (il turchese del plinto) e a 3,2
+   su anelli e orologi. Una didascalia che non si legge non insegna il
+   gesto, che e' l'unica cosa per cui esiste.
+   Quindi la riga si porta dietro il PROPRIO velo, e non e' una
+   pastiglia: e' la stessa carta di `#fondo`, che sale dal filo del
+   cartellino e si dissolve verso l'alto. Sotto continua senza giunta
+   nel cartellino (finisce a `--carta` esatto, e il cartellino comincia
+   li'); sopra sfuma nel niente. Costa una striscia di gradiente, e la
+   paga solo chi il gesto non l'ha ancora imparato: a gesto imparato
+   il velo se ne va con la riga, nello stesso quarto di secondo.
+   E NON TOCCA LA BANDA: `#gesto` e' fuori dal flusso, il filo del
+   cartellino non si muove, la quota del banco resta quella. */
+#cartello{position:relative}
+#gesto{position:absolute;left:0;right:0;bottom:100%;
+       padding:14px 22px 8px;
+       display:flex;align-items:center;gap:8px;min-width:0;
+       font:400 13px/1.15 Inter,sans-serif;color:var(--voce);
+       background:linear-gradient(to bottom,
+                  rgba(250,248,245,0) 0,
+                  rgba(250,248,245,.95) 38%,
+                  var(--carta) 100%);
+       pointer-events:none;
+       transition:opacity .25s var(--curva-esce)}
+#gesto svg{width:34px;flex:none}
+#gesto span{display:block}
+#cartello.imparato #gesto{opacity:0}
 
 /* ── LE VESTI: quattro dischetti, e basta ────────────────────
    Il colore dell'espositore lo sceglie il cliente, e il comando sta sulla
@@ -473,16 +521,14 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
    due cose non stanno su una riga sola, quindi non ci stanno: la
    didascalia prende tutta la larghezza e i dischetti vanno sotto, a
    destra. Nessuno dei due perde niente. */
-#basso{display:flex;flex-direction:column;align-items:stretch;gap:10px;
-       margin-top:11px}
-/* e quando il gesto è già stato imparato il blocco si ritira DAVVERO:
-   con `margin-top` fisso restavano undici punti di aria intorno al
-   niente. Al livello 2 il tasto dei suggerimenti resta, e l'aria la
-   riprende lui. */
-#cartello.imparato #basso{margin-top:0}
-#cartello.imparato #tasto-insieme{margin-top:11px}
-#gesto{min-width:0}
-#gesto span{display:block}
+/* `#basso` adesso porta SOLO la capsula dei suggerimenti, e al banco
+   quella e' `display:none`: l'aria la prende il tasto quando c'e',
+   cosi' un blocco vuoto non lascia undici punti intorno al niente.
+   (Prima l'aria stava qui e due regole `.imparato` la spostavano avanti
+   e indietro; con la riga del gesto fuori dal flusso non serve piu'
+   nessuna delle due.) */
+#basso{display:flex;flex-direction:column;align-items:stretch;gap:10px}
+#tasto-insieme{margin-top:11px}
 /* LA RIGA DELLA MATERIA: il testo a sinistra, i dischetti a destra. Il
    testo può andare a capo (al banco la frase è lunga), i dischetti no. */
 .riga2{display:flex;align-items:center;justify-content:space-between;
@@ -1435,7 +1481,7 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
 /* `.riga2` è la riga che porta la materia E i dischetti delle fodere:
    da quando stanno insieme (16/09) si spegne la riga, non i due nodi. */
 #cartello.vuoto .riga, #cartello.vuoto .riga2, #cartello.vuoto #sotto,
-#cartello.vuoto #basso,
+#cartello.vuoto #basso, #cartello.vuoto #gesto,
 #cartello.vuoto #insieme, #cartello.vuoto #rail-sugg{display:none}
 #cartello.vuoto #vuoto{margin-top:4px}
 #vuoto b{display:block;font:400 22px/1.2 Bodoni,Didot,Georgia,serif;
@@ -2179,9 +2225,15 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
      scritto perché regga anche il pannello da 400 a 1920. */
   #cartello p{margin-top:14px; font-size:14px; line-height:1.55;
               max-width:60ch}
-  #cartello .gesto{margin-top:2px; font-size:13px; max-height:40px;
-                   align-items:flex-start}
-  #cartello .gesto svg{margin-top:2px}
+  /* NEL PANNELLO LA RIGA TORNA NEL FLUSSO. Appesa sopra il cartellino
+     finirebbe fuori dalla colonna, sulla scena, dove non e' stata
+     disegnata; e qui la banda e' tutta l'altezza dello schermo, quindi
+     i 26 punti non costano niente a nessuno. Si spegne e basta: lo
+     spazio resta, e niente si sposta lo stesso. */
+  #gesto{position:static; left:auto; right:auto; bottom:auto;
+         margin:2px 0 0; padding:0; background:none;
+         font-size:13px; align-items:flex-start}
+  #gesto svg{margin-top:2px}
   #insieme .eco{font-size:11px}   /* il fondo della scala, non 10 */
   #insieme .r b{font-size:18px}
   #insieme button{padding:0 16px; font-size:11px}
@@ -2344,8 +2396,9 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
   #cartello p{margin-top:9px; font-size:13px}
   .riga2 #sotto{margin-top:9px}
   #vesti{margin-top:9px}
-  #cartello .gesto{font-size:13px}
-  #basso{gap:9px; margin-top:9px}
+  #gesto{font-size:13px; padding-top:12px; padding-bottom:6px}
+  #basso{gap:9px}
+  #tasto-insieme{margin-top:9px}
   #fondo.ritirato #sotto{margin-top:9px}
   #fondo.ritirato #insieme{margin-top:11px; padding-top:9px}
   #insieme .r{padding:2px 0}
@@ -2534,12 +2587,16 @@ body{background:var(--carta);color:var(--testo);font:400 14px/1.5 Inter,sans-ser
       <button type="button" id="vai-vetrina">vai in vetrina</button>
     </div>
     <div id="basso">
-      <div class="gesto" id="gesto">
-        <svg viewBox="0 0 60 12" aria-hidden><path d="M4 6h52M4 6l5-4M4 6l5 4M56 6l-5-4M56 6l-5 4"
-          fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
-        <span id="gesto-testo">trascina per scorrere il banco</span>
-      </div>
       <button id="tasto-insieme" class="capsula" aria-pressed="true">suggerimenti</button>
+    </div>
+    <!-- LA RIGA DEL GESTO STA SOPRA LA SCENA, NON NEL CARTELLINO.
+         Vive fuori dal flusso (assoluta, appoggiata al filo del velo
+         inferiore): il cartellino ha due righe fisse e non cambia
+         altezza quando il gesto e' imparato. Il perche' sta nel CSS. -->
+    <div class="gesto" id="gesto">
+      <svg viewBox="0 0 60 12" aria-hidden><path d="M4 6h52M4 6l5-4M4 6l5 4M56 6l-5-4M56 6l-5 4"
+        fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+      <span id="gesto-testo">trascina per scorrere il banco</span>
     </div>
     <div id="insieme" hidden>
       <div class="eco">Con questo ci sta anche</div>
@@ -3074,7 +3131,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perché il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova è una correzione che non arriva. */
-const VERSIONE = "2026-09-16b";
+const VERSIONE = "2026-09-16c";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non è zero, è un ReferenceError, e un ReferenceError lì
@@ -4866,7 +4923,13 @@ async function porta(f){
        quindi la macchina ci arriva con la sua molla - e solo al banco,
        che e' l'unico livello dove gli altri espositori contano.
        E LA QUOTA SCADE: se quella che scende adesso e' la piu' alta,
-       il caso peggiore e' cambiato e la quota unica con lui. */
+       il caso peggiore e' cambiato e la quota unica con lui.
+       PRIMA PERO' SI RIGUARDA CHI E' DAVANTI. Da quando il cartellino
+       del banco porta il nome della famiglia vicina, una che scende
+       piu' vicina all'asse della macchina cambia anche il NOME scritto
+       — e con lui, se mai cambiasse riga, la banda. Si scrive prima e
+       si inquadra dopo, come in `vaiAlBanco`. */
+    if(livello === 0 && !dita.size) segnaVicino(occhioObiettivo.x);
     scadeQuota();
     ripiazzaBanco();
     provinaAOzio();          // i provini di QUESTA, non di quelle che mancano
@@ -5349,6 +5412,27 @@ function scatolaBanco(){
    da' la stessa altezza di riquadro che dara' quando ci si arrivera'
    davvero. Cosi' la quota vale in OGNI stazione, non solo davanti al
    busto. */
+/* ── E IL PIEDE PIU' BASSO NON E' QUELLO DEL PIU' ALTO ────────────
+   Tutti gli espositori poggiano a quota zero, ma non sono profondi
+   uguali: lo spigolo davanti sta a `fondo/2` dalla macchina, e piu' e'
+   vicino piu' basso proietta. Misurato a 390x844: col tetto deciso sul
+   busto, il bancone dei bracciali — piu' fondo — sbordava di 2,1 punti
+   sotto il filo del cartellino. Il tetto lo detta il PIU' ALTO, il
+   pavimento il PIU' FONDO: sono due domande diverse e vogliono due
+   scatole. */
+const _scatolaFondo = new THREE.Box3();
+function piedePiuBasso(){
+  let giu = -1e9;
+  for(const f of FAMIGLIE){
+    const g = gruppi[f.id]; if(!g) continue;
+    const u = g.userData;
+    _scatolaFondo.min.set(partenzaBanco - u.largo / 2, 0, -u.fondo / 2);
+    _scatolaFondo.max.set(partenzaBanco + u.largo / 2, u.alto, u.fondo / 2);
+    giu = Math.max(giu, riquadroSulBersaglio(_scatolaFondo).y1);
+  }
+  return giu > -1e8 ? giu : null;
+}
+
 const _scatolaAlta = new THREE.Box3();
 function scatolaPiuAlta(){
   let alto = null;
@@ -5482,7 +5566,19 @@ function firmaQuota(){
   let m = "";
   for(const f of FAMIGLIE){ const g = gruppi[f.id];
     if(g) m += f.id + Math.round(g.userData.alto * 1e4) + ","; }
-  return [Math.round(a.y0), Math.round(a.y1),
+  /* IL FILO DEL CARTELLINO NON STA NELLA FIRMA, e non e' una svista.
+     Da quando la riga del gesto vive fuori dal flusso (vedi il CSS di
+     `#gesto`) al livello 0 quel filo non si muove piu': il cartellino
+     ha due righe fisse. Tenerlo fuori dalla firma e' la cintura — se
+     un giorno qualcosa lo muovesse (una capsula che compare, una riga
+     in piu'), la quota NON lo seguirebbe, e una quota ferma e' esatta
+     cio' che Massimo ha chiesto: la macchina al banco non si alza e non
+     si abbassa, mai, per nessuna ragione che non sia lo schermo o la
+     merce.
+     Cio' che conta resta dentro: la TESTATA (`y0`/`yVelo`, che cambia
+     quando «indietro» se ne va tornando dal livello 1), lo SCHERMO, e
+     le ALTEZZE in scena. */
+  return [Math.round(a.y0),
           Math.round(a.yVelo != null ? a.yVelo : a.y0),
           innerWidth, innerHeight, m].join("|");
 }
@@ -5526,14 +5622,21 @@ function quotaStretta(){
       sc += giu; piazza(sc);
     }
     const q = riquadroSulBersaglio(box);
-    alto = q.y1 - q.y0;
+    /* IL SOGGETTO E' LA FILA, NON UN PEZZO DI FILA: dalla cima del piu'
+       alto al piede del piu' fondo. Misurarlo su una scatola sola
+       lasciava fuori 2,1 punti di bancone a 390. */
+    const piede = piedePiuBasso();
+    alto = (piede != null ? Math.max(piede, q.y1) : q.y1) - q.y0;
     const k = alto / banda;
-    if(k <= 1.004) break;
+    if(k <= 1.0005) break;
     /* non ci sta nemmeno frenato: si arretra, e si arretra per tutti */
     d *= Math.min(k, 1.5);
   }
   return (quota = {d, sc, firma, alto:+alto.toFixed(1), banda:+banda.toFixed(1),
-                   arretrata: d > dBase * 1.001, dBase});
+                   arretrata: d > dBase * 1.001, dBase,
+                   /* la banda su cui e' stata decisa, per le sonde */
+                   y0:+a.y0.toFixed(1), y1:+a.y1.toFixed(1), filo:+filo.toFixed(1),
+                   quando:+performance.now().toFixed(0)});
 }
 
 /* ── CHI VUOLE SOLO RIMETTERE A FUOCO ───────────────────
@@ -5596,8 +5699,7 @@ function vaiAlBanco(subito){
       (!davanti || Math.abs(gruppi[f.id].position.x - partenzaBanco)
                  < Math.abs(gruppi[davanti].position.x - partenzaBanco))) davanti = f.id;
   segnaMenu();
-  scritte("Il banco", "", "Gli espositori di Regina, in scala vera.",
-          "trascina per scorrere · tocca per entrare");
+  scritteBanco();
   /* anche «indietro» se ne va con garbo: era l'unico comando del cromo
      che sparisse di colpo mentre tutto il resto si muoveva */
   if(subito) dietro.hidden = true; else congeda(dietro);
@@ -9109,6 +9211,32 @@ function limiteN(){ return attiva ? stazioni(attiva).length - 1 : 0; }
    «Bracciali».
    SOLO FRA QUELLE CHE SONO GIÀ SUL BANCO: con le famiglie caricate a
    tappe `gruppi[f.id]` può non esserci ancora. */
+/* ── IL CARTELLINO DEL BANCO HA UNA ALTEZZA SOLA ──────────────
+   Al livello 0 il cartellino aveva DUE forme: «Il banco / Gli
+   espositori di Regina, in scala vera.» entrando, e «Collane / 3 in
+   vetrina» appena si scorreva. La seconda riga della prima va a capo,
+   quindi il cartellino e' 44 punti piu' alto e la BANDA 44 piu' corta
+   — e la quota unica del banco, che deve reggere tutt'e due gli stati,
+   si decideva per forza sul peggiore. Misurato il prezzo: 26,6 punti di
+   riquadro a 393, cioe' l'11 % della merce, pagati per una frase che
+   dura finche' non si tocca lo schermo.
+   Adesso il banco dice SEMPRE la stessa cosa nella stessa forma: il
+   nome della famiglia che si ha davanti e quante ne sono in vetrina.
+   E' anche piu' vero — entrando dal livello 1 si torna davanti a quella
+   da cui si e' usciti, e leggere «Il banco» sopra il busto delle
+   collane era un'etichetta di reparto su un pezzo di merce.
+   IL RIPIEGO E' A UNA RIGA. Prima che scenda la prima famiglia non c'e'
+   un nome da scrivere: resta «Il banco», ma con un sottotitolo che sta
+   su UNA riga — perche' e' l'altezza, non la frase, quello che la banda
+   misura. */
+function scritteBanco(){
+  const f = davanti && FAMIGLIE.find(x => x.id === davanti);
+  if(f) scritte(f.nome, "", stazioni(f.id).length + " in vetrina",
+                "trascina per scorrere · tocca per entrare");
+  else scritte("Il banco", "", "Gli espositori di Regina",
+               "trascina per scorrere · tocca per entrare");
+}
+
 function segnaVicino(x){
   let vicino = null;
   for(const f of FAMIGLIE){
