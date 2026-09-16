@@ -3074,7 +3074,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perché il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova è una correzione che non arriva. */
-const VERSIONE = "2026-09-16a";
+const VERSIONE = "2026-09-16b";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non è zero, è un ReferenceError, e un ReferenceError lì
@@ -4864,7 +4864,10 @@ async function porta(f){
        adesso e' piu' alta di tutte, il caso peggiore e' cambiato e la
        distanza con lui. Si rifa' solo il piazzamento - come BERSAGLIO,
        quindi la macchina ci arriva con la sua molla - e solo al banco,
-       che e' l'unico livello dove gli altri espositori contano. */
+       che e' l'unico livello dove gli altri espositori contano.
+       E LA QUOTA SCADE: se quella che scende adesso e' la piu' alta,
+       il caso peggiore e' cambiato e la quota unica con lui. */
+    scadeQuota();
     ripiazzaBanco();
     provinaAOzio();          // i provini di QUESTA, non di quelle che mancano
     sveglia();
@@ -5328,6 +5331,38 @@ function scatolaBanco(){
   return _scatolaBanco;
 }
 
+/* ── E LA SCATOLA SU CUI SI DECIDE LA QUOTA: LA PIU' ALTA ──────────
+   Il 16/09 Massimo ha guardato il banco dall'icona in Home e ha visto
+   la macchina SALTARE in verticale a ogni swipe fra collane e
+   orecchini. La causa sta scritta qui sopra: il freno guardava
+   l'espositore A FUOCO, e gli espositori non sono alti uguali — 28 cm
+   il busto delle collane, 8,6 il bancone degli anelli. Una quota per
+   STAZIONE e' una quota che cambia a ogni stazione, e fra una
+   stazione e l'altra la macchina ci va: quello e' il balzo.
+   La quota adesso e' UNA per tutta la fila, e la detta il PIU' ALTO.
+   Chi e' piu' basso ci sta dentro per costruzione: tutti poggiano sul
+   piano a quota zero, quindi il fondo del riquadro e' lo stesso per
+   tutti e il tetto lo decide il piu' alto.
+   LA SCATOLA SI COSTRUISCE SULL'ASSE DELLA MACCHINA. In prospettiva,
+   con la macchina che guarda orizzontale, la y proiettata di un punto
+   non dipende dalla sua x: mettere il piu' alto davanti all'obiettivo
+   da' la stessa altezza di riquadro che dara' quando ci si arrivera'
+   davvero. Cosi' la quota vale in OGNI stazione, non solo davanti al
+   busto. */
+const _scatolaAlta = new THREE.Box3();
+function scatolaPiuAlta(){
+  let alto = null;
+  for(const f of FAMIGLIE){
+    const g = gruppi[f.id]; if(!g) continue;
+    if(!alto || g.userData.alto > gruppi[alto].userData.alto) alto = f.id;
+  }
+  if(!alto) return null;
+  const u = gruppi[alto].userData;
+  _scatolaAlta.min.set(partenzaBanco - u.largo / 2, 0, -u.fondo / 2);
+  _scatolaAlta.max.set(partenzaBanco + u.largo / 2, u.alto, u.fondo / 2);
+  return _scatolaAlta;
+}
+
 /* ── IL PIAZZAMENTO DEL BANCO, DA SOLO ──────────────────
    Stava dentro `vaiAlBanco` e non si poteva rifare senza rifare anche
    tutto il resto (rimettere le famiglie a casa, azzerare il pizzico,
@@ -5377,19 +5412,24 @@ function piazzaBanco(){
     if(usata) scartoBanco = centraSullaBanda(usata, d, camera.fov * Math.PI / 360,
                                              scartoVero(d), piazza, true);
   } else {
-    /* ── STRETTO SI APPLICA IL TETTO, E BASTA ───────────────
+    /* ── STRETTO SI APPLICA IL TETTO, E UNA QUOTA SOLA ──────
        Al banco non si CENTRA sulla banda, e la ragione e' che gli
        espositori non sono alti uguali. Il bancone degli anelli e' alto
        8,6 cm: centrarlo in una banda di 477 punti vorrebbe dire
        sollevarlo a mezz'aria con il piano vuoto sotto, che e' il
        contrario di un banco. Il busto e' alto 28 e il suo problema e'
-       l'opposto: senza freno la testa della collana finisce SOTTO il
-       velo del marchio. Il freno e' uno solo e vale per tutti —
-       niente passa sotto il velo — e sta in `frenaBanco`, perche'
-       serve anche mentre la fila scorre.
+       l'opposto: senza tetto la testa della collana finisce SOTTO il
+       velo del marchio.
+       Il tetto e' uno solo e si decide UNA VOLTA, sul piu' alto della
+       fila (`quotaStretta`): durante lo scorrimento la macchina si
+       muove solo lungo la fila, e la sua altezza non la tocca
+       nessuno. Vedi il balzo del 16/09.
        (Largo il discorso non vale: li' la banda e' tutta l'altezza
        dello schermo e la centratura e' gia' approvata.) */
-    frenaBanco();
+    const qz = quotaStretta();
+    d = qz.d; dBanco = d;
+    piazza(qz.sc);
+    scartoBanco = qz.sc;
     usata = scatolaBanco();
   }
   /* IL QUADRO DEL BANCO SI PUÒ RILEGGERE. Il banco di misura deve
@@ -5400,58 +5440,100 @@ function piazzaBanco(){
   quadroBanco = usata ? {min:usata.min.toArray(), max:usata.max.toArray(), d,
                          largoQuadro:largoQuadro(), cx:partenzaBanco} : null;
 }
-/* ── IL FRENO DEL VELO, MENTRE LA FILA SCORRE ─────────────
-   Il piazzamento si decide entrando al banco e non si rifa' piu'. Ma
-   il bancone non e' alto uguale da un capo all'altro — 8,6 cm gli
-   anelli, 28 il busto delle collane — e l'altezza della macchina
-   decisa davanti agli anelli, portata davanti al busto, gli taglia la
-   testa sotto il velo del marchio. E' lo scatto di Massimo: si apre
-   l'applicazione (davanti ci sono gli anelli), si scorre fino alle
-   collane, e la collana finisce sotto la testata con il piano vuoto
-   sotto il plinto.
-   Qui la macchina si abbassa QUANTO BASTA per l'espositore che entra a
-   fuoco, e solo in verticale: la x resta quella del dito. Si riparte
-   ogni volta dalla geometria (`scartoVero`) e si frena da li', cosi'
-   uscendo dal busto si torna su da soli invece di restare bassi.
-   IL FRENO SPINGE SOLO IN GIU'. Alzare un espositore basso finche' la
-   sua cima tocca il velo lo incollerebbe alla testata con mezzo
-   schermo di piano vuoto sotto: chi il velo non lo sfiora si lascia
-   dove la geometria lo ha appoggiato. */
+/* ── LA QUOTA DEL BANCO: UNA SOLA, PER TUTTA LA FILA ──────────
+   IL DIFETTO. Fino al 16/09 la macchina si rifrenava a ogni stazione
+   (`frenaBanco`, tolto): guardava l'espositore a fuoco, e siccome il
+   busto delle collane e' alto tre volte il bancone degli anelli, la
+   quota cambiava a ogni swipe. Massimo l'ha visto per quello che era:
+   «la camera fa un balzo nel suo asse verticale».
+   LA REGOLA, adesso. Al banco la macchina tiene UNA quota e UN
+   beccheggio per tutta la fila. Si decidono una volta — quando le
+   famiglie sono entrate, quando lo schermo cambia misura, quando si
+   torna dal livello 1 — inquadrando il PIU' ALTO della fila; durante
+   lo scorrimento si muove solo la x, con l'inerzia che c'era gia'.
+   COME SI SCEGLIE. Si parte dalla geometria (`scartoVero`) e si
+   FRENA IN GIU' finche' la cima del piu' alto sta sotto il filo del
+   velo con la sua aria: chi il velo non lo sfiora non si tocca, e chi
+   e' piu' basso ci sta dentro per costruzione (tutti poggiano a quota
+   zero, il fondo e' lo stesso per tutti).
+   E SE NON CI STA, SI ARRETRA. Su uno schermo corto la banda puo'
+   essere piu' bassa del busto: li' abbassare non basta, e l'unica
+   mossa onesta e' allontanare la macchina — tutta la fila rimpicciolisce
+   insieme, e nessun espositore resta tagliato. Si dichiara
+   (`quota.arretrata`), perche' la merce che rimpicciolisce e' un
+   prezzo, non un dettaglio.
+   PERCHE' UNA FIRMA. La quota si ricalcola solo se e' cambiato
+   qualcosa da cui dipende: la banda, lo schermo, le altezze in scena.
+   Senza la firma il cartellino che si riscrive a ogni stazione
+   («Collane» → «Orecchini») farebbe ripassare di qui a ogni swipe, e
+   un ricalcolo che ridia' lo stesso numero costa comunque il rischio
+   di ridarne uno diverso di mezzo punto. */
 let dBanco = 0;
-function frenaBanco(){
-  if(livello !== 0 || larga || !dBanco) return;
-  /* `scatolaBanco` guarda `partenzaBanco`: sotto il dito quel numero è
-     aggiornato a ogni movimento, durante un lancio no. Frenare su una x
-     vecchia vorrebbe dire frenare sull'espositore sbagliato. */
-  if(bancoVola) return;
-  const box = scatolaBanco();
-  if(!box) return;
+let quota = null;
+window.__quotaBanco = () => quota;
+/* due maniglie per le sonde: buttare via la quota e rifarla sul posto.
+   Servono a misurare quanto costa la banda piu' corta del cartellino
+   d'ingresso, e non le usa nessuno dentro la pagina. */
+window.__scadeQuotaProva = () => scadeQuota();
+window.__rifaiQuota = () => { scadeArea(); scadeQuota(); piazzaBanco(); sveglia(); };
+function scadeQuota(){ quota = null; }
+function firmaQuota(){
+  const a = areaUtile();
+  let m = "";
+  for(const f of FAMIGLIE){ const g = gruppi[f.id];
+    if(g) m += f.id + Math.round(g.userData.alto * 1e4) + ","; }
+  return [Math.round(a.y0), Math.round(a.y1),
+          Math.round(a.yVelo != null ? a.yVelo : a.y0),
+          innerWidth, innerHeight, m].join("|");
+}
+function quotaStretta(){
+  const firma = firmaQuota();
+  if(quota && quota.firma === firma) return quota;
   const a = areaUtile();
   const filo = a.yVelo != null ? a.yVelo : a.y0;
-  const perPunto = 2 * dBanco * Math.tan(camera.fov * Math.PI / 360) / innerHeight;
-  const poni = sc => { occhioObiettivo.y = 0.105 - sc; miraObiettivo.y = 0.082 - sc; };
-  let sc = scartoVero(dBanco);
-  poni(sc);
-  /* IL FRENO SI INNESTA UNA VOLTA SOLA, POI ARRIVA AL FILO. Finche' non
-     e' innestato la correzione va guardata in un verso solo: chi sta
-     comodo sotto il velo non si tocca. Ma una volta che si e' deciso
-     di abbassare, si abbassa QUANTO SERVE e non un punto di piu' — e
-     abbassare il soggetto di un passo ne cambia anche la forma, non
-     solo il posto, quindi la prima passata sorpassa e le altre
-     rientrano. Misurato a 393x852: con una passata sola il bordo alto
-     cadeva a 124 invece che a 110, quattordici punti di scena regalati
-     alla testata. */
-  let frenato = false;
-  for(let i = 0; i < 4; i++){
+  /* la banda utile per il TETTO: dal filo del velo al cartellino */
+  const banda = Math.max(80, a.y1 - filo - ARIA_BARRA);
+  const dBase = distanzaPer(0.24, 0.20, 1.0);
+  let d = dBase;
+  const piazza = sc => {
+    occhioObiettivo.set(partenzaBanco, 0.105 - sc, d);
+    miraObiettivo.set(partenzaBanco, 0.082 - sc, 0);
+    const lt = scostaDiLato(d, 0);
+    if(lt){ occhioObiettivo.add(lt); miraObiettivo.add(lt); }
+  };
+  let sc = 0, alto = 0;
+  for(let giro = 0; giro < 5; giro++){
+    sc = scartoVero(d);
+    piazza(sc);
+    const box = scatolaPiuAlta();
+    if(!box) break;
+    const perPunto = 2 * d * Math.tan(camera.fov * Math.PI / 360) / innerHeight;
+    /* IL FRENO SI INNESTA UNA VOLTA SOLA, POI ARRIVA AL FILO. Finche'
+       non e' innestato la correzione va guardata in un verso solo: chi
+       sta comodo sotto il velo non si tocca. Ma una volta deciso di
+       abbassare, si abbassa QUANTO SERVE e non un punto di piu' — e
+       abbassare il soggetto di un passo ne cambia anche la forma, non
+       solo il posto, quindi la prima passata sorpassa e le altre
+       rientrano. Misurato a 393x852: con una passata sola il bordo
+       alto cadeva a 124 invece che a 110. */
+    let frenato = false;
+    for(let i = 0; i < 4; i++){
+      const q = riquadroSulBersaglio(box);
+      const giu = (q.y0 - filo - ARIA_BARRA) * perPunto;
+      if(!frenato && giu >= -perPunto * 0.5) break;
+      frenato = true;
+      if(Math.abs(giu) < perPunto * 0.5) break;
+      sc += giu; piazza(sc);
+    }
     const q = riquadroSulBersaglio(box);
-    const giu = (q.y0 - filo - ARIA_BARRA) * perPunto;
-    if(!frenato && giu >= -perPunto * 0.5) break;
-    frenato = true;
-    if(Math.abs(giu) < perPunto * 0.5) break;
-    sc += giu;
-    poni(sc);
+    alto = q.y1 - q.y0;
+    const k = alto / banda;
+    if(k <= 1.004) break;
+    /* non ci sta nemmeno frenato: si arretra, e si arretra per tutti */
+    d *= Math.min(k, 1.5);
   }
-  scartoBanco = sc;
+  return (quota = {d, sc, firma, alto:+alto.toFixed(1), banda:+banda.toFixed(1),
+                   arretrata: d > dBase * 1.001, dBase});
 }
 
 /* ── CHI VUOLE SOLO RIMETTERE A FUOCO ───────────────────
@@ -5460,16 +5542,18 @@ function frenaBanco(){
    indietro: si aggiorna quando il lancio si ferma (`fermaBanco`), non a
    ogni fotogramma. Rifare il piazzamento a metà lancio rimetterebbe la
    fila dove stava prima del gesto — il dito buttato via.
-   Stretto non serve nemmeno: la distanza del banco non dipende dalla
-   banda (`distanzaPer` con due misure fisse), quindi l'unica cosa che
-   può cambiare è l'altezza, e quella la sistema `frenaBanco` senza
-   toccare la x. Largo la distanza dipende dalla banda (la fetta utile
+   Stretto la distanza non dipende dalla banda (`distanzaPer` con due
+   misure fisse): l'unica cosa che può cambiare è la quota, e quella ha
+   la sua firma — se la banda è la stessa non si muove niente, e la x
+   resta comunque quella del dito. Largo la distanza dipende dalla banda (la fetta utile
    restringe il campo) e il piazzamento va rifatto per intero — ma
    largo non c'è nessun dito a cui dare fastidio. */
 function ripiazzaBanco(){
   if(livello !== 0) return;
   if(dita.size || bancoVola) return;
-  if(larga) piazzaBanco(); else frenaBanco();
+  /* e stretto ci passa lo stesso: `quotaStretta` ha la firma, e se
+     la banda non e' cambiata davvero non muove un millesimo. */
+  piazzaBanco();
   /* il bersaglio nuovo non serve a niente se il giro dorme */
   sveglia();
 }
@@ -5521,6 +5605,9 @@ function vaiAlBanco(subito){
      scadere parla al fotogramma dopo, e al fotogramma dopo la macchina
      si è già piazzata sulla misura di prima */
   scadeArea();
+  /* e la quota si rifa': tornando dal livello 1 la banda e' un'altra
+     (il tasto «indietro» se ne va e la testata si abbassa di 28) */
+  scadeQuota();
   piazzaBanco();
   if(subito){ occhio.copy(occhioObiettivo); mira.copy(miraObiettivo); }
   sveglia();
@@ -9032,11 +9119,12 @@ function segnaVicino(x){
   if(vicino && vicino.id !== davanti){ davanti = vicino.id; segnaMenu();
     scritte(vicino.nome, "", stazioni(vicino.id).length + " in vetrina",
             "trascina per scorrere · tocca per entrare");
-    /* E LA MACCHINA SI RIFRENA SUL NUOVO. Il cartellino ha appena
-       cambiato testo - e con lui altezza, quindi banda - e a fuoco c'e'
-       un espositore di un'altra statura: sono le due sole cose da cui
-       il freno dipende, e cambiano tutte e due qui. */
-    scadeArea(); frenaBanco(); }
+    /* E LA MACCHINA NON SI TOCCA. Il cartellino ha cambiato testo e la
+       banda va rimisurata, ma l'ALTEZZA della macchina no: e' una sola
+       per tutta la fila (`quotaStretta`). Qui c'era il rifreno per
+       stazione, ed e' esattamente il balzo verticale che Massimo ha
+       visto il 16/09 passando dalle collane agli orecchini. */
+    scadeArea(); }
 }
 
 /* -- IL LANCIO DEL BANCO ------------------------------------------
@@ -9509,7 +9597,8 @@ function vaiDavantiA(id){
     const f = FAMIGLIE.find(x => x.id === id);
     scritte(f.nome, "", stazioni(id).length + " in vetrina",
             "scorri per scorrere il banco · tocca per entrare");
-    scadeArea(); frenaBanco();
+    /* la banda si rimisura, la quota no: vedi `quotaStretta` */
+    scadeArea();
   }
   sveglia();
 }
@@ -9928,15 +10017,20 @@ function gira(ora){
     miraObiettivo.x = occhioObiettivo.x;
     partenzaBanco = occhioObiettivo.x;
     segnaVicino(occhioObiettivo.x);
-    /* ── E QUANDO IL LANCIO SI POSA, SI RIFRENA ──────────────
-       Mentre la fila vola il freno del velo si tiene fuori (vedi
-       `frenaBanco`): `partenzaBanco` è il numero del fotogramma
-       precedente e frenerebbe sull'espositore sbagliato. Appena la fila
-       si posa, la x è quella vera e si guarda se davanti c'è qualcosa
-       che sfora sotto la testata — il busto delle collane è alto tre
-       volte i banconi degli anelli. Costa una misura per LANCIO, non
-       una per fotogramma. */
-    if(!bancoVola){ scadeArea(); frenaBanco(); }
+    /* ── E QUANDO IL LANCIO SI POSA, SI RIMISURA LA BANDA ────
+       La banda sì: il cartellino ha cambiato testo durante la corsa.
+       L'altezza della macchina no — è una sola per tutta la fila
+       (`quotaStretta`), e qui c'era il rifreno che la faceva saltare a
+       ogni stazione. */
+    if(!bancoVola){
+      scadeArea();
+      /* e se una famiglia e' scesa mentre il dito volava, la quota e'
+         rimasta senza ricalcolo (`ripiazzaBanco` non tocca niente sotto
+         il dito): la si rifa' adesso, a fila ferma. Un salto qui e'
+         giusto — il caso peggiore e' cambiato davvero — ed e' l'unico
+         momento del banco in cui l'altezza si muove. */
+      if(!quota) ripiazzaBanco();
+    }
   } else if(bancoVola) fermaBanco();
 
   /* AL PEZZO LA MACCHINA NON STA MAI FERMA DEL TUTTO. Un oggetto in mano lo
@@ -10333,6 +10427,9 @@ addEventListener("resize", ()=>{
      l'altro dei due momenti in cui la banda cambia per davvero */
   bandaPezzo = null;
   scadeArea();
+  /* e la quota unica del banco: uno schermo che cambia misura cambia la
+     banda, e con lei il tetto sotto cui il piu' alto deve stare */
+  scadeQuota();
   const eraLarga = larga;
   larga = LARGO.matches;
   if(larga !== eraLarga){ sistemaImpianto(); applicaCarta(); scadeArea(); }

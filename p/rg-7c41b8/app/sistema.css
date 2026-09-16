@@ -701,10 +701,25 @@ nav[data-nav="b"] button[aria-current] .nm{
    Le quattro voci hanno intervalli uguali e non si muovono mai: si
    muove la PASTIGLIA, e lo fa con la molla. Prima l'attiva si allargava
    mangiando le altre — la riga ballava a ogni tocco.  */
-nav[data-nav="c"]{position:fixed;z-index:5;left:5%;width:90%;
-  /* 16 di stacco, la safe area, e `--sborda` che rimette il fondo dove
-     lo schermo finisce davvero (vedi il blocco ALTEZZA, causa 4) */
-  bottom:calc(16px + env(safe-area-inset-bottom) + var(--sborda, 0px));
+nav[data-nav="c"]{position:absolute;z-index:5;left:5%;width:90%;
+  /* ── LA BARRA STA DENTRO LA SCOCCA, NON SOPRA LA FINESTRA ──────
+     Era `position:fixed` con `bottom`: cioe' appesa al viewport di
+     IMPAGINAZIONE, che su iOS in standalone non e' lo schermo. Il
+     16/09 quel numero si e' pagato due volte — prima con 110 punti di
+     carta sotto la barra, poi con 109 — e la toppa aritmetica
+     (`--sborda`, la differenza fra i due token dell'altezza) valeva
+     ZERO proprio nel caso che doveva curare, perche' iOS dichiara lo
+     stesso numero corto a `innerHeight` e a `visualViewport`.
+     Adesso la barra e' figlia di `#app`, che e' alto `--alt-vera` (la
+     misura vera dello schermo, vedi il blocco ALTEZZA): `bottom` conta
+     dal fondo della SCOCCA, che e' l'unico fondo che ci interessa.
+     Un solo numero da azzeccare invece di due da far tornare.
+     (`#app` e' `position:fixed`, quindi e' gia' il blocco contenitore
+     di un figlio assoluto; e quando il foglio lo fa arretrare la barra
+     arretra con lui, che e' come si comportava gia' — una `fixed`
+     dentro un antenato trasformato si aggrappa all'antenato.)
+     16 di stacco piu' la safe area, come approvato. */
+  bottom:calc(16px + env(safe-area-inset-bottom));
   height:66px;padding:7px 6px;border-radius:999px;
   background:var(--vetro);
   -webkit-backdrop-filter:blur(20px) saturate(1.4);
@@ -1586,20 +1601,37 @@ html,body{bottom:auto;height:var(--alt-vera, var(--alt-app));
 
 /* ── 4 · E CHI STA ATTACCATO AL FONDO NON SEGUIVA LA CINTURA ─────
    `--alt-vera` fa alti quanto lo schermo `html`, `body` e la scocca. Ma
-   la barra delle sezioni non sta DENTRO la scocca: e' `position:fixed`
-   con `bottom`, cioè attaccata al fondo del viewport di IMPAGINAZIONE
-   — lo stesso numero sbagliato. Misurato: forzando la scocca
-   all'altezza corta, `#app` torna a 852 e la barra resta dov'era.
-   Sull'iPhone di Massimo la barra finiva a 742 invece che a 802: i 110
-   punti di carta sotto sono 50 di stacco approvato PIU' i 60 che il
-   viewport non sa di avere.
+   tre cose non stanno DENTRO la scocca: erano `position:fixed` con
+   `bottom`, cioè attaccate al fondo del viewport di IMPAGINAZIONE —
+   lo stesso numero sbagliato.
    `--sborda` è di quanto la scocca esce sotto quel viewport: zero
    quando il browser dice la verita' (`--alt-vera` = `--alt-app`, che è
    il caso di ogni desktop e di Safari con le sue barre), negativo di
    quei 59-60 punti quando iOS in cornice impagina corto. Sommarlo a
-   `bottom` riporta al fondo VERO le tre cose che ci stanno attaccate:
-   la barra, i riscontri che le si posano sopra, e il foglio dal basso.
-   Non e' un numero nuovo: e' la differenza fra i due che ci sono gia'. */
+   `bottom` riporta al fondo VERO cio' che ci sta attaccato.
+
+   ── 5 · MA LA TOPPA ARITMETICA VALEVA ZERO (16/09, terza foto) ────
+   `--sborda` è la DIFFERENZA fra `--alt-app` (`100dvh`) e `--alt-vera`
+   (il maggiore fra `innerHeight` e `visualViewport.height`). Su iOS in
+   standalone quei numeri sono TUTTI E TRE lo stesso numero corto —
+   misurato nella foto: schermo 852, impaginato 793, differenza 59, che
+   è esattamente `env(safe-area-inset-top)`. Con tre numeri uguali la
+   differenza è zero e la toppa non tocca niente: la barra è rimasta a
+   677-743 con 109 punti di carta sotto, cioè al punto dove stava
+   PRIMA del rimedio. Un correttivo che si annulla da solo proprio nel
+   caso per cui è nato non è un correttivo.
+   DUE COSE, adesso, e in quest'ordine.
+   (a) LA BARRA NON È PIÙ APPESA ALLA FINESTRA. È `position:absolute`
+   dentro `#app`, che è alto `--alt-vera`: un numero solo da azzeccare
+   invece di due da far tornare, e nessun modo di restare indietro in
+   silenzio. Il foglio dal basso (un `<dialog>`, che vive nel top layer
+   e non ha antenati) e la zona dei riscontri restano con `--sborda`,
+   che per loro è l'unica strada.
+   (b) `--alt-vera` HA IMPARATO IL VIEWPORT GRANDE. `misuraAltezza`
+   guarda anche `100lvh` — il viewport con le barre ritraibili ritratte,
+   che in una web app in standalone è lo schermo — e ci crede AL MASSIMO
+   per l'inset di sopra, che è quanto la misura dice. Il come sta in
+   `index.html`. */
 :root{--sborda:calc(var(--alt-app) - var(--alt-vera, var(--alt-app)))}
 
 /* IL FONDO DEL DOCUMENTO SEGUE LA SEZIONE. Nessun hex nuovo: sono i due

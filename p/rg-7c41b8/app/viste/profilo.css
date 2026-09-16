@@ -310,3 +310,30 @@
 .f6-salita-titolo{color:var(--testo)}
 .f6-salita-riga{color:var(--testo-2)}
 .f6-salita .tasto{margin-top:4px}
+
+/* ══ LA DIAGNOSTICA ═════════════════════════════════════════════════
+   Il registro dei numeri del dispositivo, aperto da cinque tocchi sul
+   pie'. È un attrezzo da officina dentro un cofanetto di gioielleria:
+   perciò NON prende niente dal vocabolario del cofanetto — niente
+   Bodoni, niente accento, niente pastiglie. Inter 13, cifre tabulari
+   (le colonne di numeri si leggono incolonnate o non si leggono), la
+   chiave tenue a sinistra e il valore in testo pieno a destra, e i
+   valori lunghi — lo userAgent — vanno a capo invece di sfondare.
+   Due colonne e non una tabella: `dl` è esattamente questo, un elenco
+   di coppie, e il lettore di schermo le legge accoppiate. */
+.f6-diag{display:grid;grid-template-columns:auto 1fr;gap:0 14px;margin:0;
+  font:400 13px/18px var(--f-testo);
+  font-variant-numeric:lining-nums tabular-nums;
+  font-feature-settings:"tnum","lnum"}
+.f6-diag dt{color:var(--testo-2);padding:3px 0;white-space:nowrap}
+.f6-diag dd{color:var(--testo);margin:0;padding:3px 0;
+  overflow-wrap:anywhere;word-break:break-word}
+/* il filo fra una coppia e l'altra: si disegna sotto il VALORE e sotto
+   la chiave, perché in una griglia a due colonne la riga non esiste
+   come elemento — esistono due celle affiancate. L'ultima coppia non
+   ha filo, come nelle liste del sistema. */
+.f6-diag dt,.f6-diag dd{border-bottom:1px solid var(--linea)}
+.f6-diag dt:last-of-type,.f6-diag dd:last-of-type{border-bottom:0}
+
+.f6-diag-tasti{display:flex;gap:10px}
+.f6-diag-tasti .tasto{flex:1 1 0}

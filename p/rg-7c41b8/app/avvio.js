@@ -188,6 +188,15 @@ export async function avviaApp(V){
     if(d && d.id) location.hash = "#/cofanetto/pezzo/" + d.id;
   });
 
+  /* E LA VERSIONE DEL BANCO, per la diagnostica. La scocca e la scena
+     hanno due timbri e due cache: si sono gia' viste disallineate (il
+     telaio nuovo che chiedeva una scena vecchia), e senza questo
+     numero la diagnostica direbbe meta' della verita'. Arriva col
+     `banco/pronto`, cioe' quando i modelli sono in scena. */
+  quandoIlBancoDice("banco/pronto", (d) => {
+    window.__bancoVersione = (d && d.versione) || "(senza timbro)";
+  });
+
   /* UNA MANIGLIA SOLA, e dichiarata. Serve alle sonde di collaudo e al
      banco di prova; è l'unico globale che l'app espone oltre alle due
      funzioni della barra, ed è di sola lettura per chi la usa bene. */

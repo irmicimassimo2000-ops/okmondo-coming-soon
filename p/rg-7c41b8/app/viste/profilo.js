@@ -540,8 +540,75 @@ export function monta(el, store){
       cella({titolo: "Aiuto",        suClick: () => spingi("aiuto")})
     ]));
 
-    pagina.append(e("span", {class: "t-foot f6-pie",
-      testo: "Regina Jewels 1.0 · " + (c.tessera || "")}));
+    pagina.append(pieVersione(c.tessera));
+  }
+
+  /* ══ IL PIE' — E QUELLO CHE C'E' SOTTO ══════════════════════════
+     «Regina Jewels 1.0 · RJ 00042» e' la firma in fondo al Profilo.
+     Cinque tocchi entro due secondi aprono la DIAGNOSTICA: e' il
+     pattern «Info su» di iOS, dove il numero di build si tocca finche'
+     non si apre quello che serve a chi ripara.
+     PERCHE' ESISTE. Il difetto dell'altezza non si riproduce in
+     cornice: Chrome impagina onesto, iOS in standalone no, e fra i due
+     non c'e' un ponte. I numeri li ha in mano Massimo, e finora
+     arrivavano come fotografie da misurare a mano. Qui si leggono, si
+     copiano e si mandano.
+     NON E' UNA FUNZIONE DEL COFANETTO. Non ha segno, non ha cella, non
+     ha voce nella barra: si apre solo se la si cerca, e chi non la
+     cerca non la trova mai. Per questo il pie' resta uno `span` e non
+     diventa un comando — un `button` in fondo al Profilo direbbe al
+     cliente che li' c'e' qualcosa da fare. */
+  const WA_DIAGNOSTICA = "393208599301";   /* il telefono di Massimo, non il negozio */
+
+  function pieVersione(tess){
+    const n = e("span", {class: "t-foot f6-pie",
+      testo: "Regina Jewels 1.0 · " + (tess || "")});
+    let colpi = 0, primo = 0;
+    n.addEventListener("click", () => {
+      const ora = Date.now();
+      if(ora - primo > 2000){ colpi = 0; primo = ora; }
+      colpi++;
+      if(colpi >= 5){ colpi = 0; primo = 0; foglioDiagnostica(); }
+    });
+    return n;
+  }
+
+  function foglioDiagnostica(){
+    const d = window.__diagnostica ? window.__diagnostica()
+            : {righe: [["diagnostica", "il telaio non la espone"]], testo: ""};
+    const registro = e("dl", {class: "f6-diag"});
+    for(const [k, v] of d.righe){
+      registro.append(e("dt", {testo: k}));
+      registro.append(e("dd", {testo: String(v)}));
+    }
+    /* I DUE COMANDI STANNO NEL CONTENUTO, non accanto al titolo: il
+       posto dell'azione del foglio ne tiene UNA, e queste sono due
+       strade pari — una porta il testo negli appunti, l'altra lo porta
+       via dal telefono. */
+    const tasti = e("div", {class: "f6-diag-tasti"}, [
+      tasto("Copia", {tipo: "secondario", suClick: () => {
+        const scritto = (navigator.clipboard && navigator.clipboard.writeText)
+          ? navigator.clipboard.writeText(d.testo)
+          : Promise.reject(new Error("niente appunti"));
+        scritto.then(() => toast("Copiata"))
+               .catch(() => toast("Gli appunti non rispondono"));
+      }}),
+      tasto("WhatsApp", {tipo: "primario", suClick: () => {
+        location.href = "https://wa.me/" + WA_DIAGNOSTICA +
+                        "?text=" + encodeURIComponent(d.testo);
+      }})
+    ]);
+    const dentro = e("div", {class: "f6-foglio"}, [
+      e("p", {class: "t-sub tenue", testo:
+        "I numeri di questo iPhone, come li dichiara adesso. Servono a capire perche' l'applicazione si impagina diversa da come si vede in prova."}),
+      /* I COMANDI STANNO SOPRA IL REGISTRO. Le righe sono venticinque e
+         su un telefono finiscono sotto il bordo: se «Copia» sta in
+         fondo, per copiare bisogna prima scorrere tutto quello che si
+         vuole copiare. Qui l'elenco e' la PROVA, non la lettura. */
+      tasti,
+      registro
+    ]);
+    apriFoglio({titolo: "Diagnostica", fermo: "alto", contenuto: dentro});
   }
 
   /* ══ R1 · CREDITO E LIVELLO ════════════════════════════════════ */
@@ -912,8 +979,7 @@ export function monta(el, store){
     pagina.append(lista("Aiuto", [
       cella({titolo: "Domande frequenti", suClick: () => spingi("aiuto")})
     ]));
-    pagina.append(e("span", {class: "t-foot f6-pie",
-      testo: "Regina Jewels 1.0 · " + (cliente().tessera || "")}));
+    pagina.append(pieVersione(cliente().tessera));
   }
 
   /* IL FOGLIO DELLA CANCELLAZIONE. È l'unico posto dell'app dove un
