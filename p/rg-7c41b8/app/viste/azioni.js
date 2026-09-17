@@ -52,6 +52,7 @@ import { RIDOTTO } from "app/moto.js";
 import { diAlBanco, quandoIlBancoDice } from "app/canale3d.js";
 import { storiaDi } from "app/stato.js";
 import { NEGOZIO, waNegozio, mappeNegozio } from "app/dati/negozio.js";
+import { telaioAstuccio } from "app/tre/telaio.js";
 
 /* ── IL FOGLIO DI STILE SE LO PORTA LA VISTA ───────────────────────
    Col timbro di versione del modulo, come fanno vetrina.js e perte.js:
@@ -928,8 +929,14 @@ export function monta(store){
   const tempi = {};             /* per la sonda: quando ogni battuta è entrata */
   let regiaCorrente = null;     /* `statoA(t)`: la regia come funzione del tempo */
 
+  let telaioVivo = null;
   function chiudiCarta(){
     if(!strato) return;
+    /* IL TELAIO SI SMONTA A MANO. Un contesto grafico non lo raccoglie
+       il netturbino della memoria: togliere il nodo dal documento non
+       libera niente, e sul telefono il contesto che il browser chiude a
+       sorpresa per far posto è sempre quello che serve. */
+    if(telaioVivo){ try{ telaioVivo.via(); }catch(_){ /* niente */ } telaioVivo = null; }
     strato.remove(); strato = null;
     delete document.body.dataset.carta;
   }
@@ -1027,11 +1034,50 @@ export function monta(store){
     const marchio = e("img", {class:"az-r-marchio", src:"marchio.png",
       alt:"Regina", decoding:"async"});
     const da = e("h1", {class:"az-r-da", tabindex:"-1", testo:"Da " + mittente});
+    /* ── IL PEZZO È L'ASTUCCIO CHE SI APRE ────────────────────────
+       17/09/2026. Qui c'era la fotografia del gioiello, quadrata, 240
+       punti. Ma chi apre questo indirizzo sta SCARTANDO un regalo, e un
+       regalo non è una fotografia: è una scatola che si apre. La regia
+       resta quella lockata di 1,7 s — marchio 0-400, «Da X» 400-800,
+       il pezzo 800-1300, la dedica 1300-1700 — e nella battuta del
+       pezzo, adesso, il coperchio si alza.
+       LA CERIMONIA È PIÙ LUNGA DELLA SUA BATTUTA, ed è voluto: 1600 ms
+       partiti a 800 finiscono a 2400, mentre la dedica arriva a 1300 e
+       la coda a 1700. Non si accorciano i tempi della scatola per farla
+       stare dentro una battuta — si lascia che la dedica si scopra
+       mentre il pezzo si posa, che è l'ordine in cui uno legge davvero:
+       prima vede cos'è, poi legge chi gliel'ha scritto.
+       L'INQUADRATURA È PIÙ LARGA che alla consegna (`aria` 1,62 contro
+       1,55), e per una ragione che si è vista in faccia: qui il quadro è
+       un QUADRATO di 240 punti, non uno schermo verticale. Su uno
+       schermo alto l'aria avanza in altezza e il vincolo è la larghezza;
+       dentro un quadrato i due vincoli sono lo stesso, e col numero
+       della consegna il piede della scatola finiva tagliato dal bordo di
+       sotto. */
+    const famBanco = es.fam || "anelli";
+    const haModello = typeof es.k === "number";
+    const telaio = telaioAstuccio({
+      fam: famBanco, k: haModello ? es.k : null,
+      fodera: ((leggi().preferenze || {}).fodera) || "avorio",
+      codice: es.codice || null, aria: 1.62, scorre: true,
+      provino: haModello ? null : src,
+      classe: "az-r-astuccio", titolo: "Il tuo astuccio"
+    });
+    /* il ripiego, se la scheda grafica non dà il contesto: la stessa
+       fotografia di prima, che non è sbagliata — è soltanto meno */
     const fig = src
       ? e("img", {class:"az-r-fig", src, alt:"", decoding:"async"})
       : e("div", {class:"az-r-fig redatto"}, [e("span", {testo:nomeDi(es)})]);
+    const scena = e("div", {class:"az-r-fig az-r-scena"}, [telaio.nodo]);
+    let inTre = false;
+    telaio.pronto.then((ok) => {
+      inTre = !!ok;
+      if(ok){ fig.hidden = true; scena.dataset.pronto = "1"; }
+      else scena.hidden = true;
+    });
+    telaioVivo = telaio;
     const nome = e("p", {class:"az-r-nome", testo:nomeDi(es)});
-    const pezzo = e("div", {class:"az-r-pezzo"}, [fig, nome]);
+    const pezzo = e("div", {class:"az-r-pezzo"}, [scena, fig, nome]);
     const dedica = e("p", {class:"az-r-dedica", testo: ded || ""});
 
     const metti = tasto("Metti nel cofanetto", {tipo:"primario", largo:true,
@@ -1118,9 +1164,15 @@ export function monta(store){
       ...figure.map(x => {
         try{ return x.decode().catch(() => {}); }catch(_){ return Promise.resolve(); }
       }),
+      telaio.pronto,
       (document.fonts && document.fonts.ready) || Promise.resolve()
     ]);
+    /* IL SIPARIO ASPETTA ANCHE LA SCATOLA. Il telaio dice «pronto»
+       quando il pezzo è in scena: farlo partire prima vorrebbe dire una
+       battuta su un rettangolo vuoto. Il tetto vale anche per lui — una
+       scheda grafica lenta non può tenere fermo un regalo. */
     const tetto = new Promise(r => setTimeout(r, 700));
+    pronte.then(() => {}, () => {});
 
     /* ══ LA REGIA COME FUNZIONE DEL TEMPO ════════════════════
        `statoA(t)` dice com'e' la scena all'istante t, e non lo dice
@@ -1149,6 +1201,7 @@ export function monta(store){
     regiaCorrente = statoA;
 
     const nodi = {marchio, da, pezzo, dedica, coda};
+    let suonata = false;
     function applica(st, t){
       for(const k in nodi){
         const acceso = !!st[k];
@@ -1157,6 +1210,14 @@ export function monta(store){
         if(acceso && tempi[k] === undefined) tempi[k] = Math.round(t);
       }
       marchio.classList.toggle("az-su", !!st.su);
+      /* LA SCATOLA SI APRE QUANDO IL PEZZO ENTRA, e non un istante
+         prima: la battuta è sua. Una volta sola — `applica` gira a ogni
+         fotogramma, e la prova generale a sipario chiuso la accende
+         tutta per un giro. */
+      if(!suonata && st.pezzo && !dentro.classList.contains("az-preroll")){
+        suonata = true;
+        if(inTre) telaio.suona();
+      }
     }
 
     /* ── IL PRE-ROLL: la scena si prova a sipario chiuso ──────────

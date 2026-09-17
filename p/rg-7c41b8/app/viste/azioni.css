@@ -234,6 +234,16 @@ body[data-carta] #barra{visibility:hidden}
   border-radius:var(--r-card);background:var(--incavo)}
 .az-r-fig.redatto{display:flex;align-items:center;justify-content:center;
   font:var(--t-sub);color:var(--testo-2)}
+/* ── L'ASTUCCIO CHE SI APRE, AL POSTO DELLA FOTOGRAFIA ────────────
+   Stesso riquadro della foto (240, quadrato), ma senza fondo e senza
+   raggio: la carta della scena e' gia' la carta della pagina, e un
+   raggio attorno farebbe di una scatola posata una figurina dentro una
+   cornice. `overflow:hidden` perche' il telaio non sbordi mentre la
+   battuta lo fa salire di dodici punti. */
+.az-r-scena{background:none;border-radius:0;overflow:hidden;
+  aspect-ratio:1;position:relative}
+.az-r-astuccio{display:block;width:100%;height:100%;border:0;
+  background:transparent}
 .az-r-nome{margin:0;
   font:var(--t-1);letter-spacing:var(--ls-display);font-optical-sizing:auto}
 .az-r-dedica{margin:14px 0 0;min-height:28px;

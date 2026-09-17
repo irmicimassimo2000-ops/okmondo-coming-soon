@@ -1207,7 +1207,32 @@ body[data-ingresso] .cap-elenco{visibility:hidden}
   /* il marchio COMPLETO, impresso: nessun monogramma, nessuna riduzione */
   filter:saturate(.1) contrast(.85)}
 
-.f1-pezzo-testi{position:absolute;left:0;right:0;top:512px;
+/* ── S1 · L'ASTUCCIO IN TRE DIMENSIONI ────────────────────────────
+   Il telaio riempie la schermata e sta SOTTO il testo: la carta della
+   scena (#FAF8F5) e' lo stesso colore del fondo dell'app, quindi non
+   c'e' nessun riquadro da far combaciare — la scatola e' posata sulla
+   pagina, non incollata su una fotografia dentro una cornice.
+   `opacity` 0 finche' il pezzo non e' in scena: un telaio che appare
+   vuoto e poi si riempie e' peggio di un telaio che arriva pieno. La
+   dissolvenza e' 200, il tetto del ridotto, e non di piu'. */
+/* LA SCENA SI FERMA SOPRA I TESTI, e non e' un margine a occhio: il
+   cofanetto aperto e' alto quasi due terzi dello schermo, e il nome del
+   pezzo — che prima stava a 512 punti, misura del cofanetto DISEGNATO,
+   largo 260 — finiva stampato sul velluto. Misurato: «Collana Maglia»
+   sopra la fodera, illeggibile. La scena si tiene i suoi 720 punti, il
+   nome sta sotto, e fra i due c'e' aria. */
+.f1-scena3d{position:absolute;inset:0 0 132px;z-index:0;pointer-events:auto;
+  opacity:0;transition:opacity .2s linear}
+.f1-scena3d[data-pronto]{opacity:1}
+.f1-astuccio{display:block;width:100%;height:100%;border:0;
+  background:transparent}
+/* il titolo e l'occhiello restano sopra la scena: sono in flusso, la
+   scena e' assoluta e viene dopo nel documento — senza questa riga li
+   coprirebbe */
+.f1-s1 .f1-occhiello,.f1-s1 .f1-titolo-s1{position:relative;z-index:1}
+
+.f1-pezzo-testi{position:absolute;left:0;right:0;
+  top:auto;bottom:calc(var(--safe-b) + 92px);z-index:1;
   display:flex;flex-direction:column;align-items:center;gap:4px;
   padding:0 var(--margine);text-align:center;opacity:0}
 .f1-pezzo-nome{color:var(--testo)}

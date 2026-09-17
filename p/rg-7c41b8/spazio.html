@@ -3131,7 +3131,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perché il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova è una correzione che non arriva. */
-const VERSIONE = "2026-09-16c";
+const VERSIONE = "2026-09-17c";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non è zero, è un ReferenceError, e un ReferenceError lì
@@ -6804,6 +6804,14 @@ const scattoDi = nome => SCATTO_URL[nome] || (VIA + nome + "?v=" + VERSIONE);
      condividi — due punti legati da un filo
      rimuovi   — il cerchio barrato */
 const SEGNI = {
+  /* l'astuccio: la scatola aperta di tre quarti, col coperchio alzato.
+     Non un quadrato con un coperchio sopra — quello e' un pacco — ma la
+     base bassa e il coperchio inclinato, che e' la sagoma con cui si
+     riconosce un astuccio da gioielleria anche da lontano. */
+  astuccio: '<svg class="segno" viewBox="0 0 22 22" aria-hidden>' +
+    '<path d="M3.4 13.2 11 9.6l7.6 3.6v3.1L11 19.9l-7.6-3.6z"/>' +
+    '<path d="M4.6 10.4 11 7.4l6.4 3"/>' +
+    '<path d="M5.2 8.9 11.6 2.4l6 3.6-6.4 3.1z"/></svg>',
   regala: '<svg class="segno" viewBox="0 0 22 22" aria-hidden>' +
     '<rect x="3" y="8" width="16" height="11"/><line x1="3" y1="12" x2="19" y2="12"/>' +
     '<line x1="11" y1="8" x2="11" y2="19"/>' +
@@ -7010,6 +7018,14 @@ function apriCarta(fam, k){
      «Rimuovi» resta in casa: non c'è niente da scrivere. */
   const voci = [];
   voci.push({id:"certificato", che:"Certificato", perche:"il passaporto del pezzo"});
+  /* L'ASTUCCIO. Al banco il pezzo sta su un espositore, che e' come sta
+     in NEGOZIO; questa voce lo mette dove sta a CASA, nel suo astuccio,
+     e lo apre. E' lo stesso modulo della consegna e della pagina del
+     regalo (`app/tre/astuccio.js`): qui pero' il motore c'e' gia' in
+     memoria, e la scena costa 97 ms invece di 276 — misurato il 17/09
+     (`_C5_via`), ed e' la ragione per cui la stessa cerimonia vive in
+     due posti diversi senza essere scritta due volte. */
+  voci.push({id:"astuccio", che:"Astuccio", perche:"aprilo come a casa"});
   const diCasa = !!codiceDiScena(fam, k);
   if(diCasa) voci.push({id:"dedica", che:"Dedica",
                         perche: sc.dedica ? "cambiala" : "scrivine una"});
@@ -8687,6 +8703,9 @@ function mostraTutto(conVela){
    dall'espositore al banco. Il tasto in alto e il trascinamento verso il
    basso fanno la stessa cosa, perché su un telefono la mano non sale. */
 function indietro(){
+  /* e l'astuccio e' il passo piu' vicino di tutti: se e' aperto, si
+     richiude lui e il pezzo resta dov'era, con la sua carta */
+  if(astuccioAperto()){ chiudiAstuccio(); return; }
   /* ── UN PASSO È UN PASSO, E LA CARTA È UN PASSO ──────────────
      Con la finestra la carta non copre più tutto lo schermo per il
      collaudo del puntatore: un tocco che cade nel ritaglio arriva alla
@@ -11123,9 +11142,83 @@ function mandaAzione(id, b){
 /* una voce del nastro: gira la carta, manda un messaggio, o apre il
    foglio di casa. Una tabella e non tre `if` sparsi nel disegno. */
 function faiVoce(id, b){
+  if(id === "astuccio"){ apriAstuccio(); return; }
   if(id === "rimuovi"){ apriRimuovi(); return; }
   if(AZIONI[id]){ mandaAzione(id, b); return; }
   giraCarta(id);
+}
+
+/* ══ C2 · L'ASTUCCIO, IN PRIMO PIANO ══════════════════
+   La stessa scena della consegna, montata QUI DENTRO: `three` in questa
+   pagina e' gia' in memoria, quindi l'astuccio costa solo la propria
+   geometria — 97 ms al primo fotogramma contro i 276 del telaio
+   leggero (misurato il 17/09, `_C5_via`). E' l'unico posto dell'app in
+   cui la via (a) conviene, perche' e' l'unico in cui l'ospite c'e' gia'.
+   IL BANCO SI FERMA MENTRE L'ASTUCCIO E' APERTO. Il velo lo copre
+   tutto: continuare a disegnare venti espositori dietro un pannello
+   opaco e' una batteria che si scarica per niente. Si usa lo stesso
+   interruttore del canale (`sospeso`), non uno nuovo.
+   NON SI TOCCA IL RESTO DEL CROMO: nessuna riga sopra cambia, la carta
+   resta aperta sotto, e «indietro» — il tondo di sempre — richiude
+   prima l'astuccio e poi tutto il resto come faceva prima. */
+let astVelo = null, astManiglia = null, astSospesoDaNoi = false, astZAlto = "";
+function astuccioAperto(){ return !!astVelo && !astVelo.hidden; }
+
+async function apriAstuccio(){
+  if(astuccioAperto()) return;
+  const fam = cartaFam, k = cartaK;
+  if(!fam || k < 0) return;
+  if(!astVelo){
+    astVelo = document.createElement("div");
+    astVelo.id = "astuccio";
+    astVelo.setAttribute("role", "dialog");
+    astVelo.setAttribute("aria-modal", "true");
+    astVelo.setAttribute("aria-label", "L'astuccio del pezzo");
+    astVelo.style.cssText = "position:fixed;inset:0;z-index:60;background:#FAF8F5;" +
+      "opacity:0;transition:opacity .18s linear";
+    /* il tondo che chiude e' quello del banco, non uno nuovo: si
+       riusa `indietro()`, cosi' il gesto e' lo stesso di sempre */
+    astVelo.addEventListener("click", (ev) => { if(ev.target === astVelo) chiudiAstuccio(); });
+    document.body.appendChild(astVelo);
+  }
+  astVelo.hidden = false;
+  /* IL TONDO «INDIETRO» RESTA SOPRA IL VELO, ed e' l'unica riga di
+     cromo che questa funzione tocca. `#alto` — la testata col marchio e
+     col tasto — sta a z-index 3, il velo a 60: senza questa riga la via
+     d'uscita finiva SOTTO l'astuccio, e lo schermo diventava una stanza
+     senza porta. Sollevare la testata invece di inventare un secondo
+     tasto tiene il gesto uguale a sempre: si torna indietro col tondo di
+     sempre, e la carta si ritrova aperta dov'era. */
+  const alto = document.getElementById("alto");
+  if(alto){ astZAlto = alto.style.zIndex; alto.style.zIndex = "61"; }
+  requestAnimationFrame(() => { astVelo.style.opacity = "1"; });
+  if(!sospeso){ sospeso = true; astSospesoDaNoi = true; }
+  let veste = "avorio";
+  try { veste = localStorage.getItem("regina.veste") || "avorio"; } catch(_) {}
+  const prov = (window.PROVINI && window.PROVINI[fam + ":" + k]) || null;
+  const m = await import("./app/tre/astuccio.js");
+  if(!astVelo || astVelo.hidden) return;        /* chiuso mentre scendeva */
+  astManiglia = m.monta(astVelo, {
+    fam, k, fodera: veste, profilo: MOBILE_PROFILO(), aria: 1.55,
+    /* il fondo lo fa il velo, col suo #FAF8F5 vero: la carta della
+       scena uscirebbe piu' scura e si vedrebbe il rettangolo */
+    piano: false, provino: prov
+  });
+  astManiglia.quando((che) => { if(che === "pronto") astManiglia.suona(0); });
+  window.__astuccio = astManiglia;
+}
+function MOBILE_PROFILO(){
+  return (innerWidth < 900 || (navigator.maxTouchPoints || 0) > 0) ? "mobile" : "banco";
+}
+function chiudiAstuccio(){
+  if(!astuccioAperto()) return;
+  if(astManiglia){ try { astManiglia.smonta(); } catch(_) {} astManiglia = null; }
+  window.__astuccio = null;
+  astVelo.style.opacity = "0";
+  astVelo.hidden = true;
+  const alto = document.getElementById("alto");
+  if(alto) alto.style.zIndex = astZAlto;
+  if(astSospesoDaNoi){ astSospesoDaNoi = false; sospeso = false; ultimoFrame = 0; sveglia(); }
 }
 
 /* ── RIVESTIRE UNA CARTA GIÀ APERTA ───────────────────────────

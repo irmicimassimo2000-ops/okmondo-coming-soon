@@ -46,6 +46,7 @@ import { apriFoglio, chiudiFoglio } from "app/ui/foglio.js";
 import { molla, lineare, RIDOTTO, dueGiri } from "app/moto.js";
 import { NEGOZIO, waNegozio } from "app/dati/negozio.js";
 import { tessera } from "app/ui/tessera.js";
+import { telaioAstuccio } from "app/tre/telaio.js";
 
 /* ── I NUMERI ──────────────────────────────────────────────────────
    Ingresso di una schermata: 320 ms, ease-out iOS, 24 pt di
@@ -304,93 +305,78 @@ export function montaIngresso(store, opz = {}) {
     });
   }
 
-  /* ── IL COFANETTO VERO ──────────────────────────────────────────
-     `app/dati/cofanetto.js` (15/09) porta il cofanetto fotografato
-     dalla stessa macchina del banco, in quattro vesti e su fondo
-     trasparente: `base-<fodera>` (la base col vano già vestito e la sua
-     ombra), `coperchio-chiuso` (il solo coperchio, senza ombra) e
-     `aperto-<fodera>` (il fotogramma vero a coperchio aperto). Il
-     cofanetto disegnato in CSS resta come RIPIEGO — se il modulo non
-     c'è, o le immagini non arrivano, la cerimonia va lo stesso.
+  /* ── L'ASTUCCIO IN TRE DIMENSIONI ───────────────────────────────
+     17/09/2026. Qui c'era `vestiColRender`: il cofanetto FOTOGRAFATO
+     (quattro .webp per fodera, 1,15 MB) con dentro il provino del pezzo
+     ritagliato e appoggiato nel vano. Verdetto di Massimo: bocciata.
+     Dentro un cofanetto ci va il PEZZO, in tre dimensioni, e per ogni
+     tipo di pezzo il cofanetto è diverso.
+     Adesso la scena è `app/tre/astuccio.js`, e vive in un TELAIO suo
+     (`astuccio.html`) per una ragione che si misura: la scocca non
+     porta three.js — la sua mappa d'importazione non ce l'ha, e non
+     deve averla, perché due mega e nove di libreria nel documento che
+     porta la barra di navigazione si pagherebbero per aprire una lista.
+     Nel telaio invece si pagano una volta, quando serve una scatola.
+     MISURATO (17/09, `_C5_via`): dal montaggio al primo fotogramma 276
+     ms col telaio leggero contro 97 ms mettendola dentro il banco — ma
+     il banco, alla consegna, non c'è: averlo costa 1.121 ms e 2,6 MB in
+     più, e sono i modelli di venti espositori che nessuno guarderà.
+     I .webp di `app/dati/cofanetto/` restano su disco e non si caricano
+     più: il ripiego, se WebGL non c'è, è il cofanetto disegnato in CSS
+     che è sempre stato lì sotto.
 
-     I FILE SI RISOLVONO CONTRO `app/`, non contro la pagina. `C.radice`
-     è «./dati/cofanetto/», relativa alla cartella del modulo che la
-     dichiara; da qui (`app/viste/`) si risale di uno. Chiederle alla
-     radice del sito è il 404 che si è già visto una volta: questa app
-     non sta in radice, sta in `p/rg-7c41b8/`.
-
-     LA ROTAZIONE SI FERMA A -70, e non è un compromesso: lo dichiara il
-     modulo (`rotazione_in_css.sicuro`), perché oltre quell'angolo un
-     `rotateX` su una fotografia di tre quarti si assottiglia in una
-     lama e smette di somigliare a un coperchio. Da lì si dissolve sul
-     fotogramma vero. I tempi del corpus 45 restano: 0→700 la
-     rotazione, 450→700 la dissolvenza, e il resto non si tocca. */
-  let GRADI = CERIMONIA.coperchio.gradi;   /* -105 col CSS, -70 col render */
-  let apertoImg = null;                    /* il fotogramma vero */
-
-  async function vestiColRender(cof, coperchioDentro) {
-    try {
-      const m = await import("app/dati/cofanetto.js");
-      const C = m.COFANETTO || m.default;
-      if (!C || !C.base || !C.coperchio || !C.aperto) return false;
-      const fodera = cof.dataset.fodera;
-      const nomeBase = C.base[fodera], nomeAperto = C.aperto[fodera];
-      if (!nomeBase || !nomeAperto) return false;
-
-      const dentro = new URL("../", import.meta.url);
-      const dove = (f) => new URL((C.radice || "./dati/cofanetto/") + f, dentro).href;
-      const carica = (src) => new Promise((ok, no) => {
-        const i = new Image();
-        i.decoding = "async"; i.alt = "";
-        i.onload = () => ok(i); i.onerror = no; i.src = src;
-      });
-      /* SI ASPETTA CHE LE TRE IMMAGINI CI SIANO DAVVERO prima di
-         cambiare la scena: montare un render a metà vorrebbe dire far
-         partire la cerimonia su una scatola che non c'è ancora. */
-      const [base, cima, aperto] = await Promise.all(
-        [dove(nomeBase), dove(C.coperchio), dove(nomeAperto)].map(carica));
-      base.className = "f1-cof-base";
-      cima.className = "f1-cof-cima";
-      aperto.className = "f1-cof-aperto";
-
-      const scatola = cof.querySelector(".f1-cof-scatola");
-      const velo = cof.querySelector(".f1-cof-fodera");
-      if (velo) velo.remove();
-      /* l'ordine conta: base sotto, poi il fotogramma aperto (che si
-         accende quando la rotazione si ferma), poi il pezzo nel vano,
-         poi il coperchio che ruota sopra tutto. */
-      scatola.prepend(aperto);
-      scatola.prepend(base);
-      coperchioDentro.prepend(cima);
-      const o = (C.cerniera || {}).origine;
-      if (o && isFinite(o.x) && isFinite(o.y))
-        coperchioDentro.style.transformOrigin = o.x + "% " + o.y + "%";
-      const sicuro = (C.rotazione_in_css || {}).sicuro;
-      if (isFinite(sicuro)) GRADI = sicuro;
-      apertoImg = aperto;
-      cof.dataset.render = "1";
-      return true;
-    } catch (_) {
-      /* niente modulo, o immagini che non arrivano: resta il cofanetto
-         in CSS, che è il ripiego dichiarato. */
-      return false;
-    }
-  }
-
+     PERCHÉ UN TELAIO E NON UN CANVAS NELLA SCOCCA: un `<iframe>` ha il
+     suo contesto. Quando la scheda grafica tossisce, tossisce LÌ — e
+     alla consegna la scocca deve restare in piedi per forza, perché è
+     lei che porta il tasto. */
   /* ═══ S1 · LA CONSEGNA ═══════════════════════════════════════════
-     IL COFANETTO È DISEGNATO, non fotografato e non in tre
-     dimensioni: la scena in tre dimensioni vive nell'iframe del banco e
-     montarla qui costerebbe dieci mega prima del primo valore. È un
-     oggetto a strati — scatola, fodera di velluto, vassoio, pezzo,
-     coperchio — con un velo di luce che entra dall'alto quando il
-     coperchio si alza. La cerniera è in ALTO e la prospettiva sta sul
-     contenitore: il coperchio ruota all'indietro come una scatola
-     vera, non «sparisce». */
+     IL COFANETTO È UN ASTUCCIO VERO, IN TRE DIMENSIONI, e dentro c'è il
+     PEZZO — il modello vero preso dal .glb della sua famiglia, non una
+     fotografia ritagliata appoggiata in un vano. Ogni famiglia ha il suo
+     astuccio e il suo mestiere: l'anello sta IN PIEDI fra due rulli, gli
+     orecchini INFILATI in un cartoncino forato, la collana POSATA su una
+     sella, il bracciale BLOCCATO sotto due linguette, l'orologio
+     APPOGGIATO su un cuscino. Se l'interno non cambia mestiere, la
+     famiglia non esiste.
+     La scena sta nel telaio `astuccio.html`; qui restano i TESTI, il
+     tasto e la voce — cioè tutto ciò che ha bisogno del carattere, del
+     lettore di schermo e della tastiera, e che dentro un telaio vivrebbe
+     peggio.
+     IL COFANETTO DISEGNATO IN CSS RESTA SOTTO, come ripiego: se il
+     telaio non dà il contesto grafico entro quattro secondi, la
+     cerimonia si suona su di lui e nessuno resta con un tasto muto. */
   function s1() {
+    /* DOVE STA IL PEZZO NEL MODELLO. `fam` e `k` vengono dall'esemplare
+       (il ponte dei codici li porta per i ventidue che il .glb conosce);
+       per i dodici articoli senza modello `k` è nullo, e allora
+       l'astuccio della famiglia c'è lo stesso e dentro ci va il PROVINO
+       stampato su un CARTONCINO — non una foto che galleggia nel vano,
+       ma un cartoncino posato, come i cartoncini veri degli orecchini.
+       Finché non arriva la mesh, è la cosa più onesta che abbiamo. */
+    const famBanco = (consegna && consegna.fam) || (art && art.famiglia) || "anelli";
+    const haModello = consegna && typeof consegna.k === "number";
+    const telaio = telaioAstuccio({
+      fam: famBanco, k: haModello ? consegna.k : null,
+      fodera: FODERA, codice: codice || null,
+      provino: haModello ? null : PEZZO.foto,
+      /* ARIA 1,30, non 1,55. Il quadro si costruisce sull'unione di
+         CHIUSO e APERTO — il coperchio alzato occupa tutta la metà di
+         sopra — e da chiuso la scatola cade percio' nella metà di
+         SOTTO. Misurato sullo scatto (`_C5_s1_chiuso`, 393x852): col
+         numero dello studio restavano trecento punti di vuoto fra il
+         titolo e il coperchio, cioè piu' di un terzo dello schermo, e
+         quel vuoto e' la prima cosa che si vede. Stringendo a 1,30
+         l'oggetto cresce e il vuoto si chiude, e l'aperto ci sta lo
+         stesso perche' il quadro e' calcolato sull'unione. */
+      aria: 1.30
+    });
+
+    /* ── IL RIPIEGO, DISEGNATO ────────────────────────────────────
+       Gli stessi strati di prima, senza più i .webp: scatola, fodera,
+       pezzo, luce, coperchio. Si vede solo se il telaio non risponde. */
     const pezzoImg = PEZZO.foto
       ? e("img", { class: "f1-pezzo-fig", src: PEZZO.foto, alt: "", decoding: "async" })
       : e("div", { class: "f1-pezzo-fig redatto" }, [e("span", { testo: PEZZO.nome })]);
-
     const pezzo = e("div", { class: "f1-cof-pezzo" }, [
       pezzoImg,
       e("i", { class: "f1-cof-ombra", "aria-hidden": "true" })
@@ -402,10 +388,8 @@ export function montaIngresso(store, opz = {}) {
     ]);
     /* due nodi per il coperchio e non uno: uno RUOTA sulla cerniera,
        l'altro ESCE dall'alto. Due trasformazioni sullo stesso elemento
-       si sovrascrivono a vicenda — la seconda animazione butterebbe via
-       la rotazione della prima. */
+       si sovrascrivono a vicenda. */
     const coperchio = e("div", { class: "f1-cof-fuori" }, [coperchioDentro]);
-
     const cof = e("div", {
       class: "f1-cof", "data-fodera": FODERA, "aria-hidden": "true"
     }, [
@@ -422,94 +406,108 @@ export function montaIngresso(store, opz = {}) {
       testo: PEZZO.quando ? "Tuo dal " + PEZZO.quando : "Tuo"
     });
     const testi = e("div", { class: "f1-pezzo-testi" }, [nomePezzo, daQuando]);
+    const scena3d = e("div", { class: "f1-scena3d" }, [telaio.nodo]);
 
     const apri = tasto("Apri", { tipo: "primario", largo: true });
-    /* il render si monta mentre la persona legge la schermata; la
-       cerimonia lo ASPETTA, così non parte su una scatola a metà. Al
-       momento del tocco la promessa è già risolta in ogni caso reale:
-       tre immagini leggere, dallo stesso server della pagina. */
-    const pronto = vestiColRender(cof, coperchioDentro);
+    let inTre = false;          /* la scena vera ce l'ha fatta? */
     let fatta = false;
+    telaio.pronto.then((ok) => {
+      inTre = !!ok;
+      if (ok) { cof.hidden = true; scena3d.dataset.pronto = "1"; }
+      else scena3d.hidden = true;
+    });
     apri.addEventListener("click", () => {
-      if (!fatta) { fatta = true; pronto.then(cerimonia, cerimonia); return; }
+      if (!fatta) { fatta = true; cerimonia(); return; }
       vai("s2");
     });
 
     const sch = schermata("s1", [
       e("p", { class: "occhiello f1-occhiello", testo: codice || leggibile(ATTESO) }),
       e("h1", { class: "t-1 f1-titolo-s1", testo: "Il tuo cofanetto" }),
-      e("div", { class: "f1-scena" }, [cof, testi]),
+      e("div", { class: "f1-scena" }, [scena3d, cof, testi]),
       e("div", { class: "f1-fondo" }, [apri])
     ], { pieno: true });
 
     /* ── LA CERIMONIA ──────────────────────────────────────────────
-       Sei animazioni con la loro attesa, tutte create nello stesso
-       istante: così `currentTime` di ognuna è il TEMPO DELLA SCENA, e
-       una sonda che lo fissa a 700 legge davvero cio' che si vede a 700.
-       Nessun suono, nessun tremore, una sola rivelazione. */
+       Il moto della SCATOLA sta nel telaio, coi tempi lockati: coperchio
+       0 → −105 in 700 ms, la fodera che prende luce a +140, la luce del
+       vano fra 300 e 800, il pezzo che si posa con la molla fra 600 e
+       1000, la camera da 28 a 36 gradi a 1100, fine a 1600.
+       Qui restano le due battute che sono TESTO — il nome del pezzo a
+       1250-1500 e il tasto che cambia nome a 1400 — e vivono come
+       animazioni della scocca, così `currentTime` resta il tempo della
+       scena e una sonda che lo ferma legge davvero cio' che si vede.
+       E IL TOCCO CHE SALTA: chi tocca la scena la salta DENTRO il
+       telaio, e il telaio ce lo dice. Le due battute di testo vanno
+       allora alla fine anche loro, o resterebbero indietro da sole —
+       una scatola già aperta con sotto un nome che non è ancora
+       arrivato. */
     const A = {};
+    function testiSubito() {
+      for (const k in A) { try { A[k].finish(); } catch (_) { /* niente */ } }
+      vestiTasto(apri, "Continua");
+      apri.setAttribute("aria-label", "Continua");
+    }
+    function finita() {
+      if (window.__cerimonia.finita) return;
+      window.__cerimonia.finita = true;
+      annuncia(PEZZO.nome + ". " + daQuando.textContent);
+    }
+    telaio.ascolta.fine = () => { testiSubito(); finita(); };
+    telaio.ascolta.tocco = () => { testiSubito(); };
+
     function cerimonia() {
       cof.dataset.aperto = "1";
+      /* la pressione del tasto: 80 ms a 0,98. È la prima cosa che dice
+         «ti ho sentito», e viene prima di qualunque altra. */
+      apri.animate([{ transform: "scale(1)" }, { transform: "scale(.98)" }, { transform: "scale(1)" }],
+        { duration: CERIMONIA.pressione, easing: "linear" });
+      const c = CERIMONIA;
+
       if (RIDOTTO.matches) {
-        /* meno movimento = lo stesso picco, senza moto: una
-           dissolvenza incrociata da chiuso ad aperto, e i testi
-           subito. Il grado della celebrazione scende di uno, non
-           sparisce (carta psicologica). */
+        /* meno movimento = lo stesso picco, senza moto. Il grado della
+           celebrazione scende di uno, non sparisce (carta psicologica).
+           La scena fa la sua dissolvenza da sola; qui i testi arrivano
+           subito, perché aspettarli sarebbe un'attesa senza niente da
+           guardare. */
         cof.dataset.ridotto = "1";
-        coperchio.animate([{ opacity: 1 }, { opacity: 0 }],
-          { duration: CERIMONIA.ridotto, easing: "linear", fill: "forwards", id: "F1-uscita" });
-        luce.animate([{ opacity: 0 }, { opacity: 1 }],
-          { duration: CERIMONIA.ridotto, easing: "linear", fill: "forwards", id: "F1-luce" });
+        if (inTre) telaio.suona();
+        else {
+          coperchio.animate([{ opacity: 1 }, { opacity: 0 }],
+            { duration: c.ridotto, easing: "linear", fill: "forwards", id: "F1-uscita" });
+          luce.animate([{ opacity: 0 }, { opacity: 1 }],
+            { duration: c.ridotto, easing: "linear", fill: "forwards", id: "F1-luce" });
+        }
         testi.animate([{ opacity: 0 }, { opacity: 1 }],
-          { duration: CERIMONIA.ridotto, easing: "linear", fill: "forwards", id: "F1-testi" });
+          { duration: c.ridotto, easing: "linear", fill: "forwards", id: "F1-testi" });
         vestiTasto(apri, "Continua");
         apri.setAttribute("aria-label", "Continua");
-        annuncia(PEZZO.nome + ". " + daQuando.textContent);
-        window.__cerimonia.finita = true;
+        finita();
+        window.__cerimonia.avviata = true;
         return;
       }
 
-      /* la pressione del tasto: 80 ms a 0,98. È la prima cosa che
-         dice «ti ho sentito», e viene prima di qualunque altra. */
-      apri.animate([{ transform: "scale(1)" }, { transform: "scale(.98)" }, { transform: "scale(1)" }],
-        { duration: CERIMONIA.pressione, easing: "linear" });
-
-      const c = CERIMONIA;
-      A.coperchio = coperchioDentro.animate(
-        [{ transform: "rotateX(0deg)" }, { transform: "rotateX(" + GRADI + "deg)" }],
-        { duration: c.coperchio.a - c.coperchio.da, delay: c.coperchio.da,
-          easing: CURVA, fill: "both", id: "F1-coperchio" });
-
-      /* LA DISSOLVENZA SUL FOTOGRAMMA VERO. Solo col render: la
-         rotazione in CSS è fedele fino a -70, e gli ultimi 250 ms del
-         tempo del coperchio servono a scambiarla col fotogramma di
-         quello stesso istante — stessa macchina, stessa luce. Il
-         coperchio che ruota se ne va insieme, o si vedrebbero due
-         coperchi nello stesso quadro. */
-      if (apertoImg) {
-        const da = c.coperchio.a - c.ridotto;
-        A.aperto = apertoImg.animate([{ opacity: 0 }, { opacity: 1 }],
-          { duration: c.ridotto, delay: da, easing: "linear",
-            fill: "both", id: "F1-aperto" });
-        A.copVia = coperchioDentro.animate([{ opacity: 1 }, { opacity: 0 }],
-          { duration: c.ridotto, delay: da, easing: "linear",
-            fill: "both", id: "F1-coperchio-via" });
+      if (inTre) telaio.suona();
+      else {
+        /* IL RIPIEGO SUONA DA SOLO, con gli stessi tempi: la scatola in
+           CSS si apre di −105 gradi, la luce entra, il pezzo si posa. */
+        A.coperchio = coperchioDentro.animate(
+          [{ transform: "rotateX(0deg)" }, { transform: "rotateX(" + c.coperchio.gradi + "deg)" }],
+          { duration: c.coperchio.a - c.coperchio.da, delay: c.coperchio.da,
+            easing: CURVA, fill: "both", id: "F1-coperchio" });
+        A.luce = luce.animate([{ opacity: 0 }, { opacity: 1 }],
+          { duration: c.luce.a - c.luce.da, delay: c.luce.da,
+            easing: CURVA, fill: "both", id: "F1-luce" });
+        A.pezzo = pezzo.animate(
+          [{ transform: "translateY(" + c.pezzo.alza + "px)" }, { transform: "translateY(0px)" }],
+          { duration: c.pezzo.a - c.pezzo.da, delay: c.pezzo.da,
+            easing: MOLLA_PEZZO.curva, fill: "both", id: "F1-pezzo" });
+        A.uscita = coperchio.animate(
+          [{ transform: "translateY(0%)", opacity: 1 },
+           { transform: "translateY(-160%)", opacity: 0 }],
+          { duration: c.uscita.a - c.uscita.da, delay: c.uscita.da,
+            easing: CURVA, fill: "both", id: "F1-uscita" });
       }
-
-      A.luce = luce.animate([{ opacity: 0 }, { opacity: 1 }],
-        { duration: c.luce.a - c.luce.da, delay: c.luce.da,
-          easing: CURVA, fill: "both", id: "F1-luce" });
-
-      A.pezzo = pezzo.animate(
-        [{ transform: "translateY(" + c.pezzo.alza + "px)" }, { transform: "translateY(0px)" }],
-        { duration: c.pezzo.a - c.pezzo.da, delay: c.pezzo.da,
-          easing: MOLLA_PEZZO.curva, fill: "both", id: "F1-pezzo" });
-
-      A.uscita = coperchio.animate(
-        [{ transform: "translateY(0%)", opacity: 1 },
-         { transform: "translateY(-160%)", opacity: 0 }],
-        { duration: c.uscita.a - c.uscita.da, delay: c.uscita.da,
-          easing: CURVA, fill: "both", id: "F1-uscita" });
 
       A.testi = testi.animate(
         [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }],
@@ -517,8 +515,7 @@ export function montaIngresso(store, opz = {}) {
           easing: CURVA, fill: "both", id: "F1-testi" });
 
       /* il tasto cambia NOME a 1400, e lo fa in dissolvenza: due parole
-         che si scambiano di colpo sotto il dito sono uno sfarfallio.
-         La dissolvenza chiude a 1600, che è la fine della scena. */
+         che si scambiano di colpo sotto il dito sono uno sfarfallio. */
       A.tasto = apri.animate(
         [{ opacity: 1 }, { opacity: 0, offset: .5 }, { opacity: 1 }],
         { duration: c.fine - c.etichetta, delay: c.etichetta,
@@ -528,35 +525,32 @@ export function montaIngresso(store, opz = {}) {
         apri.setAttribute("aria-label", "Continua");
       }, c.etichetta + (c.fine - c.etichetta) / 2);
 
-      setTimeout(() => {
-        window.__cerimonia.finita = true;
-        annuncia(PEZZO.nome + ". " + daQuando.textContent);
-      }, c.fine);
+      setTimeout(finita, c.fine);
       window.__cerimonia.avviata = true;
     }
 
     /* la maniglia della sonda: ferma l'orologio, lo porta a `t` e
-       restituisce cio' che il browser sta davvero disegnando. */
+       restituisce cio' che il browser sta davvero disegnando — le due
+       battute di testo dalla scocca, la scatola dal telaio (che sta
+       sulla stessa origine, e si interroga dritto invece di aspettare
+       un giro di messaggi). */
     window.__cerimonia = {
       numeri: CERIMONIA, avviata: false, finita: false,
-      /* quanto ruota DAVVERO il coperchio: -105 col cofanetto in CSS,
-         -70 col render (il limite dichiarato dal modulo). La sonda
-         legge di qui invece di tenersi un numero in tasca. */
-      get gradi(){ return GRADI; },
-      get render(){ return !!apertoImg; },
+      get gradi(){ return CERIMONIA.coperchio.gradi; },
+      get tre(){ return inTre; },
+      get render(){ return inTre; },
       parti: () => { if (!fatta) { fatta = true; cerimonia(); } },
       a(t) {
         for (const k in A) { try { A[k].pause(); A[k].currentTime = t; } catch (_) { /* niente */ } }
-        /* un giro di lettura forzata: senza, lo stile calcolato può
-           essere ancora quello del fotogramma precedente. */
-        void coperchioDentro.offsetHeight;
+        void testi.offsetHeight;
+        const d = telaio.dentro();
+        const tre = (d && inTre) ? d.a(t) : null;
         return {
-          t,
-          coperchio: leggiMoto(coperchioDentro).gradi,
-          aperto: apertoImg ? leggiMoto(apertoImg).opacita : null,
-          luce: leggiMoto(luce).opacita,
-          pezzo: leggiMoto(pezzo).y,
-          uscita: leggiMoto(coperchio).y,
+          t, tre,
+          coperchio: tre ? tre.coperchio : leggiMoto(coperchioDentro).gradi,
+          luce: tre ? tre.luce : leggiMoto(luce).opacita,
+          pezzo: tre ? tre.pezzo : leggiMoto(pezzo).y,
+          elevazione: tre ? tre.elevazione : null,
           testi: leggiMoto(testi).opacita,
           etichetta: apri.textContent.trim()
         };

@@ -116,9 +116,30 @@ function faIlBanco(V){
   let telaio = null;
   const sez = document.querySelector('[data-vista="cofanetto"] .strato');
   const velo = document.getElementById("velo");
-  return function vaiAlBanco(dentro){
-    if(!dentro){ if(telaio) diAlBanco("banco/sospendi"); return; }
+  /* ── E NON MENTRE LA PORTA È APERTA ──────────────────────────────
+     `avviaRotta` scrive `#/cofanetto` all'avvio, cioè PRIMA che F1 si
+     monti: il banco partiva quindi insieme alla porta, e si portava
+     giù dieci mega di espositori mentre la persona sta guardando la
+     cerimonia del suo cofanetto. Misurato il 17/09 sulla cerimonia in
+     tre dimensioni: un fotogramma da 112 ms a t = 404, dentro i 1600 ms
+     della scena — l'unico fotogramma lungo rimasto, e non era della
+     scena. Chi sta aprendo il suo astuccio non sta guardando il banco:
+     il banco si monta quando la porta si chiude. */
+  let rimandato = false, occhio = null;
+  const portaAperta = () => document.body.dataset.ingresso === "1";
+  function quandoLaPortaSiChiude(){
+    if(occhio) return;
+    occhio = new MutationObserver(() => {
+      if(portaAperta()) return;
+      occhio.disconnect(); occhio = null;
+      if(rimandato){ rimandato = false; vaiAlBanco(true); }
+    });
+    occhio.observe(document.body, {attributes: true, attributeFilter: ["data-ingresso"]});
+  }
+  function vaiAlBanco(dentro){
+    if(!dentro){ rimandato = false; if(telaio) diAlBanco("banco/sospendi"); return; }
     if(telaio){ diAlBanco("banco/riprendi"); return; }
+    if(portaAperta()){ rimandato = true; quandoLaPortaSiChiude(); return; }
     telaio = document.createElement("iframe");
     telaio.id = "banco";
     telaio.src = "spazio.html?v=" + V;
@@ -126,7 +147,8 @@ function faIlBanco(V){
     telaio.allow = "fullscreen";
     telaio.addEventListener("load", () => { if(velo) velo.hidden = true; });
     sez.appendChild(telaio);
-  };
+  }
+  return vaiAlBanco;
 }
 
 /* ── L'AVVIO ───────────────────────────────────────────────────────── */
