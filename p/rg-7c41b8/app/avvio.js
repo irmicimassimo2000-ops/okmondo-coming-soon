@@ -181,12 +181,13 @@ export async function avviaApp(V){
   /* il telaio chiama questa quando si tocca una voce della barra */
   window.__vai = (id) => vaiA(id);
 
-  /* e quando il banco dira' «hanno aperto un pezzo», la scocca spingera'
-     la scheda: il ponte è già pronto, manca solo che il banco parli
-     (F2). */
-  quandoIlBancoDice("banco/aperto", (d) => {
-    if(d && d.id) location.hash = "#/cofanetto/pezzo/" + d.id;
-  });
+  /* Quando il banco dice «hanno aperto un pezzo» la scocca NON spinge
+     niente: la Carta del Pezzo vive nel banco (F3a) e lo schermo «pezzo»
+     della scocca risolve un codice ARTICOLO sul catalogo, non un
+     esemplare — spingerlo apriva una seconda scheda, vuota, sopra la
+     carta vera (diagnosi del critic, 17/09: «un tocco, due
+     destinazioni»). Il messaggio resta ascoltato da azioni.js per
+     mandare `esemplare/dati`. */
 
   /* E LA VERSIONE DEL BANCO, per la diagnostica. La scocca e la scena
      hanno due timbri e due cache: si sono gia' viste disallineate (il
