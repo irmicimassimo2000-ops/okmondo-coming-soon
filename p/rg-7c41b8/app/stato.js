@@ -12,7 +12,7 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 export const CHIAVE = "regina:v1";
-export const V = 4;                 /* la versione dello schema salvato */
+export const V = 5;                 /* la versione dello schema salvato */
 export const CANALE = "regina";     /* il BroadcastChannel dell'app */
 
 /* ── F1 · L'INGRESSO, VERSIONATO A SE' ─────────────────────────────
@@ -34,6 +34,52 @@ export const V_INGRESSO = 1;
    entra, e così un evento sbagliato non apre un ramo nuovo. */
 export const DATE_VUOTE = {aggiunte: [], tolte: [], pezzi: {}};
 export const NOTIFICHE_SPENTE = {date: false, collezioni: false, negozio: false};
+
+/* ── F5b · IL RAMO DELLE PROPOSTE ──────────────────────────────────
+   Il MOTORE sta in `app/motore/proposte.js` e non si importa qui: lo
+   store non deve dipendere dal motore (e il motore, che gira in node
+   senza store, non deve dipendere dallo store). I tre riduttori qui
+   sotto sono COPIATI ALLA RIGA da `applicaVerdetto`, `pin` e `blocca`
+   di quel file, e le prove `_MP_motore.mjs` provano che le due copie
+   dicono la stessa cosa. Se un giorno divergono, quella sbagliata è
+   questa: la verità del motore sta nel motore.
+
+     verdetti [{articolo, regola, esito, quando, frase}]  uno per proposta
+     rifiuti  {<articolo>: "aaaa-mm-gg"}                  «Non fa per me», 90 gg
+     pin      [{articolo, motivo, chi, quando, abbina_a, in_cima, fino, cliente}]
+     blocchi  [{articolo, motivo, chi, quando, cliente}]
+     registro {regole:{<regola>:{mostrate,aperte,daparte,comprate,rifiuti,frasi}},
+               mostrate:{<articolo>:{posto,regola,quando}},
+               sessione:{id, rifiuti}}
+
+   `mostrate` è la FRESCHEZZA (lo stesso pezzo non torna nello stesso
+   posto prima di sette giorni) e `sessione.rifiuti` è il contatore che
+   permette UNA rigenerazione dopo un «Non fa per me»: al secondo no la
+   card si ferma, perché un no che rigenera all'infinito è una slot
+   machine. */
+export const ESITI_PROPOSTA = ["comprato", "da_parte", "aperto", "nessuno", "rifiuto"];
+export const FORZA_ESITO = {comprato: 4, da_parte: 3, aperto: 2, nessuno: 1, rifiuto: 0};
+export const registroProposteVuoto = () => ({regole: {}, mostrate: {}, sessione: {id: null, rifiuti: 0}});
+export const PROPOSTE_VUOTE = () => ({
+  verdetti: [], rifiuti: {}, pin: [], blocchi: [], registro: registroProposteVuoto()
+});
+/* la lettura difensiva del ramo: uno stato salvato da una versione
+   vecchia, o un riduttore provato a mano, non deve far esplodere una
+   vista per un `undefined`. */
+function ramoProposte(s){
+  const p = (s && s.proposte) || {};
+  return {
+    verdetti: p.verdetti || [],
+    rifiuti: p.rifiuti || {},
+    pin: p.pin || [],
+    blocchi: p.blocchi || [],
+    registro: {
+      regole: (p.registro && p.registro.regole) || {},
+      mostrate: (p.registro && p.registro.mostrate) || {},
+      sessione: (p.registro && p.registro.sessione) || {id: null, rifiuti: 0}
+    }
+  };
+}
 const ingressoVuoto = () => ({
   v: V_INGRESSO,
   fatto: false,        /* true solo dopo S3 */
@@ -102,6 +148,16 @@ const PASSI = {
     date: d.date || {aggiunte: [], tolte: [], pezzi: {}},
     notifiche_pref: d.notifiche_pref || {...NOTIFICHE_SPENTE},
     livello_visto: d.livello_visto === undefined ? null : d.livello_visto
+  }),
+  /* 4 → 5 : F5b, il motore delle proposte. Un ramo vuoto e basta: i
+     verdetti, i rifiuti, i pin e il registro delle regole sono fatti
+     che NON si possono ricostruire a posteriori — chi non ha mai detto
+     «non fa per me» non ha detto di sì, e inventare un registro
+     falserebbe il primo take-rate che il negozio legge. Chi aggiorna
+     riparte da zero proposte mostrate, ed è la verità. */
+  4: (d) => ({
+    ...d,
+    proposte: d.proposte || PROPOSTE_VUOTE()
   })
 };
 export function migra(dati, daV){
@@ -157,6 +213,11 @@ function daSeme(seme){
     date: {aggiunte: [], tolte: [], pezzi: {}},
     notifiche_pref: {...NOTIFICHE_SPENTE},
     livello_visto: null,
+    /* F5b — le proposte. Nasce VUOTO anche col seme pieno, per la
+       stessa ragione degli altri rami della persona: il seme porta i
+       pezzi che il negozio le ha venduto, questo porta ciò che lei ha
+       detto alle proposte e ciò che il negozio ha corretto a mano. */
+    proposte: PROPOSTE_VUOTE(),
     /* F1 — la porta. Un cofanetto nuovo non è ancora stato aperto. */
     ingresso: ingressoVuoto(),
     /* F1.3 — il ritorno. `ultimaApertura` è QUANDO, `istantanea` è
@@ -491,6 +552,102 @@ function riduci(s, e){
     case "livello/visto":{
       if(s.livello_visto === dato.livello) return s;
       return {...s, livello_visto: dato.livello};
+    }
+
+    /* ══ F5b · LE PROPOSTE ═══════════════════════════════════════
+       Tre eventi, copiati alla riga dai riduttori del motore. */
+
+    /* {articolo, esito, regola, oggi, sessione, frase}
+       Esiti dal più forte: comprato › da_parte › aperto › nessuno ›
+       rifiuto. Uno per (articolo, regola): si tiene il più forte —
+       una che apre e poi compra ha comprato.
+       Il RIFIUTO fa tre cose insieme: conta nel registro, esclude
+       l'articolo per novanta giorni, e spende una delle rigenerazioni
+       della sessione. */
+    case "proposta/verdetto":{
+      const {articolo, esito} = dato;
+      if(!articolo || !ESITI_PROPOSTA.includes(esito)) return s;
+      const oggi = dato.oggi || null;
+      if(esito === "rifiuto" && !oggi) return s;   /* senza data non si esclude nessuno */
+      const P = ramoProposte(s);
+      const regola = dato.regola ||
+        (P.registro.mostrate[articolo] && P.registro.mostrate[articolo].regola) || "ignota";
+
+      const i = P.verdetti.findIndex(v => v.articolo === articolo && v.regola === regola);
+      let verdetti = P.verdetti;
+      if(i < 0) verdetti = [...P.verdetti,
+        {articolo, regola, esito, quando: oggi, frase: dato.frase || null}];
+      else if(FORZA_ESITO[esito] > FORZA_ESITO[P.verdetti[i].esito]){
+        verdetti = P.verdetti.slice();
+        verdetti[i] = {...verdetti[i], esito, quando: oggi,
+                       frase: dato.frase || verdetti[i].frase};
+      }
+
+      const r0 = P.registro.regole[regola] ||
+        {mostrate: 0, aperte: 0, daparte: 0, comprate: 0, rifiuti: 0, frasi: {}};
+      const colonna = {comprato: "comprate", da_parte: "daparte",
+                       aperto: "aperte", rifiuto: "rifiuti"}[esito];
+      const regole = {...P.registro.regole};
+      regole[regola] = colonna ? {...r0, [colonna]: (r0[colonna] || 0) + 1} : {...r0};
+
+      const mostrate = {...P.registro.mostrate};
+      if(oggi){
+        const m = mostrate[articolo] || {posto: "grande", regola};
+        mostrate[articolo] = {...m, regola, quando: oggi};
+      }
+
+      const rifiuti = {...P.rifiuti};
+      let sessione = P.registro.sessione;
+      if(esito === "rifiuto"){
+        rifiuti[articolo] = oggi;
+        const id = dato.sessione != null ? dato.sessione : sessione.id;
+        sessione = (sessione.id === id)
+          ? {id, rifiuti: (sessione.rifiuti || 0) + 1}
+          : {id, rifiuti: 1};
+      } else if(dato.sessione != null && dato.sessione !== sessione.id){
+        sessione = {id: dato.sessione, rifiuti: 0};
+      }
+
+      return {...s, proposte: {...P, verdetti, rifiuti,
+                               registro: {regole, mostrate, sessione}}};
+    }
+
+    /* {articolo, motivo, chi, quando, abbina_a, in_cima, fino, cliente}
+       La correzione a mano del negozio, modello Shopify: `chi` e
+       `quando` non sono facoltativi — un pin anonimo non si può
+       difendere al banco, e senza mittente il registro non serve. */
+    case "proposta/pin":{
+      if(!dato.articolo || !dato.chi || !dato.quando) return s;
+      const P = ramoProposte(s);
+      const riga = {
+        articolo: dato.articolo,
+        motivo: dato.motivo || null,
+        chi: dato.chi,
+        quando: dato.quando,
+        abbina_a: dato.abbina_a || null,
+        in_cima: !!dato.in_cima,
+        fino: dato.fino || null,
+        cliente: dato.cliente || null
+      };
+      const altri = P.pin.filter(p =>
+        !(p.articolo === riga.articolo && (p.cliente || null) === riga.cliente));
+      return {...s, proposte: {...P, pin: [...altri, riga]}};
+    }
+
+    /* {articolo, motivo, chi, quando, cliente, attivo}
+       Il blocco vince su tutto — è il primo gradino della precedenza.
+       `cliente: null` blocca per tutti; `attivo: false` toglie. */
+    case "proposta/blocca":{
+      if(!dato.articolo || !dato.chi || !dato.quando) return s;
+      const P = ramoProposte(s);
+      const cliente = dato.cliente || null;
+      const altri = P.blocchi.filter(b =>
+        !(b.articolo === dato.articolo && (b.cliente || null) === cliente));
+      if(dato.attivo === false) return {...s, proposte: {...P, blocchi: altri}};
+      return {...s, proposte: {...P, blocchi: [...altri, {
+        articolo: dato.articolo, motivo: dato.motivo || null,
+        chi: dato.chi, quando: dato.quando, cliente
+      }]}};
     }
 
     case "demo/reset":
