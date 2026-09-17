@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="it">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Regina · l'astuccio</title>
+<link rel="icon" href="data:,">
+<!--
+  astuccio.html — IL TELAIO LEGGERO DELLA CERIMONIA.
+
+  PERCHÉ ESISTE UN SECONDO TELAIO, quando ce n'è già uno.
+  Il banco (`spazio.html`) ha già il motore: three.js, le luci della
+  vetrina, il ciclo di disegno. Metterci dentro anche l'astuccio era la
+  via (a) — e per il BANCO è quella giusta, perché lì three è già in
+  memoria e l'astuccio costa solo la sua geometria.
+  Ma la cerimonia non si suona solo al banco: si suona alla CONSEGNA
+  (S1, prima che l'app esista) e sulla PAGINA DEL REGALO, che può
+  aprirsi sul telefono di qualcuno che da Regina non è mai stato. In
+  quei due posti il banco NON è montato, e montarlo per aprire una
+  scatola vuol dire scaricare dieci mega di espositori che nessuno
+  guarderà. Il telaio leggero porta three (2,09 MB, dalla stessa cache
+  del banco: zero byte in più se il banco è già passato), UN .glb da
+  56-347 KB e nient'altro.
+
+  Quindi convivono, e non è un doppione: `app/tre/astuccio.js` è UNO,
+  e questo file è solo il posto dove abita quando il banco non c'è. Al
+  banco lo stesso modulo si monta in casa (C2, «Astuccio»).
+
+  LA SCOCCA NON IMPORTA THREE, e non deve: la sua mappa d'importazione
+  non ce l'ha. Due mega e nove di libreria nel documento che porta la
+  barra di navigazione sono due mega e nove pagati per aprire una lista.
+
+  INDIRIZZO
+    ?fam=anelli|orecchini|collane|bracciali|orologi|busto|rampa
+    &k=<indice del pezzo nel .glb>
+    &fodera=avorio|bianco|velluto|turchese   (scure -> avorio, per canone)
+    &provino=<url>      il cartoncino, per gli esemplari senza modello
+    &profilo=mobile|banco    &fuga=0..1     &aria=1.55   &piano=0|1
+    &stato=chiuso|aperto     &auto=1        &scorre=1
+    &codice=RJ-…
+
+  PARLA COL SUO OSPITE a messaggi, su `postMessage` diretto al padre —
+  non sul canale del banco: qui non c'è nessuno stato da condividere,
+  c'è un telaio che ubbidisce a chi l'ha messo lì.
+    ospite -> telaio : {t:"suona"|"salta"|"chiudi"|"smonta"}
+    telaio -> ospite : {da:"astuccio", t:"pronto"|"fine"|"tocco", d:{…}}
+-->
+<style>
+  html,body{margin:0;height:100%;background:transparent;overflow:hidden;
+            -webkit-user-select:none;user-select:none}
+  #dentro{position:absolute;inset:0}
+  /* nessun testo, nessun comando: questo telaio è una FINESTRA. I
+     testi stanno nella scocca, dove c'è il carattere, la voce e il
+     lettore di schermo. */
+</style>
+<script type="importmap">
+{"imports":{"three":"./lib/three.module.js","three/addons/":"./lib/jsm/"}}
+</script>
+<div id="dentro"></div>
+<script type="module">
+const q = new URLSearchParams(location.search);
+/* IL TIMBRO PASSA AL MODULO. La scocca chiama questo telaio con
+   `?v=<versione>`; se il modulo si importasse a secco, una scocca
+   aggiornata potrebbe servire un astuccio vecchio preso dalla cache —
+   il difetto che si vede solo DOPO un aggiornamento, che è il peggiore
+   da rincorrere. Si gira il timbro anche a lui. */
+const { monta } = await import("./app/tre/astuccio.js" +
+  (q.get("v") ? "?v=" + encodeURIComponent(q.get("v")) : ""));
+
+const n = (k, d) => q.has(k) ? +q.get(k) : d;
+
+const maniglia = monta(document.getElementById("dentro"), {
+  fam: q.get("fam") || "anelli",
+  k: n("k", 0),
+  fodera: q.get("fodera") || "avorio",
+  codice: q.get("codice") || null,
+  provino: q.get("provino") || null,
+  profilo: q.get("profilo") || "mobile",
+  aria: n("aria", 1.55),
+  fuga: n("fuga", 1),
+  carta: q.has("carta") ? parseInt(q.get("carta"), 16) : undefined,
+  piano: q.get("piano") !== "0",
+  stato: q.get("stato") || "chiuso",
+  scorrimento: q.get("scorre") === "1",
+  aptico: q.get("aptico") !== "0",
+});
+
+/* la maniglia della sonda, e dell'ospite che abbia accesso diretto */
+window.__astuccio = maniglia;
+
+const al = (t, d) => {
+  try{ parent && parent !== window && parent.postMessage({da:"astuccio", t, d: d || {}}, "*"); }
+  catch(_){ /* niente */ }
+};
+maniglia.quando((che, d) => al(che, d));
+
+addEventListener("message", (ev) => {
+  const m = ev.data;
+  if(!m || typeof m.t !== "string" || m.da === "astuccio") return;
+  if(m.t === "suona") maniglia.suona(m.da_ms || 0);
+  else if(m.t === "salta") maniglia.salta();
+  else if(m.t === "chiudi") maniglia.chiudi();
+  else if(m.t === "smonta") maniglia.smonta();
+});
+
+/* `auto=1` suona appena il pezzo è in scena: serve al provino e alla
+   sonda, e all'ospite che vuole la cerimonia senza dover aspettare il
+   «pronto» per rispondere. */
+if(q.get("auto") === "1"){
+  maniglia.quando((che) => { if(che === "pronto") maniglia.suona(0); });
+}
+
+/* il telaio dice «ci sono» anche prima del pezzo: chi lo ha montato
+   deve sapere che il documento è vivo, non solo che il .glb è arrivato */
+al("telaio", {primo: null});
+</script>
+</html>
