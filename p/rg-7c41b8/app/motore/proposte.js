@@ -225,6 +225,23 @@ export function prossimaRicorrenza(r, oggi) {
   return giorniFra(oggi, q) >= 0 ? q : iso(a0 + 1);
 }
 
+/* IL LUNEDÌ VERO (critic 20/09). «Va bene, ci risentiamo lunedì» era
+   una FRASE, non un fatto: la sessione era un contatore che un ricarico
+   azzerava, e la promessa si smentiva da sola al primo F5. Qui si
+   calcola il lunedì DAVVERO, con `oggi` come ingresso (mai `new Date()`
+   — stesso vincolo di tutto questo file): `getUTCDay()` su un
+   epoch-day usa la stessa aritmetica in UTC di ogni altra data del
+   motore, 0 = domenica … 1 = lunedì. Il lunedì è sempre AVANTI: se
+   `oggi` è già lunedì il prossimo è fra sette giorni, mai zero — un
+   «ci risentiamo lunedì» detto lo stesso lunedì sarebbe una bugia sul
+   quando, non solo sul se. */
+export function prossimoLunedi(oggi) {
+  const g = aGiorni(oggi);
+  const dow = new Date(g * GIORNO).getUTCDay();
+  const distanza = ((1 - dow + 7) % 7) || 7;
+  return isoPiu(oggi, distanza);
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    3 · IL RAMO `proposte` DELLO STORE — la forma, in un posto solo.
    ═══════════════════════════════════════════════════════════════════ */
@@ -246,6 +263,10 @@ export const proposteVuote = () => ({
   pin: [],         /* [{articolo, motivo, chi, quando, abbina_a, in_cima, fino, cliente}] */
   blocchi: [],     /* [{articolo, motivo, chi, quando, cliente}] */
   registro: registroVuoto(),
+  /* la sessione è chiusa (secondo «Non fa per me») FINO a questa data,
+     ISO o null. È un fatto dello STATO, non del contatore di sessione:
+     un contatore lo azzera un ricarico, questa data no. */
+  chiusa_fino: null,
 });
 
 const ramo = (s) => {
@@ -260,6 +281,7 @@ const ramo = (s) => {
       mostrate: (p.registro && p.registro.mostrate) || {},
       sessione: (p.registro && p.registro.sessione) || { id: null, rifiuti: 0 },
     },
+    chiusa_fino: p.chiusa_fino != null ? p.chiusa_fino : null,
   };
 };
 
@@ -842,7 +864,15 @@ export function proposte(stato = {}, opz = {}) {
      blocco grande: non si riempie col rail.
      ═══════════════════════════════════════════════════════════════ */
   const sessioneCorrente = R.registro.sessione.id === sessione ? R.registro.sessione : { id: sessione, rifiuti: 0 };
-  const chiusa = sessioneCorrente.rifiuti >= 2;
+  /* LA CHIUSURA È UNA DATA, NON UN CONTATORE DI SESSIONE (critic 20/09).
+     Prima era `sessioneCorrente.rifiuti >= 2`: vero SOLO dentro la
+     stessa sessione, quindi un ricarico (una sessione nuova) smentiva
+     «ci risentiamo lunedì» nell'istante in cui la si leggeva di nuovo.
+     `chiusa_fino` lo scrive `applicaVerdetto` al secondo rifiuto, ed è
+     un fatto dello STATO: resta vero finché `oggi` non lo supera, IN
+     QUALUNQUE SESSIONE — e da quel lunedì riapre da sola, perché il
+     confronto torna falso. */
+  const chiusa = R.chiusa_fino != null && giorniFra(oggi, R.chiusa_fino) > 0;
 
   let grande = null;
   if (!chiusa) {
@@ -1029,6 +1059,10 @@ export function proposte(stato = {}, opz = {}) {
     pin_non_attivi: pinNonAttivi,
     co_acquisto_spento: coSpento,
     sessione_chiusa: chiusa,
+    /* la data vera dietro «ci risentiamo lunedì» — null se non è mai
+       scattata, o se il lunedì è già passato (`chiusa` sopra lo sa già
+       leggere; questo campo è per chi deve MOSTRARLA o verificarla). */
+    chiusa_fino: R.chiusa_fino,
     rigenerazione: { usate: sessioneCorrente.rifiuti, disponibili: Math.max(0, 1 - sessioneCorrente.rifiuti) },
     fine: chiusa ? FINE_SESSIONE : (tuttoSuo ? FINE_TUTTO : FINE),
     tutto_suo: tuttoSuo,
@@ -1104,19 +1138,30 @@ export function applicaVerdetto(stato, dato = {}) {
   /* il rifiuto: 90 giorni fuori, e una rigenerazione spesa */
   const rifiuti = { ...R.rifiuti };
   let sessione = R.registro.sessione;
+  let chiusaFino = R.chiusa_fino;
   if (esito === "rifiuto") {
     rifiuti[articolo] = oggi;
     const id = dato.sessione != null ? dato.sessione : sessione.id;
     sessione = (sessione.id === id)
       ? { id, rifiuti: (sessione.rifiuti || 0) + 1 }
       : { id, rifiuti: 1 };
+    /* AL SECONDO RIFIUTO, LA CHIUSURA DIVENTA UN FATTO (critic 20/09):
+       si scrive `chiusa_fino` — il lunedì vero, calcolato da `oggi` —
+       e da qui in poi «ci risentiamo lunedì» resta vero anche se la
+       pagina si ricarica e la sessione cambia. Un terzo rifiuto dentro
+       la stessa finestra (non dovrebbe poter succedere: la card sparisce
+       prima) non sposterebbe comunque la data in avanti — `chiusa_fino`
+       si scrive una volta per chiusura, al momento in cui scatta —
+       `>=` e non `===` per restare corretto anche se qualcuno chiama
+       questo riduttore più volte oltre la soglia (i collaudi lo fanno). */
+    if (sessione.rifiuti >= 2) chiusaFino = prossimoLunedi(oggi);
   } else if (dato.sessione != null && dato.sessione !== sessione.id) {
     sessione = { id: dato.sessione, rifiuti: 0 };
   }
 
   return {
     ...stato,
-    proposte: { ...R, verdetti, rifiuti, registro: { regole, mostrate, sessione } },
+    proposte: { ...R, verdetti, rifiuti, chiusa_fino: chiusaFino, registro: { regole, mostrate, sessione } },
   };
 }
 

@@ -124,6 +124,48 @@ export const DA_BANCO = {
 };
 export const famigliaAstuccio = (fam) => DA_BANCO[fam] || (FAMIGLIE[fam] ? fam : "anelli");
 
+/* ── UN MODELLO SOLO, TRE ARTICOLI: IL METALLO LI DISTINGUE ────────
+   VERIFICATO, non supposto (`_R3_glb.json`): `REGINA_busto.draco.glb`
+   porta `pezzo00` e basta — una collana sola, materiale `oro` —
+   e `REGINA_rampa.draco.glb` porta `pezzo00` e basta, materiale
+   `argento`. Le tre collane e i due bracciali del catalogo sono lo
+   STESSO filo: quello che li distingue davvero è il metallo, e il
+   catalogo lo dichiara.
+   Il banco lo fa già da sempre (`METALLI` in `spazio.html`: le copie
+   dell'espositore ricolorano il metallo del pezzo). L'astuccio no: si
+   limitava a schiacciare `k` sull'unico modello e a scrivere
+   `dati.ripiego` in un campo che nessuno guarda — cioè apriva la
+   scatola della Collana Punto d'argento e ci metteva dentro quella
+   d'oro, in silenzio.
+   Questa tabella è lo SPECCHIO di quella del banco e dei campi
+   `att.metallo` di `app/dati/catalogo.js`; chi monta può scavalcarla
+   con `opz.metallo` quando ha il dato vero in mano. */
+const METALLI_DEL_BANCO = {
+  busto: [0xC6A44E, 0xCFD2D4, 0xA8ADB1],  /* maglia dorata · punto argento · onda acciaio */
+  rampa: [0xCFD2D4, 0xC6A44E],            /* maglia larga argento · maglia dorata */
+};
+
+/* ── I TRE PERNI NON SONO UNO SPECCHIO ─────────────────────────────
+   La stessa correzione del banco, con le stesse misure: vedi il
+   commento esteso di `rimediaPerni` in `studio/prova3d/spazio.html`.
+   In due parole: il bordo dei tre perni è un disco decagonale piatto a
+   metalness 1 e roughness 0,14, cioè uno specchio rivolto alla
+   macchina, e quello che riflette è la scatola scura della vetrina —
+   da cui il buco nero. Ammorbidire le normali peggiora (misurato: il
+   metallo va al 100 % sotto L 0,20, perché si perdono le due facce che
+   pescavano un faro). Si abbassa lo specchio, e basta.
+   Chi è un perno lo dicono gli indici del catalogo, non un nome di
+   mesh: `orecchini` k = 2, 5, 8 sono Perno Turchese, Perno Perla,
+   Perno Cabochon. */
+const PERNI = {orecchini: new Set([2, 5, 8])};
+const PERNO_METALLO = {roughness: 0.50, metalness: 0.70};
+
+/* ── L'ASOLA DEL CUSCINO, in metri ─────────────────────────────────
+   Lunga 13, luce 5, labbro smussato 1,2 per lato. Sta qui e non dentro
+   `monta` per una ragione di ordine di esecuzione, scritta per esteso
+   accanto a `costruisciCuscinoPiatto`. */
+const ASOLA = {L: 0.013, W: 0.0050, smusso: 0.0012};
+
 /* ── LA FODERA DELLA CERIMONIA ─────────────────────────────────────
    Decisione di Massimo: avorio di serie. Si rispetta la scelta della
    cliente SOLO se è chiara — perché è lei che ha scelto, e una scelta
@@ -205,7 +247,14 @@ export function monta(el, opz = {}){
   const F = FAMIGLIE[FAM];
   const FODERA = foderaDellaCerimonia(opz.fodera);
   const VESTE = VESTI[FODERA];
-  const PEZZO_K = Math.max(0, Math.min(F.pezzi - 1, +(opz.k || 0)));
+  /* IL K CHIESTO E IL K CHE IL MODELLO HA sono due cose diverse, e
+     tenerle separate è tutta la differenza fra «si usa lo stesso filo
+     con il metallo giusto» e «si apre un'altra collana senza dirlo». */
+  const K_CHIESTO = Math.max(0, +(opz.k || 0));
+  const PEZZO_K = Math.min(F.pezzi - 1, K_CHIESTO);
+  const METALLO = (opz.metallo !== undefined && opz.metallo !== null)
+    ? +opz.metallo
+    : ((METALLI_DEL_BANCO[opz.fam] || [])[K_CHIESTO]);
   const MOBILE = (opz.profilo || "mobile") === "mobile";
   const PROVINO = opz.provino || null;   /* il cartoncino, se il modello manca */
   const ARIA = +(opz.aria || 1.55);
@@ -915,7 +964,12 @@ export function monta(el, opz = {}){
        carta tesa sopra il VUOTO, con due fori da 1,65 a 19 di
        interasse. Sono i due fori a impaginare la coppia, non chi la
        posa. */
-    INT.foroR = 0.000825; INT.interasse = 0.019;
+    /* il foro: 2,4 mm di diametro. Era 1,65 — la misura di catalogo del
+       foro NUDO — e a quella scala spariva. Le carte vere da orecchini
+       hanno un occhiello da 2-2,5 mm perché ci deve passare il gambo E
+       la farfallina non deve sfilarsi: 2,4 è dentro la misura vera, e
+       si vede. */
+    INT.foroR = 0.0012; INT.interasse = 0.019;
     INT.cartaY = H_FONDO + 0.0055; INT.cartaH = 0.0022;
     INT.cartaSu = INT.cartaY + INT.cartaH;
     pieno.material.color.multiplyScalar(0.42);   /* sotto la carta è buio */
@@ -924,12 +978,33 @@ export function monta(el, opz = {}){
      vanno «in mezzo», vanno DOVE STA IL PERNO. Al primo giro la carta
      era già fatta quando il pezzo arrivava, i fori erano a z = 0, e i
      due orecchini uscivano appesi al nulla dieci millimetri più in là. */
-  function costruisciCarta(fori){
+  function costruisciCarta(fori, metallo){
     const s = rettangoloTondo(V_LA - 0.0012, V_PR - 0.0012, 0.0022);
     for(const f of fori){
       const p = new THREE.Path();
       p.absarc(f.x, -f.z, INT.foroR, 0, Math.PI * 2, true);
       s.holes.push(p);
+    }
+    /* ── IL FORO SI VEDE PERCHÉ CI PASSA QUALCOSA ───────────────────
+       A 1,65 mm su una carta da 65 il buco era due pixel di velluto
+       appena più scuro: negli scatti non c'era. Allargarlo e basta
+       sarebbe stato un buco più grande e ancora vuoto — un foro in un
+       cartoncino da orecchini si vede perché ci passa IL GAMBO, e
+       perché sotto il gambo c'è l'ombra del passaggio.
+       Quindi tre cose insieme: il foro sale a 2,4 mm (che è la misura
+       vera delle carte da orecchini, non una licenza), dentro ci scende
+       un gambo di metallo dello stesso colore del pezzo, e attorno al
+       gambo resta l'anello scuro della luce del foro. */
+    for(const f of fori){
+      const g2 = tieni(new THREE.CylinderGeometry(
+        0.00060, 0.00052, INT.cartaH + 0.0028, MOBILE ? 8 : 12));
+      const mg = tieni(new THREE.MeshPhysicalMaterial({
+        color: metallo === undefined ? 0xC6A44E : metallo,
+        metalness: 0.70, roughness: 0.50}));
+      const perno = new THREE.Mesh(g2, mg);
+      perno.position.set(f.x, INT.cartaSu - (INT.cartaH + 0.0028) / 2 + 0.0004, f.z);
+      perno.castShadow = !MOBILE; perno.receiveShadow = true;
+      base.add(perno);
     }
     const g = new THREE.ExtrudeGeometry(s, {depth: INT.cartaH, bevelEnabled: false,
                                             curveSegments: MOBILE ? 10 : 14});
@@ -965,29 +1040,79 @@ export function monta(el, opz = {}){
      parallelepipedi scuri appoggiati sul velluto da lontano sono due
      stecchi neri, cioè un disegno. Una fessura è un VUOTO: si apre come
      buco nel profilo del cuscino, e sotto ci si vede il fondo. */
+  /* DUE ASOLE, NON DUE GRAFFI. Il primo giro tagliava due rettangoli
+     da 14 x 3,4 mm con gli spigoli vivi: lunghi, stretti e squadrati,
+     cioè la forma del GRAFFIO — e infatti negli scatti leggevano come
+     due righe su un velluto nuovo. Un'asola da cofanetto è un'altra
+     cosa, e ha tre caratteri che qui mancavano tutti e tre:
+       · è a CAPI TONDI (uno stadio), perché è tagliata e poi rifinita,
+         non incisa con una lama tirata;
+       · è LARGA abbastanza da accogliere la catena — 5 mm di luce, non
+         3,4: una fessura più stretta del pezzo che ci deve entrare non
+         è un alloggiamento, è un segno;
+       · ha un FILO D'OMBRA in fondo. Il buco passa da parte a parte e
+         sotto c'è il fondo della base, che è dello stesso velluto e
+         alla stessa luce: senza niente sotto, il taglio si richiude
+         all'occhio. Un fondello scuro due decimi sotto il filo dà la
+         profondità che il bordo arrotondato da solo non dà.
+     Il bordo resta smussato di 1,2 mm per lato — è quello a fare il
+     labbro arrotondato — e la luce si misura AL NETTO dello smusso.
+     Le misure stanno FUORI da `monta` (vedi `ASOLA`, in cima al file):
+     il cuscino dei bracciali si costruisce nel corpo del modulo, cioè
+     PRIMA della riga in cui un `const` qui dentro sarebbe inizializzato,
+     e una costante letta nella sua zona morta non è un valore mancante —
+     è un errore che uccide il modulo. Pagata: l'astuccio dei bracciali
+     non si montava affatto. */
   function costruisciCuscinoPiatto(fessure){
     const sh = rettangoloTondo(V_LA - 0.0008, V_PR - 0.0008, 0.0022);
+    const fondelli = [];
     for(const f of fessure){
-      /* la luce del taglio è 3,4 mm perché lo smusso se ne mangia 1,2
-         per lato: un buco più stretto dello smusso non è un buco, è una
-         geometria che si autointerseca */
-      const L = 0.014, W = 0.0034;
+      const L = (f.L || ASOLA.L), W = (f.W || ASOLA.W);
+      const r = W / 2, dritto = Math.max(0.0005, L / 2 - r);
       const co = Math.cos(f.ang), si = Math.sin(f.ang);
-      const pt = [[-L/2, W/2], [L/2, W/2], [L/2, -W/2], [-L/2, -W/2]]
-        .map(([a2, b2]) => [f.x + a2 * co - b2 * si, f.z + a2 * si + b2 * co]);
+      const qua = (a2, b2) => [f.x + a2 * co - b2 * si, f.z + a2 * si + b2 * co];
+      /* lo stadio: due tratti dritti e due semicerchi ai capi */
       const pa = new THREE.Path();
-      pa.moveTo(pt[3][0], pt[3][1]);
-      for(const qq of pt) pa.lineTo(qq[0], qq[1]);
+      const N = MOBILE ? 7 : 10;
+      const punti = [];
+      punti.push(qua(-dritto, -r), qua(dritto, -r));
+      for(let i = 1; i < N; i++){
+        const a2 = -Math.PI / 2 + Math.PI * i / N;
+        punti.push(qua(dritto + r * Math.cos(a2), r * Math.sin(a2)));
+      }
+      punti.push(qua(dritto, r), qua(-dritto, r));
+      for(let i = 1; i < N; i++){
+        const a2 = Math.PI / 2 + Math.PI * i / N;
+        punti.push(qua(-dritto + r * Math.cos(a2), r * Math.sin(a2)));
+      }
+      pa.moveTo(punti[punti.length - 1][0], punti[punti.length - 1][1]);
+      for(const qq of punti) pa.lineTo(qq[0], qq[1]);
       sh.holes.push(pa);
+      fondelli.push({x: f.x, z: f.z, ang: f.ang, L, W});
     }
     const g = new THREE.ExtrudeGeometry(sh, {depth: INT.padH, bevelEnabled: true,
-      bevelThickness: 0.0012, bevelSize: 0.0012, bevelOffset: 0,
+      bevelThickness: ASOLA.smusso, bevelSize: ASOLA.smusso, bevelOffset: 0,
       bevelSegments: SEG.smusso, curveSegments: SEG.angolo});
-    g.rotateX(-Math.PI / 2); g.translate(0, 0.0012, 0); g.computeVertexNormals();
+    g.rotateX(-Math.PI / 2); g.translate(0, ASOLA.smusso, 0); g.computeVertexNormals();
     const pad = new THREE.Mesh(uvEstruso(g, CELLA), vellutoMondo());
     pad.position.y = H_FONDO;
     pad.castShadow = !MOBILE; pad.receiveShadow = true;
     base.add(pad);
+    /* IL FILO D'OMBRA. Un fondello di velluto scurissimo appena sotto il
+       filo del cuscino: non si vede come oggetto, si vede come fondo del
+       taglio. Largo quanto l'asola più un millimetro, così il bordo del
+       fondello non compare mai dentro la luce. */
+    for(const f of fondelli){
+      const gg = new THREE.PlaneGeometry(f.L + 0.0020, f.W + 0.0020);
+      gg.rotateX(-Math.PI / 2); gg.rotateY(-f.ang);
+      const m = new THREE.Mesh(tieni(gg), vellutoMondo(VESTE, 0.16));
+      m.position.set(f.x, H_FONDO + 0.0003, f.z);
+      m.receiveShadow = true;
+      base.add(m);
+    }
+    INT.asole = fondelli.map(f => ({x_mm: mm(f.x), z_mm: mm(f.z),
+      lunga_mm: mm(f.L), luce_mm: mm(f.W),
+      gradi: +(f.ang * 180 / Math.PI).toFixed(1)}));
   }
 
   /* ── LA SELLA DELLA COLLANA ──────────────────────────────────────
@@ -1002,7 +1127,21 @@ export function monta(el, opz = {}){
      rullo di velluto che arriva a toccarlo. Un rullo tagliato al filo
      del cuscino, non una palla nascosta: sotto la carta non c'è niente
      da nascondere, e un arco di cilindro si legge come una sella.
+     UN CILINDRO NON È UNA SELLA, e la misura lo diceva: il rullo
+     tondo colmava 9 mm su 29 di bombatura. Il motivo è geometrico, non
+     di taratura — un cilindro ha UNA cresta, e una cresta tocca l'arco
+     in un punto solo; da lì in giù il fianco del rullo scappa via
+     mentre l'arco scende, e fra i due resta la stessa aria di prima,
+     spostata di qualche millimetro. Una sella da cofanetto non è
+     tonda: è SAGOMATA sul pezzo, e il suo profilo è il di sotto
+     dell'arco.
+     Quindi la si MISURA per intero. Si divide la fascia dell'arco in
+     ventiquattro fette lungo z, in ogni fetta si legge il punto più
+     basso della catena, e quel profilo diventa il bordo superiore di
+     una forma estrusa lungo x. Il velluto arriva sotto tutta la
+     bombatura, non sotto il suo colmo.
      `pts` sono i punti del pezzo nel sistema della BASE. */
+  const SELLA_FETTE = 24;
   function costruisciSella(pts){
     if(!pts || pts.length < 40) return null;
     let zlo = Infinity, zhi = -Infinity, ymax = -Infinity, apice = null;
@@ -1013,56 +1152,105 @@ export function monta(el, opz = {}){
     if(!apice) return null;
     const salita = ymax - INT.padSu;
     if(!(salita > 0.004)) return null;
-    /* ── DOVE SI MISURA, E PERCHÉ NON «IN MEZZO» ────────────────────
-       Prima qui si prendeva il minimo su tutta la fascia di z attorno
-       all'apice, e veniva fuori una sella da 6,8 mm sotto un pezzo alto
-       29,5: in quella fascia ci stanno ANCHE i due rami laterali della
-       catena, che sono posati sul cuscino, e un minimo che li include
-       misura il pavimento, non l'arco.
-       La sella va sotto l'ARCO, cioè sotto la parte che sta SU. Si
-       tengono i punti della fascia che sono alzati almeno un terzo
-       della salita: quelli sono l'arco. Il loro spiegamento in x dà la
-       LUNGHEZZA del rullo (una sella è larga quanto il collo, non
-       quanto la scatola) e il loro punto più basso dà la CRESTA. */
-    const banda = Math.max(0.008, (zhi - zlo) / 7);
+    /* ── CHI È L'ARCO ───────────────────────────────────────────────
+       Non tutta la collana: i due rami laterali sono POSATI sul
+       cuscino, e un minimo che li include misura il pavimento invece
+       dell'arco. Si tengono i punti alzati almeno un terzo della
+       salita — quelli stanno su — e la loro estensione in x dà la
+       LUNGHEZZA della sella (una sella è larga quanto il collo, non
+       quanto la scatola). */
     const soglia = INT.padSu + salita / 3;
-    let sotto = Infinity, xlo = Infinity, xhi = -Infinity, quanti = 0;
-    for(const p of pts){
-      if(Math.abs(p.z - apice.z) > banda) continue;
-      if(p.y < soglia) continue;
-      quanti++;
-      if(p.y < sotto) sotto = p.y;
-      if(p.x < xlo) xlo = p.x;
-      if(p.x > xhi) xhi = p.x;
+    const arco = pts.filter(p => p.y >= soglia);
+    if(arco.length < 12) return null;
+    let axlo = Infinity, axhi = -Infinity, azlo = Infinity, azhi = -Infinity;
+    for(const p of arco){
+      if(p.x < axlo) axlo = p.x; if(p.x > axhi) axhi = p.x;
+      if(p.z < azlo) azlo = p.z; if(p.z > azhi) azhi = p.z;
     }
-    if(quanti < 8 || !isFinite(sotto)) return null;
-    /* la cresta della sella arriva a sfiorare il di sotto dell'arco,
-       meno il mezzo millimetro in cui un velluto cede */
-    const cresta = sotto - 0.0005;
-    const alza = cresta - INT.padSu;
+    const spanZ = azhi - azlo;
+    if(!(spanZ > 0.004)) return null;
+    /* IL PROFILO, FETTA PER FETTA: in ogni fetta di z il punto più basso
+       dell'arco è il punto in cui la sella deve arrivare a toccare, meno
+       il mezzo millimetro in cui un velluto cede. */
+    const passo = spanZ / SELLA_FETTE;
+    const fette = new Array(SELLA_FETTE).fill(Infinity);
+    for(const p of arco){
+      const i = Math.min(SELLA_FETTE - 1, Math.max(0, Math.floor((p.z - azlo) / passo)));
+      if(p.y < fette[i]) fette[i] = p.y;
+    }
+    /* le fette vuote si colmano dai vicini: un buco nel campione non è
+       un buco nella catena */
+    for(let i = 0; i < SELLA_FETTE; i++) if(!isFinite(fette[i])){
+      let a = i - 1, b = i + 1;
+      while(a >= 0 && !isFinite(fette[a])) a--;
+      while(b < SELLA_FETTE && !isFinite(fette[b])) b++;
+      if(a >= 0 && b < SELLA_FETTE) fette[i] = (fette[a] + fette[b]) / 2;
+      else if(a >= 0) fette[i] = fette[a];
+      else if(b < SELLA_FETTE) fette[i] = fette[b];
+    }
+    const GIOCO = 0.0005;
+    const alte = fette.map(y => Math.max(INT.padSu, y - GIOCO));
+    const colma = Math.max(...alte) - INT.padSu;
     /* meno di due millimetri di aria non sono una sella: sono una
        piega, e si lascia il cuscino piatto */
-    if(!(alza > 0.002)) return null;
-    const R = Math.max(alza, (alza * alza + Math.pow(banda, 2)) / (2 * alza));
-    const cy = cresta - R;
-    const taglio = Math.max(-1, Math.min(1, (INT.padSu - cy) / R));
-    const mezzo = Math.acos(taglio);
-    /* il rullo è lungo quanto l'arco più due centimetri di raccordo, e
-       non esce mai dal vano: un cuscino che tocca le pareti non è un
-       cuscino, è un secondo fondo */
-    const L = Math.min(V_LA - 0.0030,
-                       Math.max(0.020, (xhi - xlo) + 0.020));
-    const zCresta = apice.z;
-    const g = tieni(new THREE.CylinderGeometry(R, R, L, MOBILE ? 22 : 40, 1, false,
-                                               Math.PI / 2 - mezzo, 2 * mezzo));
-    g.rotateZ(Math.PI / 2);
-    const sella = new THREE.Mesh(g, velluto(2 * mezzo * R, L));
-    sella.material.side = THREE.DoubleSide;
-    sella.position.set((xlo + xhi) / 2, cy, zCresta);
+    if(!(colma > 0.002)) return null;
+    /* ── LA FORMA, NEL PIANO (z, y) ────────────────────────────────
+       Si parte dal filo del cuscino, si sale lungo il profilo misurato
+       e si torna giù: davanti e dietro l'arco ci sono sei millimetri di
+       RACCORDO, perché una sella che finisce di netto è un gradino. */
+    const RACC = 0.006;
+    const s = new THREE.Shape();
+    s.moveTo(azlo - RACC, INT.padSu);
+    for(let i = 0; i < SELLA_FETTE; i++)
+      s.lineTo(azlo + passo * (i + 0.5), alte[i]);
+    s.lineTo(azhi + RACC, INT.padSu);
+    s.closePath();
+    /* ── LA LUNGHEZZA LUNGO X, E PERCHÉ SI MISURA SULLA CORONA ──────
+       Presa su tutto l'arco, la sella arrivava da parete a parete: 142
+       mm su 151, cioè un secondo fondo. Ma l'arco è largo in basso e
+       stretto in cima, e quello che va sorretto è la CORONA — i punti
+       oltre metà della salita. Quelli danno la campata vera; sotto, la
+       catena scende e si appoggia da sola. */
+    let cxlo = Infinity, cxhi = -Infinity;
+    for(const p of arco) if(p.y >= INT.padSu + salita * 0.55){
+      if(p.x < cxlo) cxlo = p.x; if(p.x > cxhi) cxhi = p.x;
+    }
+    if(!isFinite(cxlo)){ cxlo = axlo; cxhi = axhi; }
+    const L = Math.min(V_LA - 0.0030, Math.max(0.020, (cxhi - cxlo) + 0.018));
+    const g = tieni(new THREE.ExtrudeGeometry(s, {depth: L, bevelEnabled: false,
+      curveSegments: MOBILE ? 8 : 12}));
+    /* dal piano locale (x=z del mondo, y=y, estrusione=z) al mondo:
+       una rotazione di -90 gradi attorno a Y porta l'estrusione sulla X */
+    g.rotateY(-Math.PI / 2);
+    const xMed = (cxlo + cxhi) / 2;
+    g.translate(xMed + L / 2, 0, 0);
+    /* ── E POI SI SGONFIA AI DUE CAPI ──────────────────────────────
+       Estrusa e basta, la sella è un PRISMA: il profilo misurato in
+       cima e due pareti verticali ai lati, che guardate in campo lungo
+       leggono come un blocco squadrato dentro la scatola — l'errore
+       del primo giro, e si vedeva nello scatto prima ancora che nei
+       numeri. Un cuscino da collana non ha pareti: è una cupola. Si
+       moltiplica l'altezza di ogni vertice per una salita morbida sul
+       quarto esterno, e il prisma diventa la cupola che era. */
+    {
+      const pos = g.getAttribute("position");
+      const x0 = xMed - L / 2, SPALLA = 0.26;
+      for(let i = 0; i < pos.count; i++){
+        const u = Math.min(1, Math.max(0, (pos.getX(i) - x0) / L));
+        const t2 = Math.min(1, Math.min(u, 1 - u) / SPALLA);
+        const f = t2 * t2 * (3 - 2 * t2);
+        pos.setY(i, INT.padSu + (pos.getY(i) - INT.padSu) * f);
+      }
+      pos.needsUpdate = true;
+    }
+    g.computeVertexNormals();
+    const sella = new THREE.Mesh(g, velluto(spanZ + 2 * RACC, L));
     sella.castShadow = !MOBILE; sella.receiveShadow = true;
     base.add(sella);
-    INT.sella = {raggio: R, cresta, z: zCresta, alza, lunghezza: L,
-                 salita: salita, punti: quanti};
+    INT.sella = {colma, cresta: Math.max(...alte), z: apice.z, alza: colma,
+                 lunghezza: L, larga: spanZ + 2 * RACC, salita,
+                 corona: cxhi - cxlo,
+                 punti: arco.length, fette: SELLA_FETTE};
     return INT.sella;
   }
 
@@ -1380,12 +1568,36 @@ export function monta(el, opz = {}){
       const g2 = p.x < 0 ? sx : dx;
       g2.x += p.x; g2.z += p.z; g2.n++;
     }
+    /* ── IL FORO NON STA SOTTO L'ORECCHINO ──────────────────────────
+       Al primo giro i fori andavano esattamente sul baricentro di ogni
+       orecchino, che è il posto giusto in una carta vera — il gambo
+       passa di lì e la farfallina sta dietro — ma è anche il posto in
+       cui l'orecchino SE LI COPRE. Negli scatti la carta usciva senza
+       un foro: un cartoncino da orecchini senza fori non è un
+       cartoncino, è un pezzo di velluto.
+       Quindi i fori si spostano DI LATO: verso il filo davanti della
+       carta, di mezzo ingombro del pezzo più tre millimetri, che è
+       esattamente quanto basta perché restino scoperti. È anche il
+       verso giusto: su una carta gli orecchini si infilano dall'alto e
+       il foro resta in vista sotto di loro. Non si esce mai dalla
+       carta: il valore si taglia sul mezzo lato meno sei millimetri. */
+    const SPOSTA = dd.z / 2 + 0.0030;
+    const bordo = V_LA / 2 - 0.0060;
     const fori = [];
     for(const g2 of [sx, dx]){
       if(g2.n < 40) continue;
-      fori.push({x: g2.x / g2.n, z: g2.z / g2.n});
+      const z0 = g2.z / g2.n + SPOSTA;
+      fori.push({x: g2.x / g2.n, z: Math.min(bordo, z0)});
     }
-    costruisciCarta(fori);
+    /* IL GAMBO PRENDE IL METALLO DEL PEZZO, non un oro di serie: su un
+       Perno Perla d'argento un gambo dorato è un errore di prodotto. */
+    let metallo;
+    dentro.traverse(o => {
+      if(metallo === undefined && o.isMesh && o.material
+         && o.material.metalness > 0.4 && o.material.color)
+        metallo = o.material.color.getHex();
+    });
+    costruisciCarta(fori, metallo);
     INT.interasse = fori.length === 2 ? Math.abs(fori[1].x - fori[0].x) : 0;
     const b2 = new THREE.Box3().setFromObject(involucro, true);
     dati.pezzo = {
@@ -1445,15 +1657,46 @@ export function monta(el, opz = {}){
       else if(w.x > 0.004){ if(!dx || d < Math.abs(dx.z - z0)) dx = w; }
     }
     const capi = [sx, dx].filter(Boolean);
+    /* ── L'ASOLA SI ORIENTA SULLA CATENA, NON SU UN NUMERO ──────────
+       Erano 35 gradi scritti a mano, gli stessi per tutte e due e per
+       qualunque collana: un'asola inclinata a caso rispetto al filo che
+       ci deve entrare è, di nuovo, un segno disegnato. La direzione
+       vera è quella in cui la catena passa in quel punto, e si misura —
+       si prendono i punti del pezzo vicini al capo e si legge da che
+       parte vanno. Se in quell'intorno non c'è abbastanza roba per dire
+       una direzione, si ripiega sui 35 gradi di prima, dichiarandolo. */
+    const versoDelFilo = (p0, verso) => {
+      const R = 0.010;
+      let sxx = 0, sxz = 0, szz = 0, n = 0;
+      for(const q of pts){
+        const w = q.clone().add(involucro.position);
+        const dx2 = w.x - p0.x, dz2 = w.z - p0.z;
+        if(Math.hypot(dx2, dz2) > R) continue;
+        sxx += dx2 * dx2; szz += dz2 * dz2; sxz += dx2 * dz2;
+        n++;
+      }
+      if(n < 10) return {ang: verso * 0.61, misurato: false};
+      /* la direzione principale della nuvoletta: l'autovettore grande
+         della matrice 2x2 delle covarianze, che in due dimensioni è una
+         formula chiusa e non un'iterazione */
+      const ang = 0.5 * Math.atan2(2 * sxz, sxx - szz);
+      return {ang, misurato: true};
+    };
+    const angoli = capi.map((p, i) => versoDelFilo(p, i === 0 ? -1 : 1));
     costruisciCuscinoPiatto(capi.map((p, i) => ({
-      x: p.x, z: p.z, ang: (i === 0 ? -1 : 1) * 0.61})));   /* 35 gradi */
+      x: p.x, z: p.z, ang: angoli[i].ang})));
     /* E POI LA SELLA, sui punti del pezzo nel sistema della base */
     const nelBase = pts.map(p => p.clone().add(involucro.position));
     const sella = costruisciSella(nelBase);
-    dati.sella = sella ? {raggio_mm: mm(sella.raggio), cresta_mm: mm(sella.cresta),
-                          z_mm: mm(sella.z), aria_colmata_mm: mm(sella.alza),
-                          lunga_mm: mm(sella.lunghezza), salita_mm: mm(sella.salita),
+    dati.sella = sella ? {cresta_mm: mm(sella.cresta),
+                          z_mm: mm(sella.z), aria_colmata_mm: mm(sella.colma),
+                          lunga_mm: mm(sella.lunghezza), larga_mm: mm(sella.larga),
+                          salita_mm: mm(sella.salita),
+                          colma_su_salita: +(sella.colma / sella.salita).toFixed(2),
+                          fette: sella.fette,
                           punti_dell_arco: sella.punti} : null;
+    dati.asole = INT.asole || null;
+    dati.asole_misurate = angoli.every(a => a.misurato);
     const dd = b.getSize(new THREE.Vector3());
     const b2 = new THREE.Box3().setFromObject(involucro, true);
     dati.pezzo = {
@@ -1467,17 +1710,73 @@ export function monta(el, opz = {}){
   }
 
   /* ── BRACCIALE: la catena ad anello, sotto due linguette ────────── */
+  /* LA LINGUETTA È UNA STRISCIA, E UNA STRISCIA HA UNA LARGHEZZA.
+     Nel primo giro usciva SOTTILE, e il conto dice perché: il tubo del
+     toro aveva raggio 2,4 mm ma veniva schiacciato di 0,34 lungo il suo
+     asse, cioè la striscia era larga 1,6 mm. Un millimetro e mezzo di
+     pelle non è una linguetta, è un filo — e un filo che scavalca un
+     bracciale legge come un elastico, che era proprio il tell da
+     evitare.
+     Le linguette vere dei cofanetti stanno fra 6 e 10 mm. Qui: 7 mm di
+     LARGHEZZA, 1,8 di SPESSORE (la striscia ha due facce e un filo,
+     non è una membrana), e la cucitura a SOLCO lungo i due bordi — lo
+     stesso trattamento del coperchio, bumpMap più aoMap sullo stesso
+     disegno, perché è la stessa pelle cucita dalla stessa macchina. */
+  const LING = {larga: 0.0070, spessa: 0.0018};
+  let _solcoLing = null;
+  function solcoLinguetta(lungo){
+    if(_solcoLing) return _solcoLing;
+    const PX = MOBILE ? 256 : 512;
+    const c = document.createElement("canvas"); c.width = c.height = PX;
+    const g = c.getContext("2d");
+    g.fillStyle = "#ffffff"; g.fillRect(0, 0, PX, PX);
+    /* v attraversa la sezione del tubo: la faccia ESTERNA della striscia
+       sta attorno a v = 0, quindi i suoi due bordi cadono a 0,10 e 0,90.
+       Le due cuciture corrono lì, lungo tutta la lunghezza (u). */
+    const passo = 0.0024;                      /* gli stessi 2,4 mm del coperchio */
+    const n = Math.max(6, Math.round((lungo || 0.06) / passo));
+    let seme = 20260920;
+    const caso = () => (seme = (seme * 1664525 + 1013904223) >>> 0) / 4294967296;
+    for(const v of [0.10, 0.90]){
+      const y = v * PX;
+      g.strokeStyle = "#d8d8d8"; g.lineWidth = PX * 0.016;
+      g.beginPath(); g.moveTo(0, y); g.lineTo(PX, y); g.stroke();
+      g.strokeStyle = "#9a9a9a"; g.lineWidth = PX * 0.007;
+      g.beginPath(); g.moveTo(0, y); g.lineTo(PX, y); g.stroke();
+      for(let i = 0; i < n; i++){
+        const x = (i + 0.5 + (caso() - 0.5) * 0.22) / n * PX;
+        const mez = PX * (0.016 + caso() * 0.005);
+        const dx = mez * Math.cos(0.60), dy = mez * Math.sin(0.60);
+        g.strokeStyle = "#8b8b8b"; g.lineWidth = PX * 0.005;
+        g.beginPath(); g.moveTo(x - dx, y - dy); g.lineTo(x + dx, y + dy); g.stroke();
+      }
+    }
+    const t = tieni(new THREE.CanvasTexture(c));
+    t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; t.needsUpdate = true;
+    _solcoLing = t;
+    return t;
+  }
   function linguetta(x, mezzaLuce, alzata){
-    /* una linguetta è una striscia di pelle che scavalca il pezzo: un
-       mezzo toro SCHIACCIATO, non un cilindro — una linguetta tonda in
-       sezione è un elastico, e un elastico non è pelle */
-    const g = new THREE.TorusGeometry(mezzaLuce, 0.0024, 6, MOBILE ? 18 : 26, Math.PI);
-    g.scale(1, alzata / mezzaLuce, 0.34);
+    const tubo = LING.spessa / 2;
+    const g = new THREE.TorusGeometry(mezzaLuce, tubo, MOBILE ? 8 : 10,
+                                      MOBILE ? 20 : 30, Math.PI);
+    /* si allarga lungo l'asse del tubo finché la striscia non misura
+       `LING.larga`, e si schiaccia in altezza sull'alzata misurata */
+    g.scale(1, alzata / mezzaLuce, LING.larga / (2 * tubo));
     g.rotateY(Math.PI / 2);
-    const m = new THREE.Mesh(uvScatola(g, CELLA), similpelle());
+    g.computeVertexNormals();
+    const uv = g.getAttribute("uv");
+    g.setAttribute("uv1", new THREE.BufferAttribute(uv.array.slice(), 2));
+    const m = new THREE.Mesh(tieni(g), similpelle());
+    const solco = solcoLinguetta(Math.PI * mezzaLuce);
+    m.material.bumpMap = solco; m.material.bumpScale = 0.34;
+    m.material.aoMap = solco; m.material.aoMapIntensity = 0.62;
+    m.material.needsUpdate = true;
     m.position.set(x, INT.padSu - 0.0004, 0);
     m.castShadow = !MOBILE; m.receiveShadow = true;
     base.add(m);
+    INT.linguetta = {larga_mm: mm(LING.larga), spessa_mm: mm(LING.spessa),
+                     luce_mm: mm(2 * mezzaLuce), alzata_mm: mm(alzata)};
   }
   function posaBracciale(dentro){
     const involucro = new THREE.Group();
@@ -1511,6 +1810,7 @@ export function monta(el, opz = {}){
       sopra_il_cuscino_mm: mm(b2.max.y - INT.padSu),
       sotto_il_bordo_mm: mm(H_BASE - b2.max.y),
       linguette_x_mm: [mm(-dd.x * 0.30), mm(dd.x * 0.30)],
+      linguetta: INT.linguetta || null,
       avanza_in_lunghezza_mm: mm(V_LA - dd.x),
     };
   }
@@ -1602,9 +1902,20 @@ export function monta(el, opz = {}){
     const g = new THREE.ExtrudeGeometry(sh, {depth: SP, bevelEnabled: false,
                                              curveSegments: 10});
     g.rotateX(-Math.PI / 2);
+    /* IL FONDO DEL CARTONCINO È IL FONDO DEL PROVINO, e non è un
+       dettaglio di gusto: il provino è un packshot su campo uniforme
+       #E7E0D3 (`PROVINO_FONDO` in `app/dati/provini.js`), stampato su
+       un cartoncino che era #EFE9DD. Due beige diversi alla stessa luce
+       fanno quello che si vedeva negli scatti — un RETTANGOLO DENTRO UN
+       RETTANGOLO, cioè si legge la stampa invece del pezzo. Stesso
+       albedo e stessa ruvidezza, e il campo della stampa sparisce dentro
+       la carta: resta solo il gioiello. Si può scavalcare da fuori
+       (`opz.provinoFondo`) il giorno che il fondo dei provini cambia. */
+    const FONDO_PROVINO = (opz.provinoFondo !== undefined && opz.provinoFondo !== null)
+      ? +opz.provinoFondo : 0xE7E0D3;
     const carta = new THREE.Mesh(uvEstruso(g, CELLA),
       tieni(new THREE.MeshPhysicalMaterial({
-        color: 0xEFE9DD, metalness: 0, roughness: 0.94,
+        color: FONDO_PROVINO, metalness: 0, roughness: 0.94,
         roughnessMap: celle(ruvido, W, D, CELLA * 0.6),
         sheen: 0.06, sheenRoughness: 0.95})));
     /* IL CARTONCINO STA SUL FONDO, e l'attrezzatura della famiglia non
@@ -1629,8 +1940,12 @@ export function monta(el, opz = {}){
     /* LA STAMPA. Un piano appena sopra la carta, col provino dentro. Il
        rapporto dell'immagine si rispetta: un gioiello schiacciato in un
        quadrato è un difetto che si vede prima del cofanetto. */
+    /* la stampa prende la STESSA ruvidezza della carta: con 0,90 contro
+       0,94 il campo del provino aveva un velo appena diverso, e a
+       fondo uguale bastava quello a ridisegnare il rettangolo */
     const mat = tieni(new THREE.MeshPhysicalMaterial({
-      color: 0xFFFFFF, metalness: 0, roughness: 0.90,
+      color: 0xFFFFFF, metalness: 0, roughness: 0.94,
+      sheen: 0.06, sheenRoughness: 0.95,
       transparent: true, depthWrite: false,
       polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2}));
     const stampa = new THREE.Mesh(tieni(new THREE.PlaneGeometry(1, 1)), mat);
@@ -1660,6 +1975,51 @@ export function monta(el, opz = {}){
                   spessore_mm: mm(SP), provino: src};
   }
 
+  /* ── IL PEZZO SI VESTE PRIMA DI POSARSI ───────────────────────────
+     Due correzioni, un passaggio solo, e tutte e due sul MATERIALE —
+     la geometria del .glb non si tocca mai da qui.
+       · il METALLO dell'articolo, quando la famiglia porta un modello
+         solo per più articoli (collane, bracciali): stesso filo,
+         metallo giusto, e la variante scritta in `dati.variante`;
+       · lo SPECCHIO dei tre perni, che su fondo chiaro leggeva come un
+         buco (vedi `PERNO_METALLO`, sopra).
+     Si clona sempre prima di toccare: nel .glb degli orecchini il
+     materiale `oro` è lo STESSO oggetto per i perni e per i pendenti, e
+     un pendente è una superficie curva che lo specchio se lo merita. */
+  function vestiIlPezzo(pezzo){
+    const ePerno = (PERNI[FAM] || new Set()).has(K_CHIESTO);
+    const stessoFilo = PEZZO_K !== K_CHIESTO;
+    const vuoleMetallo = METALLO !== undefined && stessoFilo;
+    /* LA VARIANTE SI DICHIARA SEMPRE, anche quando il metallo non si
+       sa: chi chiama con il nome dell'ASTUCCIO invece che con quello
+       del BANCO (`collane` invece di `busto`) non ha una tabella che
+       gli risponda, e il silenzio è proprio la cosa che si sta
+       togliendo. */
+    if(stessoFilo) dati.variante = {
+      chiesto: "pezzo" + String(K_CHIESTO).padStart(2, "0"),
+      modello: "pezzo" + String(PEZZO_K).padStart(2, "0"),
+      perche: F.glb + " porta un modello solo per questa famiglia",
+      metallo: METALLO === undefined ? null
+             : "#" + METALLO.toString(16).padStart(6, "0")};
+    if(!ePerno && !vuoleMetallo) return;
+    let toccati = 0;
+    pezzo.traverse(o => {
+      if(!o.isMesh || !o.material || !(o.material.metalness > 0.4)) return;
+      const v = tieni(o.material.clone());
+      v.name = o.material.name;
+      if(vuoleMetallo) v.color.setHex(METALLO);
+      if(ePerno){ v.roughness = PERNO_METALLO.roughness;
+                  v.metalness = PERNO_METALLO.metalness; }
+      v.needsUpdate = true;
+      o.material = v;
+      toccati++;
+    });
+    if(dati.variante) dati.variante.mesh_vestite = toccati;
+    if(ePerno) dati.perno = {roughness: PERNO_METALLO.roughness,
+                             metalness: PERNO_METALLO.metalness,
+                             mesh_toccate: toccati};
+  }
+
   /* ══ IL CARICAMENTO ═══════════════════════════════════════════════ */
   let morto = false;
   let caricatore = null, draco = null;
@@ -1681,14 +2041,17 @@ export function monta(el, opz = {}){
       if(morto) return;
       let pezzo = null;
       g.scene.traverse(o => { if(o.name === NOME) pezzo = o; });
-      /* IL BUSTO E LA RAMPA PORTANO UN PEZZO SOLO. Nel .glb del banco
-         c'è `pezzo00` e basta: le altre collane e l'altro bracciale il
-         modello non ce li ha. Si ripiega sul primo invece di aprire un
-         astuccio vuoto, e lo si DICHIARA nei dati — un astuccio vuoto
-         sarebbe un errore muto. */
+      /* IL BUSTO E LA RAMPA PORTANO UN PEZZO SOLO, ed è verificato
+         (`_R3_glb.json`): un `pezzo00`, una `posa00`, un materiale
+         metallico. Le tre collane e i due bracciali del catalogo sono
+         lo stesso filo — quello che cambia è il METALLO. Prima qui si
+         schiacciava `k` sull'unico modello e si scriveva un
+         `dati.ripiego` che non leggeva nessuno: si apriva l'astuccio
+         della Collana Punto d'argento con dentro quella d'oro, in
+         silenzio. Adesso si usa lo stesso modello con il metallo
+         dell'articolo, come fa il banco, e la variante si DICHIARA. */
       if(!pezzo){
         g.scene.traverse(o => { if(!pezzo && /^pezzo\d\d$/.test(o.name)) pezzo = o; });
-        if(pezzo) dati.ripiego = NOME + " non c'e' in " + F.glb + ": " + pezzo.name;
       }
       if(!pezzo){
         dati.errore = NOME + " non trovato in " + F.glb;
@@ -1696,6 +2059,7 @@ export function monta(el, opz = {}){
         return;
       }
       pezzo.traverse(o => { if(o.isMesh){ o.castShadow = !MOBILE; o.receiveShadow = true; } });
+      vestiIlPezzo(pezzo);
       const dentro = cuoci(pezzo);
       const alzatoOra = volo.position.y;
       volo.position.y = 0; volo.updateMatrixWorld(true);
@@ -2111,7 +2475,16 @@ export function monta(el, opz = {}){
         vano_coperchio_mm: mm(VANO), marchio_mm: mm(M_LA),
         cella_pelle_mm: mm(CELLA), cella_pelo_mm: mm(CELLA_PELO),
         profilo: MOBILE ? "mobile" : "banco", dpr: rend.getPixelRatio(),
-        sella: dati.sella, pezzo: dati.pezzo, ripiego: dati.ripiego || null,
+        sella: dati.sella, pezzo: dati.pezzo,
+        /* `ripiego` non c'è più: era una riga di testo che diceva «ho
+           aperto un altro pezzo» e che non leggeva nessuno. Al suo
+           posto c'è `variante`, che dice QUALE modello si è usato, con
+           che metallo e perché. */
+        variante: dati.variante || null,
+        perno: dati.perno || null,
+        asole: dati.asole || null,
+        asole_misurate: dati.asole_misurate === undefined ? null : dati.asole_misurate,
+        provino: dati.provino || false,
       };
     },
     byte(){

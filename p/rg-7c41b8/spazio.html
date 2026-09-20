@@ -3131,7 +3131,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perché il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova è una correzione che non arriva. */
-const VERSIONE = "2026-09-17c";
+const VERSIONE = "2026-09-20a";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non è zero, è un ReferenceError, e un ReferenceError lì
@@ -4600,6 +4600,76 @@ const gruppi = {}, corpi = {};
 let caricatore = null;
 let posX = 0;
 
+/* ══ I TRE PERNI NON SONO UNO SPECCHIO ══════════════════════════════
+   Sui packshot v2 i tre perni (Perno Turchese, Perno Perla, Perno
+   Cabochon) uscivano con un anello NERO a facce piatte attorno alla
+   pietra: su fondo chiaro leggeva come un buco — il «Pac-Man» del
+   verdetto del 17/09.
+
+   MISURATO, non intuito (`_R3_diagnosi.json`): il bordo è un DISCO da
+   7,2 mm di diametro e 1,5 di spessore, decagonale (ventiquattro
+   normali distinte per la coppia = dieci fianchi più sopra e sotto,
+   per due orecchine), col materiale `oro`/`argento` del .glb a
+   metalness 1 e roughness 0,11-0,14. Cioè uno SPECCHIO PIATTO rivolto
+   alla macchina. E uno specchio piatto non riflette il fondo del
+   packshot: riflette quello che sta DIETRO la macchina, che qui è la
+   scatola scura di `laVetrina` (0x0E0D0C). Il nero non era un difetto
+   di modello, era la vetrina vista allo specchio.
+
+   COSA NON FUNZIONA, provato e misurato (`_R3_sweep.json`, pixel del
+   solo metallo, pietra spenta, fondo #E7E0D3 a L = 0,750):
+     · oggi                        64,1 % del metallo sotto L 0,20;
+     · normali LISCE (mergeVertices + computeVertexNormals)   100 %;
+     · `toCreasedNormals` a 80°                               100 %.
+   Ammorbidire le normali PEGGIORA, e adesso si sa perché: le uniche
+   parti chiare erano le due facce del decagono che pescavano un faro;
+   mediando le normali si perdono quelle e resta solo la scatola nera.
+   Il difetto non è la faccettatura, è lo specchio.
+     · `envMapIntensity` sul materiale: INERTE qui, a 0,35 come a 1,25
+       la misura non si muove di un pixel. Non si mette quello che non
+       si misura.
+
+   COSA FUNZIONA: si abbassa lo specchio. Roughness 0,50 sparpaglia la
+   riflessione e ci fa entrare i fari invece del solo soffitto;
+   metalness 0,70 lascia un terzo di diffusa del colore del metallo, che
+   è il pavimento sotto cui il pezzo non può più cadere. Misurato:
+   il buco passa da 64,1 % a 1,4 % (turchese) e da 64,2 % a 1,1 %
+   (perla), con la mediana a 0,41 e 0,58 e il p90 a 0,70 e 0,83 — cioè
+   il metallo resta MODELLATO, non diventa una pastiglia piatta (la
+   variante con le normali lisce, che pure chiudeva il buco, appiattiva
+   tutto fra 0,32 e 0,38: un disco di vernice).
+   Il decagono in silhouette resta, ed è giusto così: a 80 px non si
+   vede, e a 800 legge come una castonatura sfaccettata. Nessun toro
+   procedurale: sarebbe stato rifare a mano un bordo che, tolto lo
+   specchio, funziona.
+
+   SOLO SUI PERNI. Il materiale `oro` del .glb è condiviso con pendenti
+   e creole, che sono superfici CURVE e lo specchio se lo meritano:
+   quindi si clona prima di toccare. E chi è un perno lo dice il
+   catalogo (`SCHEDA`), non un nome di mesh di Blender. */
+const PERNO_METALLO = {roughness: 0.50, metalness: 0.70};
+/* il catalogo dei nomi è `RIPIANI` (una riga per pezzo: nome, materia,
+   prezzo) — non `SCHEDA`, che è la scheda di POSSESSO ed è indicizzata
+   «famiglia:k». Il primo giro guardava SCHEDA, non trovava nessun
+   «Perno», e i packshot sono usciti neri identici a prima: un rimedio
+   che non si applica non è un rimedio, ed è per questo che si riguarda
+   lo scatto invece di fidarsi del codice. */
+const ePerno = (fam, k) => /^Perno\b/.test((((RIPIANI[fam] || [])[k]) || [])[0] || "");
+function rimediaPerni(f, trovati){
+  trovati.forEach((o, k) => {
+    if(!ePerno(f.id, k)) return;
+    o.traverse(m => {
+      if(!m.isMesh || !m.material || !(m.material.metalness > 0.4)) return;
+      const v = m.material.clone();
+      v.name = m.material.name;
+      v.roughness = PERNO_METALLO.roughness;
+      v.metalness = PERNO_METALLO.metalness;
+      v.needsUpdate = true;
+      m.material = v;
+    });
+  });
+}
+
 function metti(f, g){
   const gr = g.scene;
   gr.traverse(o=>{
@@ -4657,6 +4727,7 @@ function metti(f, g){
   const trovati = [];
   gr.traverse(o => { if(/^pezzo\d\d/.test(o.name)) trovati.push(o); });
   trovati.sort((a, b) => a.name.localeCompare(b.name));
+  rimediaPerni(f, trovati);
   gr.traverse(o => { if(/^posa\d\d/.test(o.name)) o.visible = false; });
 
   /* LA POSA STA FUORI DALLA MISURA. Dentro al modello, accanto al pezzo
@@ -9367,7 +9438,7 @@ stanza.addEventListener("pointerdown", e => {
   const fermava = inMoto();
   tocco();
   stanza.classList.add("tira");
-  giu = {x:e.clientX, y:e.clientY, fermava}; mosso = 0; mossoY = 0;
+  giu = {x:e.clientX, y:e.clientY, fermava, t:performance.now()}; mosso = 0; mossoY = 0;
   /* il banco si pianta DOVE STA, come la fila: la coda del lancio non ha
      più un bersaglio da raggiungere, e il trascinamento riparte da qui */
   if(fermava && livello === 0){ fermaBanco(); partenzaBanco = occhioObiettivo.x; }
@@ -9512,6 +9583,9 @@ addEventListener("pointerup", e => {
   stanza.classList.remove("tira");
   if(!giu){ if(eraPizzico) sveglia(); return; }
   const dx = mosso, dy = mossoY;
+  /* QUANTO È DURATO. Serve a `tocca`: un tap è corto nello spazio E nel
+     tempo, e finora si misurava solo lo spazio. */
+  const durata = performance.now() - (giu.t || 0);
   giu = null;
   tocco();
   if(Math.abs(dx) > 24) segnaImparato();
@@ -9667,7 +9741,7 @@ addEventListener("pointerup", e => {
      fuori dal gioiello: tre strade, nessuna delle quali è il gesto con cui
      lo si sta guardando. */
   if(livello !== 2 && dy > 70 && Math.abs(dy) > Math.abs(dx)){ indietro(); return; }
-  if(Math.abs(dx) < 8 && Math.abs(dy) < 8) tocca(e);
+  if(Math.abs(dx) < 8 && Math.abs(dy) < 8) tocca(e, durata);
   sveglia();
 });
 addEventListener("pointercancel", e => { chiudiDito(e); stanza.classList.remove("tira"); });
@@ -9895,18 +9969,30 @@ function cerchioDelPezzo(){
   return [x1, y1, Math.hypot(x2 - x1, y2 - y1)];
 }
 
-function tocca(e){
+function tocca(e, durata){
   schermo.set((e.clientX/innerWidth)*2-1, -(e.clientY/innerHeight)*2+1);
   raggio.setFromCamera(schermo, camera);
 
   if(livello === 2){
     /* SUL PEZZO SI TOCCA IL PEZZO. Fuori si torna indietro — è il gesto
-       di riappoggiare una cosa che ti hanno messo in mano. Sopra, si apre
-       la sua CARTA: la foto, i dati, la dedica e quello che con quel pezzo
-       si può fare. */
+       di riappoggiare una cosa che ti hanno messo in mano.
+       SOPRA, SI APRE IL SUO ASTUCCIO. Prima apriva la CARTA, e
+       l'astuccio esisteva solo come voce scritta nel nastro: una voce
+       si legge, un gesto si fa, e su un gioiello il gesto naturale è
+       quello di prenderlo in mano — cioè aprire la scatola in cui sta a
+       casa. La carta non si perde: resta sulla MANIGLIA del foglio in
+       basso, che è dov'è sempre stata.
+       IL TEMPO FA PARTE DEL TAP. Il rilascio arriva qui già filtrato
+       sullo SPAZIO (meno di otto punti), ma non sul TEMPO: un dito che
+       resta fermo mezzo secondo sul pezzo mentre lo si guarda non sta
+       chiedendo di aprire niente. Duecentocinquanta millisecondi è la
+       finestra del tocco, e sopra quella il gesto non è un tap — così
+       lo swipe fra un pezzo e l'altro resta intatto, perché uno swipe
+       muove sempre più di otto punti e comunque non passa di qui. */
     const [cx, cy, r] = cerchioDelPezzo();
-    if(Math.hypot(e.clientX - cx, e.clientY - cy) > r * 1.18) indietro();
-    else apriCarta(attiva, scelto);
+    if(Math.hypot(e.clientX - cx, e.clientY - cy) > r * 1.18){ indietro(); return; }
+    if(durata !== undefined && durata >= 250) return;
+    apriAstuccio(attiva, scelto);
     return;
   }
   if(livello === 1 && merci[attiva] && merci[attiva].length){
@@ -11164,9 +11250,15 @@ function faiVoce(id, b){
 let astVelo = null, astManiglia = null, astSospesoDaNoi = false, astZAlto = "";
 function astuccioAperto(){ return !!astVelo && !astVelo.hidden; }
 
-async function apriAstuccio(){
+/* CHI APRE L'ASTUCCIO DICE ANCHE DI CHI. La voce del nastro nasce dentro
+   la carta e il pezzo è quello della carta; il TOCCO SUL PEZZO nasce
+   nella scena, dove la carta può non essere mai stata aperta e
+   `cartaFam` è ancora nullo. Quindi il pezzo si può passare, e i due
+   campi della carta restano il ripiego. */
+async function apriAstuccio(fam0, k0){
   if(astuccioAperto()) return;
-  const fam = cartaFam, k = cartaK;
+  const fam = fam0 !== undefined ? fam0 : cartaFam;
+  const k = k0 !== undefined ? k0 : cartaK;
   if(!fam || k < 0) return;
   if(!astVelo){
     astVelo = document.createElement("div");

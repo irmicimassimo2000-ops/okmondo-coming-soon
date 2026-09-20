@@ -206,14 +206,27 @@ La prima rigenerazione porta il secondo candidato della **stessa regola**. Al
 secondo no la sessione si chiude e la card diventa `FINE_SESSIONE` — «Va bene,
 ci risentiamo lunedì». Se il no rigenerasse all'infinito il pulsante sarebbe
 una slot machine (ricompensa variabile sul SE, vietata dalla carta
-psicologica). Una sessione nuova riapre la proposta; i rifiuti restano fuori i
-loro novanta giorni.
+psicologica).
+
+**«Lunedì» è una data vera, non una frase (critic 20/09).** Fino al 20/09 la
+chiusura era `sessione.rifiuti >= 2`: un fatto della SESSIONE, e una sessione
+nuova (un ricarico) la smentiva nell'istante in cui la si rileggeva — «ci
+risentiamo lunedì» seguito da un F5 e la proposta tornava. Al secondo rifiuto
+`applicaVerdetto` scrive `proposte.chiusa_fino` — il **lunedì vero**,
+`prossimoLunedi(oggi)` — e `proposte()` confronta `sessione_chiusa` con quella
+data, **in qualunque sessione**: la promessa resta vera finché `oggi` non la
+supera, e riapre da sola esattamente quel lunedì (se `oggi` è già lunedì, il
+prossimo è a **+7**, mai 0 — un lunedì che torna sé stesso non è un lunedì
+futuro). I due pezzi rifiutati restano comunque fuori i loro novanta giorni,
+chiusura o non chiusura.
 
 ---
 
 ## Il ramo nello store
 
-`app/stato.js`, schema **V5** (passo 4 → 5):
+`app/stato.js`, schema **V5** (passo 4 → 5; `chiusa_fino` è un campo in più
+con default `null` dentro lo stesso ramo — non un cambio di forma, non serve
+una V6):
 
 ```js
 proposte: {
@@ -221,7 +234,8 @@ proposte: {
   rifiuti:  {},   // {<articolo>: "aaaa-mm-gg"}
   pin:      [],   // [{articolo, motivo, chi, quando, abbina_a, in_cima, fino, cliente}]
   blocchi:  [],   // [{articolo, motivo, chi, quando, cliente}]
-  registro: {regole:{}, mostrate:{}, sessione:{id, rifiuti}}
+  registro: {regole:{}, mostrate:{}, sessione:{id, rifiuti}},
+  chiusa_fino: null   // ISO o null — il lunedì vero, scritto al secondo rifiuto
 }
 ```
 

@@ -47,6 +47,21 @@ import { schermo } from "app/ui/barra-nav.js";
 import { toast } from "app/ui/toast.js";
 import { spingi, registraSchermo, torna, vaiA, tabCorrente } from "app/rotta.js";
 import { conTransizione, RIDOTTO, lineare } from "app/moto.js";
+import { osso } from "app/ui/scheletro.js";
+/* F5b — IL MOTORE, MAI STATICO (banco prestazioni 20/09: 616 KB di JS
+   all'avvio, e la causa era proprio questo `import` — 60 KB di motore
+   dentro una vista che a boot non è nemmeno quella attiva, delle
+   quattro). `proposte()` di QUESTO file resta quello di sempre (le
+   quattro regole storiche, che collezioni/promo/arrivi continuano a
+   leggere invariate): il blocco grande e i rail, soli, vengono dal
+   motore — caricato con `import()` DINAMICO, vedi `caricaMotore` più
+   giù, non da qui. */
+/* il colore di fondo dei provini (non un ruolo del sistema: è un dato
+   del modulo dei provini, quindi si porta da lì e si scrive in linea —
+   mai un hex dentro `perte.css`). Serve solo quando il blocco grande
+   mostra una foto: vedi `vestiFotoMotore`. Questo modulo è leggero
+   (una mappa di stringhe): resta un import statico. */
+import { PROVINO_FONDO } from "app/dati/provini.js";
 
 /* ═══════════════════════════════════════════════════════════════════
    PARTE PRIMA — IL MOTORE. Da qui fino a «PARTE SECONDA» non si tocca
@@ -521,6 +536,35 @@ export function proposte(stato = {}){
    PARTE SECONDA — LA VISTA. Da qui in giu' si tocca il DOM.
    ═══════════════════════════════════════════════════════════════════ */
 
+/* F5b — IL MOTORE, CARICATO A RICHIESTA (banco prestazioni 20/09: 616
+   KB di JS all'avvio, e la causa era l'import STATICO di questo modulo
+   — 60 KB — dentro una vista che a boot non è nemmeno quella attiva).
+   Una variabile di MODULO, non di `monta()`: due montaggi (non dovrebbe
+   succedere, ma) non chiederebbero il pacchetto due volte, e una volta
+   arrivato resta per tutta la vita della pagina. `caricaMotore()` non
+   tocca il DOM e non sa di `monta()`: chi la chiama decide quando
+   ridisegnare. */
+let motoreProposte = null;
+let motoreCaricamento = null;
+/* CARICAMENTO ≠ FALLIMENTO: finché è in corso si mostra lo scheletro;
+   se fallisce (rete assente) la sezione non compare più, nemmeno come
+   scheletro — uno scheletro che non finisce mai di caricare sarebbe una
+   bugia, non un'attesa. */
+let motoreFallito = false;
+function caricaMotore(){
+  if(motoreProposte) return Promise.resolve(motoreProposte);
+  if(!motoreCaricamento){
+    motoreCaricamento = import("app/motore/proposte.js")
+      .then((mod) => { motoreProposte = mod; return mod; })
+      /* rete assente: NESSUN errore in console. Il resto della pagina
+         (promo, collezioni, arrivi) non dipende da questo modulo, e la
+         sezione delle proposte resta semplicemente muta — mai un
+         segnaposto rotto al posto di uno che carica. */
+      .catch(() => { motoreFallito = true; return null; });
+  }
+  return motoreCaricamento;
+}
+
 /* IL FOGLIO DI STILE SE LO PORTA LA VISTA. Non sta in `sistema.css`
    perché quelle sono le regole di TUTTA l'app e queste sono le misure
    di una schermata sola; non sta in `index.html` perché il telaio non
@@ -600,6 +644,13 @@ function pallini(c){
 }
 
 /* ── LA CARD DEL BLOCCO GRANDE — 361 × 452 ──────────────────────── */
+/* PARITÀ (critic 20/09): la card con foto porta anche lei l'occhiello
+   (famiglia · materia) e il prezzo — non solo il nome e la frase — e la
+   frase-regola ha lo STESSO ruolo di colore in entrambe le varianti,
+   --testo-2 ('tenue' è la classe globale che lo scrive, sistema.css).
+   `b.occhiello`/`b.prezzo` sono opzionali apposta: P2 («Il pezzo che
+   chiude») chiama questa stessa funzione senza passarli, e resta come
+   sempre — un campo in più non scritto non disegna niente. */
 function cardGrande(b, suClick){
   return e("button", {
     type: "button", class: "card-grande", "data-f5-blocco": b.regola || "pezzo",
@@ -607,10 +658,94 @@ function cardGrande(b, suClick){
     suClick
   }, [
     e("span", {class: "card-grande-foto"}, [figura(b, "grande-fig", {muto: true})]),
+    b.occhiello ? e("span", {class: "occhiello card-occhiello", testo: b.occhiello}) : null,
     e("b", {class: "t-2 card-nome", testo: b.nome}),
-    b.riga ? e("span", {class: "t-sub card-riga", testo: b.riga}) : null,
+    b.riga ? e("span", {class: "t-sub tenue card-riga", testo: b.riga}) : null,
+    b.prezzo != null ? e("span", {class: "t-foot tenue card-prezzo", testo: b.prezzo}) : null,
     b.perche ? e("span", {class: "t-foot tenue card-perche", testo: b.perche}) : null
   ].filter(Boolean));
+}
+
+/* ── IL BLOCCO GRANDE DEL MOTORE, SENZA FOTO ───────────────────────
+   Pendente Filo — il primo candidato sul seme vero — non ha né scatto
+   né provino: `cardGrande` lì sopra disegnerebbe 361×452 di riquadro
+   scuro vuoto (il critic l'aveva già contato il 17/09: «35 % di vuoto
+   disegnato»). Quando la foto manca il blocco grande diventa perciò
+   QUESTA card, senza nessuna area immagine — mai un segnaposto, mai
+   «foto in arrivo»: l'occhiello dice la famiglia e la materia (un fatto
+   vero, non un buco travestito), il nome sale a Bodoni 28 (non c'è più
+   la foto a portare peso, lo porta la tipografia), poi la frase e il
+   prezzo — stessa forma della card con foto qui sopra, PARITÀ voluta. */
+function occhielloArticolo(a){
+  const fam = (a && (a.famiglia_nome || a.tipo)) || "";
+  const met = a && a.attributi && a.attributi.metallo;
+  return fam && met ? fam + " · " + met : (fam || met || "");
+}
+function cardGrandeCompatta(g, suClick, soldi){
+  const a = g.articolo;
+  return e("button", {
+    type: "button", class: "blocco-compatta", "data-f5-blocco": g.regola || "pezzo",
+    "aria-label": a.nome + (g.frase ? ". " + g.frase : ""),
+    suClick
+  }, [
+    e("span", {class: "occhiello blocco-compatta-occ", testo: occhielloArticolo(a)}),
+    e("b", {class: "t-1 blocco-compatta-nome", testo: a.nome}),
+    g.frase ? e("span", {class: "t-sub tenue blocco-compatta-frase", testo: g.frase}) : null,
+    e("span", {class: "t-foot tenue blocco-compatta-prezzo", testo: soldi(a.prezzo)})
+  ].filter(Boolean));
+}
+
+/* ── IL BLOCCO GRANDE DEL MOTORE, CON FOTO ─────────────────────────
+   La stessa card di sempre (`cardGrande`, la stessa che usa P2 per «Il
+   pezzo che chiude»): qui si corregge solo COME la foto riempie il
+   riquadro. Il packshot dei provini è già inquadrato sul suo fondo
+   (`PROVINO_FONDO`); ritagliarlo con `object-fit:cover` (il difetto di
+   prima) ne tronca i bordi. `contain` più il fondo vero del provino in
+   linea — mai `cover` che tronca, mai un fondo che non è il suo. La
+   card di P2 non passa da qui: resta `cover`, non era il difetto
+   segnalato. */
+function vestiFotoMotore(nodoCard){
+  const img = nodoCard.querySelector("img.grande-fig");
+  if(img){
+    img.classList.add("grande-fig-contain");
+    img.style.backgroundColor = PROVINO_FONDO;
+  }
+  return nodoCard;
+}
+
+/* UN'AZIONE PRINCIPALE, UNA NO (critic 20/09). Un tasto «terziario»
+   nasce in --accento (sistema.css): giusto per «Ricordamelo» (il
+   turchese di questa schermata, un ruolo solo oltre al primario —
+   ACCENTI lo misura), sbagliato per ENTRAMBI questi due comandi, che
+   non sono lo stato di questa schermata ma due verdetti su UN
+   consiglio — e uguali com'erano (`azione-tenue` su tutt'e due) si
+   leggevano come «nessun comando» a occhi strizzati: --testo pieno,
+   peso 600 (il corpo del tasto lo da' già, `--t-head`) per «Metti da
+   parte» — è l'azione che tiene il pezzo; --testo-2, peso 400 per «Non
+   fa per me» — è quella che lo scarta. Stesso corpo, stesso bersaglio
+   (44, lo da' già `.tasto.terziario`), zero turchese su entrambi. */
+function vestiPrincipale(t){ t.classList.add("azione-principale"); return t; }
+function vestiSecondaria(t){ t.classList.add("azione-secondaria"); return t; }
+
+/* IL RIQUADRO SENZA FOTO DEL RAIL — MAI IL NOME (critic 20/09): il nome
+   sta già sotto la card una volta sola (`.card-rail-nome`); scriverlo
+   anche dentro il riquadro lo ripete due volte nello stesso sguardo.
+   Qui va un fatto IN PIÙ — la materia — in Inter 13 --testo-2
+   (`div.rail-fig` la scrive già così, vedi perte.css). */
+/* Nel rail PER MATERIA il titolo dice già la materia: il riquadro porta
+   allora la FAMIGLIA (anello, creola…), che è il fatto in più (critic
+   20/09, seconda verifica). Negli altri rail resta la materia. */
+function redattoRail(p, r){
+  const perMateria = r && /materia/.test(String(r.regola || ""));
+  const scritta = perMateria ? (p.tipo || p.famiglia_nome || p.materia) : p.materia;
+  return e("div", {class: "redatto rail-fig"},
+    scritta ? [e("span", {class: "t-foot", testo: scritta})] : []);
+}
+function figuraRail(p, r){
+  if(!p.foto) return redattoRail(p, r);
+  const img = e("img", {class: "rail-fig", src: p.foto, alt: "", loading: "lazy", decoding: "async"});
+  img.addEventListener("error", () => { img.replaceWith(redattoRail(p, r)); }, {once: true});
+  return img;
 }
 
 /* ── IL RAIL — card 160 × 200, passo 172 ──────────────────────────── */
@@ -620,7 +755,7 @@ function railDom(r, suPezzo, soldi){
     "aria-label": p.nome + ", " + soldi(p.prezzo),
     suClick: () => suPezzo(p.id)
   }, [
-    e("span", {class: "card-rail-foto"}, [figura(p, "rail-fig")]),
+    e("span", {class: "card-rail-foto"}, [figuraRail(p, r)]),
     e("b", {class: "t-foot card-rail-nome", testo: p.nome}),
     e("span", {class: "t-foot tenue cifra", testo: soldi(p.prezzo)})
   ]));
@@ -635,6 +770,20 @@ function railDom(r, suPezzo, soldi){
     e("div", {class: "rail", role: "list", "aria-label": r.titolo},
       carte.map((c) => { c.setAttribute("role", "listitem"); return c; }))
   ].filter(Boolean));
+}
+
+/* ── LO SCHELETRO DEL BLOCCO, MENTRE IL MOTORE ARRIVA ──────────────
+   Monocromo e fermo (niente shimmer — regola 5): occupa già il posto
+   che avrà il nome, la frase e i due comandi, così quando il motore
+   arriva non salta niente. Niente rail finché non c'è: un rail è una
+   proposta, e non si propone col catalogo mezzo scaricato. */
+function scheletroBlocco(){
+  return e("div", {class: "blocco-scheletro", "aria-hidden": "true"}, [
+    osso("42%", "11px", {raggio: "3px"}),
+    osso("72%", "28px", {su: "8px", raggio: "5px"}),
+    osso("90%", "15px", {su: "8px", raggio: "3px"}),
+    osso("22%", "13px", {su: "8px", raggio: "3px"})
+  ]);
 }
 
 /* ── P4 · LA CARD A RIGHE FISSE (promo · compleanno · arrivo) ──────
@@ -654,7 +803,19 @@ function cardP4(d, azione){
 /* ═══ IL MONTAGGIO ═════════════════════════════════════════════════ */
 export function monta(el, store){
   vestiti();
-  const {leggi, iscrivi, soldi} = store;
+  const {leggi, iscrivi, soldi, invia} = store;
+
+  /* F5b — LA SESSIONE. Un id per apertura dell'app, non per rendering:
+     il motore conta i «Non fa per me» DENTRO una sessione (due e si
+     ferma), e «una sessione nuova riapre la proposta» — che è esattamente
+     cosa succede a un ricarico, dove `monta()` gira di nuovo e questa
+     riga assegna un id diverso. Non è `sessionStorage`: il motore non
+     deve sapere che gira in un browser (`app/motore/README.md`). */
+  const SESSIONE = "s-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  /* la stessa regola di `app/viste/vetrina.js` (TENUTA_GIORNI): sette
+     giorni di riserva. Ridichiarata qui invece che importata — le due
+     viste non devono dipendere l'una dall'altra per un numero. */
+  const TENUTA_GIORNI_DAPARTE = 7;
 
   /* LA DATA DELLA DEMO. `app/innesto.js` non porta ancora `seme.oggi`
      (è scritto nel rapporto): finché non lo fa, la si chiede al
@@ -670,6 +831,98 @@ export function monta(el, store){
     s: leggi(), catalogo: store.catalogo || [],
     collezioni: store.collezioni || {}, oggi: OGGI
   });
+
+  /* F5b — IL BLOCCO GRANDE E I RAIL, DAL MOTORE — SE È ARRIVATO. Stesso
+     `OGGI` della vista (mai `new Date()`), catalogo e collezioni già
+     innestati — il motore legge `articolo.foto` che `app/innesto.js` ha
+     già riempito col provino packshot, quindi qui non c'è nessuna
+     scelta di foto da fare. `motoreProposte` è la variabile di modulo
+     di `caricaMotore()`: `motore()` non si chiama finché non è vera. */
+  const motore = () => motoreProposte.proposte(
+    {s: leggi(), catalogo: store.catalogo || [], collezioni: store.collezioni || {}, oggi: OGGI},
+    {sessione: SESSIONE}
+  );
+
+  /* SI CHIEDE UNA VOLTA SOLA, quando questa tab È quella attiva —
+     mai prima. `app/rotta.js` manda `nav/tab` a OGNI cambio, avvio
+     incluso (anche aprendo l'app direttamente su `#/perte`): lo
+     ascolta l'`iscrivi` più giù. `tMotoreChiesto` è il momento
+     dell'attivazione, misurato per il banco (`window.__perte.tempi
+     Motore()`). */
+  let motoreChiesto = false, tMotoreChiesto = null, tBloccoDisegnato = null;
+  function chiediMotoreSeAttiva(){
+    if(motoreChiesto || tabCorrente() !== "perte") return;
+    motoreChiesto = true;
+    tMotoreChiesto = performance.now();
+    caricaMotore().then((mod) => { if(mod) disegna(); });
+  }
+
+  /* ── RISPOSTA AL TOCCO SUL RIFIUTO (critic 20/09) ───────────────────
+     «La card cambia a scatto» — non più: `nonFaPerMe` cattura il nodo
+     vecchio PRIMA di mandare l'evento (fra un giro e l'altro lo stato
+     cambia SINCRONO, vedi `invia`, e `disegna()` lo distrugge súbito
+     dopo), e `disegna()` lo consegna ad `animaCambioBlocco` appena il
+     nuovo è in pagina. Il vecchio si sovrappone (overlay `fixed`, perché
+     il resto della schermata intorno può essersi mosso) al nuovo e i
+     due sfumano insieme — durata e curva sono `--d-alert` e `--ios`
+     (sistema.css): 200 ms, «linear» sotto movimento ridotto perché
+     quelle due variabili CAMBIANO SOLE sotto quel media query — 150 ms.
+     Mai zero: un cambio di candidato senza nessun segno è indistinguibile
+     da un errore. */
+  /* IMPORTANTE: si cattura il nodo vecchio PRIMA che `schermo(el, …)`
+     svuoti il contenitore (è la prima riga di `disegna()`) — dopo, quel
+     nodo è già stato staccato dal documento, e animarlo staccato non fa
+     niente. Per questo `nonFaPerMe` non cattura il nodo lei stessa: alza
+     solo una bandiera, e la cattura vera è in cima a `disegna()`. */
+  let animaBloccoAlProssimoDisegno = false;
+  const valoreCSS = (nome) => getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
+  function animaCambioBlocco(vecchio, nuovo){
+    if(!vecchio || !nuovo) return;
+    const durata = parseFloat(valoreCSS("--d-alert")) || 200;
+    const curva = valoreCSS("--ios") || "ease";
+    const r = vecchio.getBoundingClientRect();
+    vecchio.style.position = "fixed";
+    vecchio.style.left = r.left + "px";
+    vecchio.style.top = r.top + "px";
+    vecchio.style.width = r.width + "px";
+    vecchio.style.margin = "0";
+    vecchio.style.zIndex = "5";
+    vecchio.style.pointerEvents = "none";
+    document.body.appendChild(vecchio);
+    nuovo.style.opacity = "0";
+    const via = vecchio.animate([{opacity: 1}, {opacity: 0}], {duration: durata, easing: curva, fill: "forwards"});
+    const entra = nuovo.animate([{opacity: 0}, {opacity: 1}], {duration: durata, easing: curva, fill: "forwards"});
+    via.finished.catch(() => {}).then(() => vecchio.remove());
+    entra.finished.catch(() => {}).then(() => { nuovo.style.opacity = ""; });
+  }
+
+  /* ── LE DUE AZIONI DEL BLOCCO GRANDE ────────────────────────────────
+     Un rifiuto e una messa da parte sono entrambi un VERDETTO
+     (`proposta/verdetto`): il motore li conta nel registro della sua
+     regola, e un rifiuto esclude l'articolo per novanta giorni e spende
+     una delle due rigenerazioni della sessione — al secondo la sezione
+     si ferma da sola («Va bene, ci risentiamo lunedì», e stavolta è
+     vera anche a un ricarico: il motore la scrive nello stato, non nella
+     sessione), il motore lo decide, questa vista si limita a
+     ridisegnare. */
+  function nonFaPerMe(g){
+    animaBloccoAlProssimoDisegno = true;
+    invia("proposta/verdetto", {
+      articolo: g.id, esito: "rifiuto", regola: g.regola, oggi: OGGI, sessione: SESSIONE
+    });
+    annuncia(g.articolo.nome + ", non fa per te.");
+  }
+  function metterlaDaParte(g){
+    const fino = isoPiu(OGGI, TENUTA_GIORNI_DAPARTE);
+    /* lo stesso evento di `viste/vetrina.js` (`mettiDaParte`): il pezzo
+       entra DAVVERO nella riserva, non solo nel registro del motore. */
+    invia("daparte/aggiungi", {id: g.id, dal: OGGI, fino});
+    invia("proposta/verdetto", {
+      articolo: g.id, esito: "da_parte", regola: g.regola, oggi: OGGI, sessione: SESSIONE
+    });
+    toast(g.articolo.nome + " messo da parte, fino al " + giornoEMese(fino) + ".");
+    annuncia(g.articolo.nome + ", messo da parte.");
+  }
 
   /* ── GLI SCHERMI CHE QUESTA VISTA APRE ─────────────────────────
      `collezioni/<id>` è la forma vera dell'indirizzo: `app/rotta.js`
@@ -690,29 +943,113 @@ export function monta(el, store){
 
   /* ══ P0 · PER TE ═══════════════════════════════════════════════ */
   function disegna(){
+    /* si cattura QUI, prima che `schermo()` svuoti il contenitore (vedi
+       la nota sopra `animaBloccoAlProssimoDisegno`). */
+    const vecchioPerAnimazione = animaBloccoAlProssimoDisegno
+      ? el.querySelector(".blocco, .blocco-compatta") : null;
+    animaBloccoAlProssimoDisegno = false;
+
     const d = dati();
     const pagina = schermo(el, {titolo: "Per te"});
 
-    /* 2 · la riga del ritorno — solo se c'è un fatto */
-    if(d.ritorno) pagina.append(e("p", {class: "t-sub accento riga-ritorno", testo: d.ritorno}));
+    /* 2 · la riga del ritorno — solo se c'è un fatto. In --testo, non
+       --accento (critic 20/09): il turchese di questa schermata è già
+       preso da «Ricordamelo» (ACCENTI, un solo ruolo oltre al primario),
+       e quando il ritorno compare INSIEME al blocco erano due. */
+    if(d.ritorno) pagina.append(e("p", {class: "t-sub riga-ritorno", testo: d.ritorno}));
 
-    /* le card P4 che vanno IN CIMA: nella tabella «evento → grado →
-       forma» il compleanno è di grado grande, e sta sopra il blocco. */
+    /* 3 · IL BLOCCO GRANDE — F5b, dal motore, CARICATO A RICHIESTA
+       (banco prestazioni 20/09): `chiediMotoreSeAttiva()` lo chiede
+       solo quando questa tab è quella attiva, mai all'avvio per le
+       altre tre. Finché non arriva (o se non arriva mai: rete assente)
+       il posto resta lo scheletro — niente rail, niente errore.
+       SUBITO SOTTO IL TITOLO: è la risposta alla domanda della pagina
+       («cosa c'è per te oggi»), e vince il primo sguardo — le card P4
+       (compleanno, promo) sono vere ma non sono LA risposta, e scendono
+       più giù (misura 6). Il titolo-regola È LA FRASE della proposta
+       (accenti veri, ≤ 60 caratteri): non più un'etichetta SOPRA la
+       foto, ma la riga che spiega il pezzo, sotto il suo nome. Sotto la
+       card, le due azioni: «Metti da parte» (principale, --testo 600) e
+       «Non fa per me» (secondaria, --testo-2 400). */
+    chiediMotoreSeAttiva();
+    const m = motoreProposte ? motore() : null;
+    let nuovoBloccoNodo = null;
+    if(!m){
+      /* in corso → lo scheletro. Fallito (rete assente) → niente: il
+         resto della pagina (promo, collezioni, arrivi) resta com'è, e
+         qui non c'è nessun errore, solo silenzio. */
+      if(!motoreFallito){ nuovoBloccoNodo = scheletroBlocco(); pagina.append(nuovoBloccoNodo); }
+    } else if(m.sessione_chiusa){
+      /* il secondo «Non fa per me» della sessione: il motore chiude da
+         solo, e qui non si inventa nessun terzo candidato. Allineata a
+         sinistra (critic 20/09): oggi era l'unico testo centrato della
+         pagina. */
+      nuovoBloccoNodo = e("p", {class: "t-sub tenue blocco-fine", testo: m.fine});
+      pagina.append(nuovoBloccoNodo);
+    } else if(m.grande){
+      const g = m.grande;
+      const suClick = () => {
+        invia("proposta/verdetto", {
+          articolo: g.id, esito: "aperto", regola: g.regola, oggi: OGGI, sessione: SESSIONE
+        });
+        vaiAlPezzo(g.id);
+      };
+      const occhiello = occhielloArticolo(g.articolo), prezzo = soldi(g.articolo.prezzo);
+      /* CON FOTO: la card di sempre, ma con PARITÀ (occhiello e
+         prezzo). SENZA: mai un riquadro vuoto — niente area immagine
+         (misura 5), stessa forma della card con foto. */
+      const card = g.articolo.foto
+        ? vestiFotoMotore(cardGrande({
+            nome: g.articolo.nome, foto: g.articolo.foto, riga: g.frase,
+            occhiello, prezzo, perche: null
+          }, suClick))
+        : cardGrandeCompatta(g, suClick, soldi);
+      nuovoBloccoNodo = e("section", {class: "blocco", "data-regola": g.regola}, [
+        card,
+        e("div", {class: "blocco-azioni"}, [
+          vestiPrincipale(tasto("Metti da parte", {tipo: "terziario", suClick: () => metterlaDaParte(g)})),
+          vestiSecondaria(tasto("Non fa per me", {tipo: "terziario", suClick: () => nonFaPerMe(g)}))
+        ])
+      ]);
+      pagina.append(nuovoBloccoNodo);
+    } else if(m.tutto_suo){
+      /* «Hai tutto quello che c’è, per ora.» — mai un rail a punteggio
+         basso per non lasciare il posto vuoto: un «Per te» riempito con
+         pezzi deboli è peggio di un «Per te» che finisce (motore §8). */
+      nuovoBloccoNodo = e("p", {class: "t-sub tenue blocco-fine", testo: m.fine});
+      pagina.append(nuovoBloccoNodo);
+    }
+    /* persona senza dati (nessun candidato e non "tutto suo"): niente si
+       disegna qui — nessun regalo inventato — e la sezione resta muta
+       finché il motore non ha un fatto vero da dire. */
+
+    /* RISPOSTA AL TOCCO (critic 20/09): un rifiuto non sostituisce la
+       card a scatto. `vecchioPerAnimazione` è stato catturato in cima a
+       questa funzione, PRIMA che `schermo()` lo staccasse; appena il
+       nuovo è nel documento, i due sfumano insieme. */
+    if(vecchioPerAnimazione && nuovoBloccoNodo)
+      animaCambioBlocco(vecchioPerAnimazione, nuovoBloccoNodo);
+    if(motoreProposte && tBloccoDisegnato == null) tBloccoDisegnato = performance.now();
+
+    /* 4-6 · i rail, al massimo tre — anche loro dal motore, solo se è
+       arrivato (misura 1 del banco prestazioni: niente rail mentre si
+       aspetta). Le proposte del rail portano il pezzo dentro
+       `.articolo`: la card del rail (invariata) vuole `nome/foto/
+       prezzo/materia` alla radice, quindi si appiattisce qui, nell'unico
+       posto che deve saperlo. */
+    if(m) for(const r of m.rail) pagina.append(railDom({
+      regola: r.regola, titolo: r.titolo, sotto: null, altri: r.altri,
+      pezzi: r.pezzi.map((p) => ({
+        id: p.id, nome: p.articolo.nome, foto: p.articolo.foto, prezzo: p.articolo.prezzo,
+        materia: p.articolo.attributi && p.articolo.attributi.metallo
+      }))
+    }, vaiAlPezzo, soldi));
+
+    /* le card P4 — ORA SOTTO I RAIL (misura 6): compleanno e promo
+       restano vere e restano in pagina, ma la proposta del motore
+       risponde per prima alla domanda della schermata. */
     if(d.compleanno) pagina.append(cardP4(d.compleanno));
     if(d.promo) pagina.append(cardP4(d.promo));
-
-    /* 3 · IL BLOCCO GRANDE, uno solo, e il titolo È la regola */
-    if(d.blocco) pagina.append(e("section", {class: "blocco", "data-regola": d.blocco.regola}, [
-      e("h2", {class: "occhiello foot blocco-testa", testo: d.blocco.occhiello}),
-      cardGrande(d.blocco, () => {
-        if(d.blocco.regola === "chiude_collezione" && d.blocco.collezione)
-          spingi("collezioni/" + d.blocco.collezione);
-        else vaiAlPezzo(d.blocco.articolo);
-      })
-    ]));
-
-    /* 4-6 · i rail, al massimo tre */
-    for(const r of d.rail) pagina.append(railDom(r, vaiAlPezzo, soldi));
 
     /* 7 · le tue collezioni. In coda al gruppo, l'unica porta per l'hub:
        una sezione raggiungibile solo da un indirizzo scritto a mano è
@@ -1070,10 +1407,30 @@ export function monta(el, store){
 
   disegna();
   iscrivi((s, ev, prima) => {
+    /* F5b — SI CHIEDE IL MOTORE QUI: `nav/tab` arriva a OGNI cambio di
+       tab, avvio incluso (anche aprendo l'app direttamente su
+       `#/perte`) — prima di qualunque redraw, e fuori dal guard
+       `!prima` qui sotto perché all'avvio `prima` non è mai nullo (lo
+       stato esiste già quando le viste montano), ma la chiarezza vale
+       la riga in più. */
+    if(ev.tipo === "nav/tab" && ev.dato && ev.dato.tab === "perte") chiediMotoreSeAttiva();
     if(!prima) return;
+    /* F5b — UN RIFIUTO NON PASSA DA `conTransizione`: se lo facesse, la
+       View Transition nativa farebbe dissolvere TUTTA la pagina (un
+       crossfade che il critic non ha chiesto), sovrapposta alla
+       dissolvenza mirata che `animaCambioBlocco` fa già solo sul
+       blocco. `disegna()` diretto, e la risposta al tocco la fa lei. */
+    if(ev.tipo === "proposta/verdetto" && ev.dato && ev.dato.esito === "rifiuto" &&
+       s.proposte !== prima.proposte){ disegna(); return; }
     if(s.esemplari !== prima.esemplari || s.arrivi !== prima.arrivi ||
        s.ricorrenze !== prima.ricorrenze || s.promozioni !== prima.promozioni ||
        s.ritorno !== prima.ritorno || s.promemoria !== prima.promemoria ||
+       /* F5b — un verdetto (rifiuto/da_parte/aperto), una messa da parte
+          o la lista cambiano quello che il motore propone qui (il pezzo
+          esce, torna a "da_prendere", o la sessione si ferma): senza
+          questi tre rami «Non fa per me» non ridisegnerebbe niente. */
+       s.proposte !== prima.proposte || s.daparte !== prima.daparte ||
+       s.wishlist !== prima.wishlist ||
        ev.tipo === "demo/reset") conTransizione(disegna);
   });
 
@@ -1090,7 +1447,17 @@ export function monta(el, store){
       const c = d.mie.find((x) => x.id === id) || d.mie[0];
       if(c) spingi("chiusura/" + c.id);
     },
-    promemoria: () => leggiPromemoria(leggi())
+    promemoria: () => leggiPromemoria(leggi()),
+    /* F5b — per il banco prestazioni: il tempo fra l'attivazione della
+       tab e il blocco grande disegnato. `null` finché l'uno o l'altro
+       non è successo — la sonda aspetta sul valore, non su un timeout
+       fisso. */
+    tempiMotore: () => ({
+      chiesto: tMotoreChiesto, disegnato: tBloccoDisegnato,
+      arrivato: motoreChiesto && !!motoreProposte,
+      attesa_ms: (tMotoreChiesto != null && tBloccoDisegnato != null)
+        ? Math.round(tBloccoDisegnato - tMotoreChiesto) : null
+    })
   });
 
   /* `?demo=chiusura` — la scena di P3 senza dover chiudere davvero una

@@ -273,3 +273,84 @@ body[data-pieno="1"] #toast-zona{bottom:calc(24px + var(--safe-b))}
   .card-grande:active,.card-rail:active{transform:none}
   body[data-pieno="1"] #barra{transition:none}
 }
+
+/* ══ F5b · IL MOTORE NUOVO — LE AZIONI DEL BLOCCO GRANDE ═════════════
+   «Metti da parte» e «Non fa per me», sotto la card: il bersaglio 44 lo
+   dà già `.tasto.terziario` (sistema.css), qui si toglie solo il
+   turchese — il ruolo è già preso da «Ricordamelo» (ACCENTI: un solo
+   ruolo oltre al primario) — e si mette --testo-2, che nel tema di
+   velluto di questa vista tiene 8,0:1 di contrasto. Quando il motore
+   non ha un blocco (sessione chiusa, o la cliente ha già tutto) il
+   posto resta UNA riga, mai un vuoto muto. */
+.blocco-azioni{display:flex;gap:22px;margin:12px 0 0}
+.blocco-azioni .tasto{padding:0}
+.tasto.azione-tenue{color:var(--testo-2)}
+.blocco-fine{margin:24px 0 0;text-align:center}
+
+/* ══ F5b (20/09) · NIENTE VUOTO DISEGNATO ════════════════════════════
+   Pendente Filo — il primo candidato sul seme vero — non ha né scatto
+   né provino: senza questa card `.card-grande-foto` sarebbe un
+   riquadro 361×452 vuoto (il critic l'aveva già contato il 17/09: «35 %
+   di vuoto disegnato»). Quando manca la foto il blocco grande diventa
+   questa card COMPATTA, senza nessuna area immagine: stessa interazione
+   di `.card-grande` (bersaglio pieno, la stessa molla), zero pixel
+   sprecati a disegnare il niente. */
+.blocco-compatta{display:block;width:100%;padding:18px 18px 20px;border:0;
+  border-radius:var(--r-card);background:var(--piano);text-align:left;
+  color:inherit;cursor:pointer;transition:transform var(--d-tocco) var(--molla)}
+.blocco-compatta:active{transform:scale(.985)}
+.blocco-compatta:focus-visible{outline:2px solid var(--accento);outline-offset:2px}
+.blocco-compatta-occ{display:block}
+.blocco-compatta-nome{display:block;margin:6px 0 0}
+.blocco-compatta-frase{display:block;margin:6px 0 0}
+.blocco-compatta-prezzo{display:block;margin:8px 0 0}
+
+/* Quando la foto C'È, resta la card di sempre — solo `object-fit`
+   cambia: il packshot dei provini è già inquadrato sul suo fondo, e
+   `cover` (il difetto di prima) ne tronca i bordi. Il fondo lo scrive
+   `viste/perte.js` in linea (è un dato di `app/dati/provini.js`, non un
+   ruolo del sistema — nessun hex qui). Solo il blocco motore: la card
+   di «Il pezzo che chiude» (P2) resta `cover`, non era il difetto. */
+.grande-fig-contain{object-fit:contain}
+
+/* la cella del rail senza foto era un riquadro NERO (`--incavo`, il
+   ruolo del "vuoto" della fila dei posti, sbagliato qui): resta testo
+   solo centrato — la forma andava bene — ma su `--piano`, la stessa
+   superficie della card compatta qui sopra. */
+.card-rail .redatto{background:var(--piano)}
+
+/* ══ F5b (20/09) · IL VERDETTO DEL CRITIC — CORREZIONI ═══════════════
+   Regole d'ingaggio del file: NESSUN HEX, NESSUNA DURATA NUOVA — le
+   correzioni sotto rispettano le due, e vanno IN CODA: una selettore
+   più specifico o una dichiarazione successiva a parità di specificità
+   vince sulla riga sbagliata sopra, senza doverla toccare. */
+
+/* 1 · UN'AZIONE PRINCIPALE, UNA NO. `.tasto.azione-tenue` qui sopra
+   portava ENTRAMBI i comandi a --testo-2: a occhi strizzati si leggeva
+   un comando solo, o nessuno. «Metti da parte» tiene il pezzo — resta
+   in --testo pieno, peso 600 (`.tasto` lo eredita già da `--t-head`);
+   «Non fa per me» lo scarta — --testo-2, peso 400. Stesso corpo (nessun
+   `font-size` nuovo), stesso bersaglio 44, zero turchese su entrambi:
+   il ruolo resta di «Ricordamelo», uno solo (ACCENTI). */
+.blocco-azioni .azione-principale{color:var(--testo)}
+.blocco-azioni .azione-secondaria{color:var(--testo-2);font-weight:400}
+
+/* 2 · «LUNEDÌ» — `.blocco-fine` allineata a sinistra, sul margine del
+   titolo: era l'unico testo centrato della pagina, e un fatto scritto
+   nello stato (non più un contatore di sessione, vedi il motore) non ha
+   bisogno di un trattamento speciale a schermo. */
+.blocco-fine{text-align:left}
+
+/* 3 · PARITÀ fra le due varianti della card grande: l'occhiello (11,
+   maiuscoletto, --testo-2 — la classe `.occhiello` lo scrive già così)
+   e il prezzo, anche quando la foto c'è. */
+.card-occhiello{display:block;margin:8px 0 0}
+.card-occhiello + .card-nome{margin-top:4px}
+.card-prezzo{display:block;margin:4px 0 0}
+
+/* 4 · LO SCHELETRO DEL BLOCCO — stesso posto e lo stesso margine del
+   blocco vero (`.blocco`), così quando il motore arriva non salta
+   niente. `osso()` (ui/scheletro.js) è già monocromo e fermo, e porta
+   già il suo `margin-top` in linea (il parametro `su`): qui basta il
+   margine del contenitore. */
+.blocco-scheletro{margin:24px 0 22px;display:block}

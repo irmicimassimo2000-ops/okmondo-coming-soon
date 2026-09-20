@@ -61,7 +61,12 @@ export const ESITI_PROPOSTA = ["comprato", "da_parte", "aperto", "nessuno", "rif
 export const FORZA_ESITO = {comprato: 4, da_parte: 3, aperto: 2, nessuno: 1, rifiuto: 0};
 export const registroProposteVuoto = () => ({regole: {}, mostrate: {}, sessione: {id: null, rifiuti: 0}});
 export const PROPOSTE_VUOTE = () => ({
-  verdetti: [], rifiuti: {}, pin: [], blocchi: [], registro: registroProposteVuoto()
+  verdetti: [], rifiuti: {}, pin: [], blocchi: [], registro: registroProposteVuoto(),
+  /* «LUNEDÌ» (critic 20/09). ISO o null: la sessione è chiusa fino a
+     questa data — un fatto dello STATO, non un contatore che un
+     ricarico azzera. La forma esisteva già (V5); questo è un campo in
+     più con default `null`, non un cambio di forma: non serve V6. */
+  chiusa_fino: null
 });
 /* la lettura difensiva del ramo: uno stato salvato da una versione
    vecchia, o un riduttore provato a mano, non deve far esplodere una
@@ -77,8 +82,32 @@ function ramoProposte(s){
       regole: (p.registro && p.registro.regole) || {},
       mostrate: (p.registro && p.registro.mostrate) || {},
       sessione: (p.registro && p.registro.sessione) || {id: null, rifiuti: 0}
-    }
+    },
+    chiusa_fino: p.chiusa_fino != null ? p.chiusa_fino : null
   };
+}
+/* `prossimoLunedi`, COPIATA ALLA RIGA da `app/motore/proposte.js`
+   (stessa ragione degli altri tre riduttori: lo store non deve
+   importare il motore). `getUTCDay()` su un epoch-day è la stessa
+   aritmetica in UTC di ogni altra data qui dentro — 0 domenica … 1
+   lunedì — e il lunedì è sempre AVANTI: se `oggi` è già lunedì il
+   prossimo è a +7, mai 0. */
+const GIORNO_V = 86400000;
+function aGiorniV(iso){
+  const p = String(iso || "").split("-");
+  if(p.length !== 3) return NaN;
+  return Date.UTC(+p[0], +p[1] - 1, +p[2]) / GIORNO_V;
+}
+function isoDaV(g){
+  const d = new Date(g * GIORNO_V);
+  return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, "0") +
+         "-" + String(d.getUTCDate()).padStart(2, "0");
+}
+function prossimoLunediV(oggi){
+  const g = aGiorniV(oggi);
+  const dow = new Date(g * GIORNO_V).getUTCDay();
+  const distanza = ((1 - dow + 7) % 7) || 7;
+  return isoDaV(g + distanza);
 }
 const ingressoVuoto = () => ({
   v: V_INGRESSO,
@@ -598,17 +627,22 @@ function riduci(s, e){
 
       const rifiuti = {...P.rifiuti};
       let sessione = P.registro.sessione;
+      let chiusaFino = P.chiusa_fino;
       if(esito === "rifiuto"){
         rifiuti[articolo] = oggi;
         const id = dato.sessione != null ? dato.sessione : sessione.id;
         sessione = (sessione.id === id)
           ? {id, rifiuti: (sessione.rifiuti || 0) + 1}
           : {id, rifiuti: 1};
+        /* «LUNEDÌ» (critic 20/09): al secondo rifiuto la chiusura
+           diventa un fatto scritto, non più un contatore di sessione
+           — vedi la stessa riga in `applicaVerdetto`. */
+        if(sessione.rifiuti >= 2) chiusaFino = prossimoLunediV(oggi);
       } else if(dato.sessione != null && dato.sessione !== sessione.id){
         sessione = {id: dato.sessione, rifiuti: 0};
       }
 
-      return {...s, proposte: {...P, verdetti, rifiuti,
+      return {...s, proposte: {...P, verdetti, rifiuti, chiusa_fino: chiusaFino,
                                registro: {regole, mostrate, sessione}}};
     }
 
@@ -786,6 +820,16 @@ function ricarica(){
     date: d.date || {aggiunte: [], tolte: [], pezzi: {}},
     notifiche_pref: d.notifiche_pref || {...NOTIFICHE_SPENTE},
     livello_visto: d.livello_visto == null ? null : d.livello_visto,
+    /* F5b — «LUNEDÌ» (critic 20/09). Il ramo `proposte` esiste già dalla
+       V5: `chiusa_fino` è un campo IN PIÙ con default `null`, non un
+       cambio di forma — non serve una V6. Uno stato scritto PRIMA di
+       questa riga non ce l'ha: si legge `== null` (com'e' per
+       `livello_visto` sopra), mai `||`, che tratterebbe allo stesso modo
+       «mai chiuso» e «una data vera» se quella data fosse falsy — non lo
+       è mai, ma la disciplina è la stessa. */
+    proposte: d.proposte
+      ? {...d.proposte, chiusa_fino: d.proposte.chiusa_fino == null ? null : d.proposte.chiusa_fino}
+      : PROPOSTE_VUOTE(),
     nav: d.nav || {tab:"cofanetto", pile:{cofanetto:[],vetrina:[],perte:[],profilo:[]}}};
 }
 
