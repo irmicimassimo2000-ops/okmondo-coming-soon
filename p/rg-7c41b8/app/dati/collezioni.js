@@ -39,7 +39,7 @@ export const COLLEZIONI = [
     nome: "Filo di Luce",
     racconto:
       "Un filo solo, che gira e non si interrompe mai. Cinque pezzi che si " +
-      "portano insieme senza che nessuno prenda il posto dell'altro.",
+      "portano insieme senza che nessuno prenda il posto dell’altro.",
     stagione: "2026 · continuativa",
     pezzi: [
       "collana-maglia",
@@ -75,7 +75,7 @@ export const COLLEZIONI = [
     nome: "Turchese",
     racconto:
       "La pietra è la stessa in tutti e cinque, e in nessuno è tagliata " +
-      "uguale. È un cabochon: si guarda dall'alto, non in trasparenza.",
+      "uguale. È un cabochon: si guarda dall’alto, non in trasparenza.",
     stagione: "2026 · estate",
     pezzi: [
       "pendente-turchese",
@@ -101,9 +101,9 @@ export const COLLEZIONI = [
 
   {
     id: "perla",
-    nome: "Perla d'Estate",
+    nome: "Perla d’Estate",
     racconto:
-      "Perla d'acqua dolce, quindi mai due uguali: la forma è quella che " +
+      "Perla d’acqua dolce, quindi mai due uguali: la forma è quella che " +
       "è venuta. Sei pezzi che stanno bene sulla pelle abbronzata e " +
       "peggio sotto il profumo.",
     stagione: "2027 · estate",
@@ -146,7 +146,7 @@ export const COLLEZIONI = [
       "anello-onda",
     ],
     chiude: {
-      nome: "L'Onda Lunga",
+      nome: "L’Onda Lunga",
       nota:
         "Il pezzo che chiude. È la cavigliera nella misura lunga, che non " +
         "sta a listino e si fa su misura del piede.",
@@ -155,7 +155,7 @@ export const COLLEZIONI = [
     promo: {
       manca1: "Ti manca un pezzo solo: quello che resta è tuo al 20%.",
       manca: "Ne mancano {n}: alla chiusura quello che resta va in sconto.",
-      chiusa: "Collezione chiusa. L'Onda Lunga si misura al banco.",
+      chiusa: "Collezione chiusa. L’Onda Lunga si misura al banco.",
       sempre: null,
     },
   },

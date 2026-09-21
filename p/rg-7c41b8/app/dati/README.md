@@ -29,7 +29,11 @@ come somma dei movimenti, il livello come conseguenza dello speso.
 `onda`; i `codice_fornitore` (stessa forma dei due già presenti nella bozza, non sono EAN
 validi); telefono, email, misure e `cliente_dal` di Lucia; le 4 soglie dei livelli (nel
 gestionale la tabella nasce vuota apposta); i 10 movimenti di credito; i 10 codici
-esemplare; le note di cura e consegna. **Divergenza voluta:** `vetrina.html` metteva in
+esemplare; le note di cura e consegna. **Dato di prova, dichiarato (21/09/2026):** il campo `disponibili` di ogni articolo
+(`DISPONIBILI` in `catalogo.js`): un numero per articolo e, per gli anelli, un numero per
+misura (12-16). Sono giacenze INVENTATE: servono a «Ultimo pezzo», alla misura esaurita
+barrata e a «Esaurito» nella vetrina. Inventati anche la spedizione a 5,90 € e i tempi
+(«pronto domani», «2-4 giorni lavorativi») usati dal pagamento. **Divergenza voluta:** `vetrina.html` metteva in
 lista Creola Media e Pendente Turchese — secondo il 3D Lucia li possiede già, quindi la
 lista punta ai due pezzi che le mancano davvero (Girocollo Turchese, Collana Onda).
 

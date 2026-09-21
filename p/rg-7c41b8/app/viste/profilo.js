@@ -63,7 +63,7 @@ import { apriFoglio, chiudiFoglio } from "app/ui/foglio.js";
    foglio del livello (`app/ui/tessera.js`, dal 15/09). */
 import { tessera } from "app/ui/tessera.js";
 import { schermo } from "app/ui/barra-nav.js";
-import { spingi, registraSchermo, torna, tabCorrente } from "app/rotta.js";
+import { spingi, registraSchermo, registraAliasUnSegmento, torna, tabCorrente } from "app/rotta.js";
 import { conTransizione, RIDOTTO } from "app/moto.js";
 /* le date si contano in un posto solo in tutta l'app. Sono funzioni
    PURE già esportate da F5 (UTC, giorni interi): riscriverle qui
@@ -428,7 +428,16 @@ export function monta(el, store){
             speso: c.speso_totale | 0};
   }
 
-  /* ══ GLI SCHERMI ═══════════════════════════════════════════════ */
+  /* ══ GLI SCHERMI ═══════════════════════════════════════════════
+     OGNI SCHERMO È UNA COPPIA `tipo/id` (`credito/apri`, non più
+     `credito` da solo): `rotta.js` ricostruisce la pila dall'indirizzo
+     appaiando due segmenti alla volta, e un tipo senza id non si
+     appaiava mai — «indietro» da una schermata nidificata (Dati, dopo
+     Impostazioni) saltava dritto alla radice invece di fermarsi a un
+     piano intermedio (trovato dal critic, 21/09). L'id è sempre
+     "apri": nessuno di questi schermi legge un id vero. I vecchi
+     indirizzi a un segmento restano validi — `registraAliasUnSegmento`
+     li completa da solo in `rotta.js`. */
   registraSchermo("credito",      (_id, dove) => schermoCredito(dove));
   registraSchermo("date",         (_id, dove) => schermoDate(dove));
   registraSchermo("fodera",       (_id, dove) => schermoFodera(dove));
@@ -441,13 +450,14 @@ export function monta(el, store){
      `#/vetrina/negozio` si apriva la scheda del Profilo, o viceversa,
      a seconda di chi si montava per ultimo. Due schermate diverse non
      possono avere lo stesso nome in una mappa sola. Il prezzo è
-     l'indirizzo, che diventa `#/profilo/profilo-negozio`: brutto da
-     leggere e invisibile all'uso (gli schermi a segmento singolo non si
-     ricostruiscono da indirizzo diretto, vedi sopra), ma univoco. Il
-     giorno che `rotta.js` terrà una mappa per tab, questa chiave torna
-     «negozio» e l'indirizzo torna `#/profilo/negozio`. */
+     l'indirizzo, che diventa `#/profilo/profilo-negozio/apri`: brutto
+     da leggere ma univoco. Il giorno che `rotta.js` terrà una mappa per
+     tab, questa chiave torna «negozio» e l'indirizzo torna
+     `#/profilo/negozio/apri`. */
   registraSchermo("profilo-negozio", (_id, dove) => schermoNegozio(dove));
   registraSchermo("aiuto",        (_id, dove) => schermoAiuto(dove));
+  for(const tipo of ["credito", "date", "fodera", "impostazioni", "dati", "profilo-negozio", "aiuto"])
+    registraAliasUnSegmento(tipo, "apri");
 
   /* ═══════════════════════════════════════════════════════════════
      LA TESSERA — LA STESSA, non una copia.
@@ -502,7 +512,7 @@ export function monta(el, store){
        posti fa due cose diverse si regge finché in ognuno dei due c'è
        una cosa sola da fare, e qui c'è: aprire il credito.) */
     pagina.append(tessera(datiTessera(),
-      {suClick: () => spingi("credito")}));
+      {suClick: () => spingi("credito/apri")}));
 
     /* ── Le tue date ── */
     const date = dateUnite(d.s, OGGI);
@@ -511,12 +521,12 @@ export function monta(el, store){
     righeDate.push(prima
       ? cella({titolo: nomeData(prima),
           sotto: giornoEMese(prima.quando) + " · " + testoAvviso(prima.avviso),
-          suClick: () => spingi("date")})
+          suClick: () => spingi("date/apri")})
       : cella({titolo: "Nessuna data", sotto: "Le tue ricorrenze stanno qui.",
-          suClick: () => spingi("date")}));
+          suClick: () => spingi("date/apri")}));
     if(date.length > 1)
       righeDate.push(cella({titolo: "Tutte le date",
-        coda: String(date.length), suClick: () => spingi("date")}));
+        coda: String(date.length), suClick: () => spingi("date/apri")}));
     const rAgg = cella({titolo: "Aggiungi una data", suClick: foglioData});
     rAgg.classList.add("f6-azione");
     righeDate.push(rAgg);
@@ -528,16 +538,16 @@ export function monta(el, store){
       cella({titolo: "Il cofanetto", sotto: f.nome,
         pastiglia: "background:" + f.tinta,
         etichetta: "La fodera del cofanetto, adesso " + f.nome,
-        suClick: () => spingi("fodera")})
+        suClick: () => spingi("fodera/apri")})
     ]));
 
     /* ── Il resto ── */
     pagina.append(lista(null, [
-      cella({titolo: "Impostazioni", suClick: () => spingi("impostazioni")}),
-      cella({titolo: "I tuoi dati",  suClick: () => spingi("dati")}),
+      cella({titolo: "Impostazioni", suClick: () => spingi("impostazioni/apri")}),
+      cella({titolo: "I tuoi dati",  suClick: () => spingi("dati/apri")}),
       cella({titolo: "Il negozio",   sotto: NEGOZIO.via + ", " + NEGOZIO.citta,
-        suClick: () => spingi("profilo-negozio")}),
-      cella({titolo: "Aiuto",        suClick: () => spingi("aiuto")})
+        suClick: () => spingi("profilo-negozio/apri")}),
+      cella({titolo: "Aiuto",        suClick: () => spingi("aiuto/apri")})
     ]));
 
     pagina.append(pieVersione(c.tessera));
@@ -966,7 +976,7 @@ export function monta(el, store){
       suClick: foglioCancella});
     canc.classList.add("f6-pericolo");
     pagina.append(lista("I tuoi dati", [
-      cella({titolo: "Cosa sappiamo di te", suClick: () => spingi("dati")}),
+      cella({titolo: "Cosa sappiamo di te", suClick: () => spingi("dati/apri")}),
       canc
     ]));
     pagina.append(e("span", {class: "t-foot f6-pie-gruppo",
@@ -974,10 +984,10 @@ export function monta(el, store){
 
     pagina.append(lista("Il negozio", [
       cella({titolo: NEGOZIO.nome, sotto: NEGOZIO.via + ", " + NEGOZIO.citta,
-        suClick: () => spingi("profilo-negozio")})
+        suClick: () => spingi("profilo-negozio/apri")})
     ]));
     pagina.append(lista("Aiuto", [
-      cella({titolo: "Domande frequenti", suClick: () => spingi("aiuto")})
+      cella({titolo: "Domande frequenti", suClick: () => spingi("aiuto/apri")})
     ]));
     pagina.append(pieVersione(cliente().tessera));
   }
@@ -1222,7 +1232,7 @@ export function monta(el, store){
   function aggiornaDate(){
     conTransizione(disegna);
     const spinto = document.querySelector(
-      '.vista[data-vista="profilo"] .strato.spinto[data-rotta="date"]');
+      '.vista[data-vista="profilo"] .strato.spinto[data-rotta="date/apri"]');
     if(spinto) schermoDate(spinto);
   }
 

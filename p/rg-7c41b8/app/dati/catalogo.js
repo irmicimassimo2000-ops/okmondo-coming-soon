@@ -51,10 +51,10 @@ export const codiceScena = (famiglia, k) =>
    Un testo per articolo sarebbe finto (e nessuno lo scriverebbe davvero). */
 const CURA = {
   dorato:
-    "Si asciuga dopo il mare e si ripone asciutto: il dorato non teme l'acqua, " +
+    "Si asciuga dopo il mare e si ripone asciutto: il dorato non teme l’acqua, " +
     "teme il sale che resta.",
   argento:
-    "Si passa col panno di camoscio. L'argento si ossida: è la sua eta', e si " +
+    "Si passa col panno di camoscio. L’argento si ossida: è la sua età, e si " +
     "toglie in un minuto.",
   turchese:
     "Il turchese è poroso: niente creme, niente profumo, niente ammoniaca. " +
@@ -63,9 +63,9 @@ const CURA = {
     "La perla si indossa per ultima e si toglie per prima: profumo e lacca la " +
     "opacizzano.",
   smalto:
-    "Lo smalto teme l'urto, non l'acqua. Si ripone da solo nella sua tasca.",
+    "Lo smalto teme l’urto, non l’acqua. Si ripone da solo nella sua tasca.",
   orologio:
-    "5 ATM: doccia e piscina si', immersione no. La pila si cambia al banco in " +
+    "5 ATM: doccia e piscina sì, immersione no. La pila si cambia al banco in " +
     "cinque minuti.",
 };
 
@@ -75,6 +75,30 @@ const CONSEGNA = {
   ordinazione: "Su ordinazione · in negozio entro 5 giorni lavorativi.",
   orologio:
     "Ritiro in negozio con la pila inserita e le maglie regolate al tuo polso.",
+};
+
+/* ── LA DISPONIBILITÀ — DATO DI PROVA, DICHIARATO ─────────────────────
+   Quanti pezzi ci sono in negozio, per articolo; per gli ANELLI, per
+   misura (12-16, la scala italiana: circonferenza in mm meno 40).
+   SONO NUMERI INVENTATI (21/09/2026), plausibili per una bigiotteria con
+   un negozio solo: il giorno che il gestionale manda la giacenza vera
+   questa mappa si butta e `disponibili` lo riempie la sincronizzazione.
+   Servono a far funzionare tre cose che un negozio vero deve saper dire:
+   «Ultimo pezzo» (= 1), la misura esaurita barrata (= 0) e «Esaurito».
+   Chi non è in mappa ne ha 2. Lo dice anche il README. */
+export const MISURE_ANELLI = ["12", "13", "14", "15", "16"];
+const DISPONIBILI = {
+  "anello-cabochon": { 12: 2, 13: 0, 14: 1, 15: 2, 16: 0 },
+  "anello-filo":     { 12: 1, 13: 2, 14: 2, 15: 0, 16: 1 },
+  "anello-grande":   { 12: 0, 13: 1, 14: 2, 15: 2, 16: 1 },
+  "anello-fedina":   { 12: 2, 13: 3, 14: 3, 15: 2, 16: 1 },
+  "anello-piccolo":  { 12: 1, 13: 1, 14: 0, 15: 1, 16: 0 },
+  "anello-perla":    { 12: 1, 13: 1, 14: 1, 15: 0, 16: 0 },
+  "anello-onda":     { 12: 0, 13: 0, 14: 1, 15: 0, 16: 0 },
+  "creola-media": 1, "bracciale-maglia-larga": 1, "collana-perla": 1,
+  "perno-turchese": 4, "collana-maglia": 3, "pendente-turchese": 3,
+  "creola-piccola": 3, "perno-perla": 3, "costa-smeralda": 2,
+  "tulum": 0, "creola-smalto": 0,
 };
 
 /* ── la tabella vera ──────────────────────────────────────────────────
@@ -125,6 +149,8 @@ const P = (r) => {
        fotografia vera, o null se il pezzo non ne ha ancora una. */
     foto_url: (r.foto && r.foto[0]) || null,
     collezione: r.coll ?? null,
+    /* dato di prova: vedi `DISPONIBILI` qui sopra */
+    disponibili: DISPONIBILI[id] ?? 2,
     cura: CURA[r.cura],
     consegna: CONSEGNA[r.consegna || (in_3d ? "banco" : "ordinazione")],
   };
@@ -320,7 +346,7 @@ export const ARTICOLI = [
   P({ fam: "busto", ean: "8054321000221",
       nome: "Collana Perla",
       desc: "Collana in argento 925 con perle d'acqua dolce.",
-      mat: "Argento 925 e perle d'acqua dolce · 44 cm",
+      mat: "Argento 925 e perle d’acqua dolce · 44 cm",
       prezzo: 62.00,
       att: { lunghezza_cm: 44, pietra: "perla d'acqua dolce", metallo: "argento 925" },
       coll: "perla", cura: "perla" }),

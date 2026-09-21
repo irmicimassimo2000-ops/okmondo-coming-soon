@@ -59,8 +59,16 @@
    frase a essere sbagliata, non la regola. */
 export const PESI = {
   chiude_collezione: 40,
-  da_prendere: 35,
-  data_vicina: 30,
+  /* 21/09/2026 — DECISIONE DI MASSIMO: LA DATA VIENE PRIMA.
+     Fino al 21 settembre `da_prendere` valeva 35 e `data_vicina` 30: la
+     lista batteva la ricorrenza. Invertiti, e non per simmetria: LA
+     DATA SCADE, IL PEZZO DA PARTE RESTA. Un compleanno mancato non
+     torna per un anno; un pezzo messo da parte è ancora lì domani, e
+     il giorno dopo. Fra due cose vere si mette avanti quella che ha
+     una scadenza. Invertito anche in `ORDINE_REGOLE`, che è ciò che
+     decide a parità di punteggio. */
+  data_vicina: 35,
+  da_prendere: 30,
   pin: 25,
   co_acquisto: 20,
   arrivo_in_collezione: 12,
@@ -124,8 +132,8 @@ export const FORMA = {
    del negozio infilati dove il metodo li mette. */
 export const ORDINE_REGOLE = [
   "chiude_collezione",
-  "da_prendere",
   "data_vicina",
+  "da_prendere",
   "pin",
   "co_acquisto",
   "arrivo_in_collezione",
@@ -141,7 +149,7 @@ export const ORDINE_REGOLE = [
    fondamento. «Della tua misura (14)» non è un motivo per occupare
    mezza schermata. */
 export const REGOLE_GRANDI = new Set([
-  "chiude_collezione", "da_prendere", "data_vicina", "pin",
+  "chiude_collezione", "data_vicina", "da_prendere", "pin",
   "co_acquisto", "arrivo_in_collezione",
 ]);
 
@@ -625,8 +633,8 @@ export function proposte(stato = {}, opz = {}) {
       });
     }
 
-    /* 2 · DA PRENDERE (35) — il segnale più forte dopo la collezione,
-       perché è l'unico che ha scritto lei con un dito. */
+    /* 2 · DA PRENDERE (30) — il segnale che ha scritto lei con un dito.
+       Sotto la data dal 21/09: quel pezzo domani è ancora lì. */
     if (wishlist.has(a.id)) {
       const d = dettagliLista[a.id] || {};
       const quando = d.creata_il || d.dal || null;
@@ -638,7 +646,7 @@ export function proposte(stato = {}, opz = {}) {
       });
     }
 
-    /* 3 · DATA VICINA ≤ 14 GIORNI (30, +10 se la persona è nota) ────
+    /* 3 · DATA VICINA ≤ 14 GIORNI (35, +10 se la persona è nota) ────
        La data è vera e sta nel profilo: è il dato che rende Regina
        insostituibile per chi deve fare un regalo. Per una data di
        QUALCUN ALTRO di cui non si sa niente, senza co-acquisto il

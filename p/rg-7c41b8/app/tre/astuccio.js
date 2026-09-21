@@ -26,11 +26,19 @@
        nei formati di catalogo: la collana stesa è 163 x 139 x 29 (nel
        110 x 159 non entra), il bracciale è una catena ad ANELLO da 67
        (nel 227 x 70 disteso avanzano 15 cm). Si taglia la scatola sul
-       pezzo: collane 151 x 175 x 52, bracciali 85 x 85 x 24.
-     · E LA COLLANA VUOLE UN CUSCINO A SELLA. Modellata sul busto,
-       conserva 29,5 mm di bombatura anche nella posa più stesa: su un
-       cuscino piatto si ALZA, e sotto resta aria. La sella si misura
-       sul pezzo (vedi `costruisciSella`), non si sceglie.
+       pezzo — ma DENTRO la famiglia giusta, che è quella che dicono le
+       foto: collane 175 x 175 x 41 (quadrato e basso), bracciali
+       90 x 90 x 41 (il quadrato profondo dei rigidi).
+     · LE COSTRUZIONI VENGONO DALLE FOTO, NON DALLE SCHEDE. Il 21/09,
+       con 108 foto vere di astucci sul disco (`riferimenti/ASTUCCI.md`),
+       tre interni su cinque sono risultati oggetti che in gioielleria
+       non esistono — i due rulli dell'anello, la carta forata degli
+       orecchini, la sella con le asole della collana — e sono stati
+       rifatti sull'ancora vera, una per tipologia. Il registro è quello
+       dell'astuccio italiano a cerniera da 1-2,50 euro, che è il
+       proporzionato a uno scontrino da 22-89: filetto d'oro, cielo in
+       raso col marchio stampato, pad estraibile. Niente bottoncino in
+       ottone, che è firma Cartier e su un bijou suona falsa.
      · `rend.compile()` DOPO la campagna di materiali, da fermi: il solo
        fotogramma lungo della cerimonia (169 ms sugli anelli, 167 sugli
        orologi) era la compilazione dello shader del metallo a t = 600,
@@ -85,24 +93,51 @@ const FAMIGLIE = {
     LA: 0.050, PR: 0.050, H_BASE: 0.027, H_COP: 0.013, RAG: 0.0025,
     nome: "astuccio da anello 50 x 50 x 40",
   },
+  /* 65 x 65 x 25 ERA LA SCATOLA SBAGLIATA, e la foto lo dice in un
+     secondo: quel formato è il Westpack Boston ECO, cioè CARTONE con
+     dentro la SPUGNA e il coperchio separato — il registro economico.
+     L'astuccio a cerniera da orecchini della stessa serie è alto 39
+     (Oslo 64 x 64 x 39, Madrid 68 x 68 x 41), perché dentro non c'è una
+     carta tesa sul vuoto: c'è un'ALETTA che si alza, e un'aletta vuole
+     l'altezza. Vedi `riferimenti/astucci/or-finer-majestic-aletta-due-tagli.jpg`. */
   orecchini: {
     glb: "assets/REGINA_orecchini.draco.glb", pezzi: 9,
-    LA: 0.065, PR: 0.065, H_BASE: 0.017, H_COP: 0.008, RAG: 0.0030,
-    nome: "astuccio da orecchini 65 x 65 x 25",
+    LA: 0.065, PR: 0.065, H_BASE: 0.026, H_COP: 0.013, RAG: 0.0030,
+    nome: "astuccio da orecchini 65 x 65 x 39",
   },
   /* COLLANE E BRACCIALI ARRIVANO GIÀ TAGLIATI SUL PEZZO. In `_CF4` le
      due colonne — catalogo e taglio — stavano affiancate perché senza
      il confronto il problema non si vedeva. Qui il problema è visto e
-     deciso: restano solo le quote che reggono la merce vera. */
+     deciso: restano solo le quote che reggono la merce vera.
+     E IL TAGLIO SI FA DENTRO LA FAMIGLIA GIUSTA, non fuori. La collana
+     vera è un astuccio QUADRATO e BASSO (Oslo 160 x 160 x 34, Madrid
+     168 x 169 x 41, New York 165 x 165 x 40): quadrato lo era già a
+     metà — 151 x 175 — e basso non lo era per niente, 52. Qui torna
+     quadrato, e l'altezza scende al tetto reale della serie (Madrid,
+     41). Il lato è 175 e non 160 perché la merce vera è lunga 163,7 e
+     nel 160 di catalogo NON ENTRA: si taglia la scatola sul pezzo, come
+     era già deciso. I 41 non sono un capriccio: la collana di Regina è
+     modellata sul busto e conserva 29,5 mm di bombatura anche stesa —
+     in 36 mm il coperchio non si chiude sopra il pezzo. Dichiarato.
+     Il BRACCIALE non è più 85 x 85 x 24 (Milano ECO, cartone) e non è
+     nemmeno il lungo 220 x 52 degli elastici: quello è l'astuccio della
+     catena DISTESA, e la nostra è una catena chiusa ad ANELLO da 67 mm
+     che non si stende senza rimodellarla. Il formato vero di un anello
+     chiuso è il quadrato profondo — Oslo «pendant/bangle» 90 x 90 x 41,
+     ed è esattamente la foto `br-finer-duet-rigido-b.jpg`: pad piatto,
+     cerchio posato, la scatola che finisce dove finisce il pezzo. In un
+     220 x 52 lo stesso anello lascerebbe sette centimetri di vuoto per
+     parte. Dichiarato: il giorno che la catena si rimodella distesa,
+     l'astuccio giusto torna a essere il lungo con i due elastici. */
   collane: {
     glb: "assets/REGINA_busto.draco.glb", pezzi: 1,
-    LA: 0.151, PR: 0.175, H_BASE: 0.038, H_COP: 0.014, RAG: 0.0040,
-    nome: "cofanetto da collana 151 x 175 x 52",
+    LA: 0.175, PR: 0.175, H_BASE: 0.027, H_COP: 0.014, RAG: 0.0040,
+    nome: "cofanetto da collana 175 x 175 x 41",
   },
   bracciali: {
     glb: "assets/REGINA_rampa.draco.glb", pezzi: 1,
-    LA: 0.085, PR: 0.085, H_BASE: 0.016, H_COP: 0.008, RAG: 0.0030,
-    nome: "astuccio da bracciale a catena 85 x 85 x 24",
+    LA: 0.090, PR: 0.090, H_BASE: 0.027, H_COP: 0.014, RAG: 0.0035,
+    nome: "astuccio da bracciale 90 x 90 x 41",
   },
   orologi: {
     glb: "assets/REGINA_orologi.draco.glb", pezzi: 3,
@@ -160,11 +195,45 @@ const METALLI_DEL_BANCO = {
 const PERNI = {orecchini: new Set([2, 5, 8])};
 const PERNO_METALLO = {roughness: 0.50, metalness: 0.70};
 
-/* ── L'ASOLA DEL CUSCINO, in metri ─────────────────────────────────
-   Lunga 13, luce 5, labbro smussato 1,2 per lato. Sta qui e non dentro
-   `monta` per una ragione di ordine di esecuzione, scritta per esteso
-   accanto a `costruisciCuscinoPiatto`. */
-const ASOLA = {L: 0.013, W: 0.0050, smusso: 0.0012};
+/* ── I TAGLI DEGLI INTERNI, in metri ───────────────────────────────
+   Stanno QUI e non dentro `monta` per una ragione di ordine di
+   esecuzione già pagata: gli interni si costruiscono nel corpo del
+   modulo, cioè PRIMA della riga in cui un `const` dichiarato là dentro
+   sarebbe inizializzato, e una costante letta nella sua zona morta non
+   è un valore mancante — è un errore che uccide il modulo.
+
+   ASOLA  il labbro smussato comune a tutti i tagli (capi tondi).
+   FESSURA la fenditura del cuscinetto da anello: luce 4,2 (ci passa una
+           fascia da 2-3 mm con gioco), lunga al massimo 30 — nelle foto
+           il taglio non arriva mai ai due fianchi del cuscino.
+   TACCA  l'intaglio nel bordo di dietro del cuscino da collana: largo
+           10, profondo 12. Non è un buco: è un VARCO aperto sul filo,
+           da cui la catena sale e gira dietro il cuscino
+           (`co-westpack-oslo-160x160x34.jpg`, `co-astuccishop-newyork`).
+   ALETTA il pannello inclinato degli orecchini: 58 gradi dal pavimento,
+           che è l'inclinazione delle foto Finer/Astuccishop. */
+/* I MILLIMETRI DELLE QUOTE STANNO FUORI DA `monta`, e non è pedanteria:
+   gli interni si costruiscono nel corpo del modulo e scrivono le loro
+   quote mentre si costruiscono. Se `mm` fosse un `const` dichiarato più
+   in basso dentro `monta`, la prima quota scritta lo leggerebbe nella
+   sua zona morta — l'errore che una volta ha impedito ai bracciali di
+   montarsi affatto. */
+const mm = v => +(v * 1000).toFixed(2);
+
+const ASOLA   = {L: 0.013, W: 0.0050, smusso: 0.0012};
+const FESSURA = {W: 0.0042, Lmax: 0.030};
+const TACCA   = {larg: 0.013, prof: 0.017};
+/* LE DUE INCLINAZIONI NON SONO LA STESSA, e le foto lo dicono a colpo
+   d'occhio: l'aletta dei PERNI è RIPIDA (Finer Majestic, Astuccishop
+   Velvet: sta su come un leggio, sui 55-60 gradi, perché deve tenere in
+   vista due pezzi piccolissimi), il cuscino dei PENDENTI è quasi
+   COLCATO (Finer Premier pad reversibile, Westpack Oslo: una rampa
+   dolce sui 30, perché ci deve stare un pezzo lungo 15-40 mm che
+   scende). Tenerne una sola è stato l'errore del primo giro: a 58 gradi
+   il pannello dei pendenti è lungo 24 mm dentro una base da 26, i pezzi
+   finivano in fondo e il muro davanti se li mangiava. */
+const ALETTA  = {gradi: 58, gradiPad: 32, spessa: 0.0028, spessaPad: 0.0060,
+                 tagliaW: 0.0026, s_perni: 0.55, s_pendenti: 0.88};
 
 /* ── LA FODERA DELLA CERIMONIA ─────────────────────────────────────
    Decisione di Massimo: avorio di serie. Si rispetta la scelta della
@@ -270,7 +339,18 @@ export function monta(el, opz = {}){
   const V_LA = LA - 2 * MURO, V_PR = PR - 2 * MURO;
   const APERTURA = REGIA.gradi * Math.PI / 180;
   const CERN_Y = H_BASE + 0.0005, CERN_Z = -PR / 2 + 0.0026;
-  const VANO = Math.min(0.015, Math.max(0.004, H_COP * 0.60));
+  /* ── QUANTO È PROFONDO IL COPERCHIO, DAVVERO ─────────────────────
+     `VANO` è l'altezza a cui sta la fodera dentro il coperchio, cioè lo
+     spazio utile sopra il bordo della base. Era `H_COP * 0,60`, che su
+     un coperchio da 13 mm lascia 5,2 mm di imbottitura: una fodera
+     spessa mezzo centimetro non esiste in nessuna delle foto — il raso
+     è teso su un cartoncino e sta a due o tre millimetri dal cielo.
+     Presa così, la misura rubava spazio al pezzo: sull'anello erano i
+     7,8 mm che costringevano a infilare l'anello per il 57 % della sua
+     altezza, cioè a seppellirlo. Adesso la fodera sta dove sta davvero,
+     3,5 mm sotto il cielo, e l'anello può stare infilato a metà fascia
+     come nelle foto. */
+  const VANO = Math.min(0.022, Math.max(0.004, H_COP - 0.0035));
   const SEG = MOBILE ? {smusso: 4, angolo: 8, rullo: 24, cupola: 28}
                      : {smusso: 5, angolo: 10, rullo: 30, cupola: 40};
 
@@ -591,6 +671,42 @@ export function monta(el, opz = {}){
   const oro = tieni(new THREE.MeshPhysicalMaterial(
     {color: 0xC6A44E, metalness: 0.92, roughness: 0.26}));
 
+  /* ── IL FILETTO, CHE NON È UNA MINUTERIA ─────────────────────────
+     La riga d'oro che corre sul coperchio e sul perimetro non è ottone:
+     è una STAMPA A CALDO, una foglia premuta dentro la pelle. Quindi
+     non è uno specchio — metalness 0,70 e roughness 0,36 — e il suo
+     colore è quello del marchio, non quello della cerniera: sono la
+     stessa lavorazione, e due ori diversi sullo stesso coperchio si
+     vedono. */
+  const filoOro = tieni(new THREE.MeshPhysicalMaterial(
+    {color: ORO, metalness: 0.70, roughness: 0.36}));
+
+  /* ── IL RASO DEL CIELO ───────────────────────────────────────────
+     Il cielo del coperchio non è velluto, ed è la differenza che si
+     vede per prima in tutte le foto: dentro l'astuccio ci sono DUE
+     tessuti, il velluto/microfibra opaco del vano e il RASO lucido del
+     coperchio, ed è il secondo a raccogliere la luce e a portare il
+     marchio stampato. Un coperchio foderato dello stesso velluto del
+     fondo legge come una scatola imbottita, non come un astuccio da
+     gioielliere.
+     Il raso si costruisce all'opposto del velluto: ruvidezza bassa
+     invece che 1,0, velo stretto (0,14) invece che largo (0,30), e la
+     trama della grana tirata a un terzo di cella — il riflesso lungo
+     del filo, non il pelo corto. */
+  function raso(w, d, colore){
+    const c = new THREE.Color(colore === undefined ? VESTE : colore);
+    const m = tieni(new THREE.MeshPhysicalMaterial({
+      color: c.clone().multiplyScalar(0.95),
+      metalness: 0, roughness: 0.34,
+      sheen: 0.85, sheenRoughness: 0.14,
+      sheenColor: c.clone().lerp(new THREE.Color(0xffffff), 0.55),
+      normalMap: celle(grana, w, d, CELLA * 0.34),
+      clearcoat: 0.10, clearcoatRoughness: 0.42,
+    }));
+    m.normalScale.set(0.22, 0.22);
+    return m;
+  }
+
   /* ── LA CUCITURA COME SOLCO ──────────────────────────────────────
      Un punto di cucitura non è un trattino: è un filo che affonda in un
      solco, e quello che si vede è l'OMBRA del solco più il lucido corto
@@ -706,6 +822,123 @@ export function monta(el, opz = {}){
     return tieni(g);
   }
 
+  /* ── LO STADIO: UN TAGLIO A CAPI TONDI ───────────────────────────
+     Ogni taglio di questo astuccio — la fenditura dell'anello, i due
+     tagli dell'aletta — è uno STADIO: due tratti dritti e due
+     semicerchi ai capi. Non un rettangolo: un'asola da cofanetto è
+     tagliata e poi rifinita, non incisa con una lama tirata, e uno
+     spigolo vivo su un taglio di velluto legge come un graffio.
+     Le coordinate sono quelle della FORMA (dove la y della forma è il
+     -z del mondo, per via del `rotateX(-90)` che tutte le estrusioni
+     fanno dopo): chi ragiona in coordinate di mondo passa `-z`. È
+     l'errore che c'era nelle vecchie asole della collana — messe a
+     `f.z` invece che a `-f.z`, finivano specchiate sull'altro lato, e
+     le quote dicevano il contrario di quello che si disegnava. */
+  function pathStadio(cx, cy, ang, L, W){
+    const r = W / 2, dritto = Math.max(0.0004, L / 2 - r);
+    const co = Math.cos(ang), si = Math.sin(ang);
+    const qua = (a2, b2) => [cx + a2 * co - b2 * si, cy + a2 * si + b2 * co];
+    const N = MOBILE ? 7 : 10;
+    const punti = [];
+    punti.push(qua(-dritto, -r), qua(dritto, -r));
+    for(let i = 1; i < N; i++){
+      const a2 = -Math.PI / 2 + Math.PI * i / N;
+      punti.push(qua(dritto + r * Math.cos(a2), r * Math.sin(a2)));
+    }
+    punti.push(qua(dritto, r), qua(-dritto, r));
+    for(let i = 1; i < N; i++){
+      const a2 = Math.PI / 2 + Math.PI * i / N;
+      punti.push(qua(-dritto + r * Math.cos(a2), r * Math.sin(a2)));
+    }
+    const pa = new THREE.Path();
+    pa.moveTo(punti[punti.length - 1][0], punti[punti.length - 1][1]);
+    for(const qq of punti) pa.lineTo(qq[0], qq[1]);
+    return pa;
+  }
+
+  /* ── IL BORDO DI DIETRO CON LE TACCHE ────────────────────────────
+     La tacca della collana non è un'asola e non è un buco: è un VARCO
+     aperto sul FILO del cuscino, verso l'alto. Lo si vede nelle foto
+     Westpack Oslo e Astuccishop New York — negli angoli alti del
+     cuscino ci sono due intagli, e la catena sale, ci entra e gira
+     DIETRO il cuscino, dove il fermaglio sparisce. Un buco in mezzo al
+     velluto non lo farebbe: la catena non ha dove andare.
+     Qui si riscrive solo il lato di dietro del rettangolo tondo, che
+     nella forma è quello a y = +d/2 (il -z del mondo). */
+  function formaConTacche(w, d, r, tacche){
+    const s = new THREE.Shape();
+    const X = w / 2, Z = d / 2;
+    s.moveTo(-X + r, -Z);
+    s.lineTo(X - r, -Z);  s.quadraticCurveTo(X, -Z, X, -Z + r);
+    s.lineTo(X, Z - r);   s.quadraticCurveTo(X, Z, X - r, Z);
+    const ord = (tacche || []).slice()
+      .filter(t => t.x + t.larg / 2 < X - r && t.x - t.larg / 2 > -X + r)
+      .sort((a, b) => b.x - a.x);
+    for(const t of ord){
+      const hw = t.larg / 2, pr = Math.min(t.prof, d * 0.35);
+      const rr = Math.min(hw, pr) * 0.55;
+      s.lineTo(t.x + hw, Z);
+      s.lineTo(t.x + hw, Z - pr + rr);
+      s.quadraticCurveTo(t.x + hw, Z - pr, t.x + hw - rr, Z - pr);
+      s.lineTo(t.x - hw + rr, Z - pr);
+      s.quadraticCurveTo(t.x - hw, Z - pr, t.x - hw, Z - pr + rr);
+      s.lineTo(t.x - hw, Z);
+    }
+    s.lineTo(-X + r, Z);  s.quadraticCurveTo(-X, Z, -X, Z - r);
+    s.lineTo(-X, -Z + r); s.quadraticCurveTo(-X, -Z, -X + r, -Z);
+    return s;
+  }
+
+  /* ══ IL FILETTO D'ORO ═══════════════════════════════════════════════
+     È il segno che, in tutte le foto degli astucci italiani a cerniera,
+     dice «gioielleria» prima ancora che si apra la scatola: una riga
+     d'oro impressa a caldo che corre sul piano del coperchio e attorno
+     al perimetro, una sul bordo basso del coperchio e una sul bordo
+     alto della base — due righe parallele che, con la linea di
+     chiusura in mezzo, fanno il carattere dell'oggetto
+     (`an-finer-premier-chiuso-filetto-oro.jpg`,
+     `or-finer-premier-perni-aperto.jpg`, `br-finer-premier-*`).
+     Le larghezze si scalano col formato, perché una riga da mezzo
+     millimetro su un cofanetto da 175 sparisce e una da due su un
+     astuccio da 50 è un nastro. */
+  const FIL_W = Math.max(0.00035, Math.min(0.0016, Math.min(LA, PR) * 0.011));
+  /* il rientro NON è una percentuale del lato: su un cofanetto da 175
+     il sette per cento farebbe una cornice a 12 mm dal filo, cioè un
+     riquadro; nelle foto la riga corre SEMPRE a tre-cinque millimetri
+     dal bordo, qualunque sia il formato. Si scala, ma con un tetto. */
+  const FIL_IN = Math.max(0.0030, Math.min(0.0075, Math.min(LA, PR) * 0.070));
+  /* la riga del perimetro sporge di sei centesimi di millimetro: è una
+     foglia premuta DENTRO la pelle, non un anello infilato sopra */
+  function filettoBordo(w, d, r, y, z0, dentro){
+    const s = rettangoloTondo(w, d, r);
+    const sp = 0.00034;
+    s.holes.push(new THREE.Path(
+      rettangoloTondo(w - 2 * sp, d - 2 * sp, Math.max(0.0002, r - sp)).getPoints(26)));
+    const g = tieni(new THREE.ExtrudeGeometry(s, {depth: FIL_W, bevelEnabled: false,
+                                                  curveSegments: SEG.angolo}));
+    g.rotateX(-Math.PI / 2);
+    const m = new THREE.Mesh(g, filoOro);
+    m.position.set(0, y, z0 || 0);
+    dentro.add(m);
+    return m;
+  }
+  /* e la riga sul PIANO del coperchio, rientrata di un settimo del lato */
+  function filettoPiano(w, d, r, y, z0, dentro){
+    const s = rettangoloTondo(w, d, r);
+    s.holes.push(new THREE.Path(
+      rettangoloTondo(w - 2 * FIL_W, d - 2 * FIL_W,
+                      Math.max(0.0002, r - FIL_W)).getPoints(26)));
+    const g = tieni(new THREE.ExtrudeGeometry(s, {depth: 0.00012, bevelEnabled: false,
+                                                  curveSegments: SEG.angolo}));
+    g.rotateX(-Math.PI / 2);
+    const mat = tieni(filoOro.clone());
+    mat.polygonOffset = true; mat.polygonOffsetFactor = -2; mat.polygonOffsetUnits = -2;
+    const m = new THREE.Mesh(g, mat);
+    m.position.set(0, y, z0 || 0);
+    dentro.add(m);
+    return m;
+  }
+
   const astuccio = new THREE.Group();
   scena.add(astuccio);
   const base = new THREE.Group();
@@ -724,6 +957,16 @@ export function monta(el, opz = {}){
   pieno.position.y = H_FONDO / 2;
   pieno.receiveShadow = true;
   base.add(pieno);
+
+  /* la riga d'oro della base corre appena sotto il filo, dove nelle
+     foto sta sempre: è la gemella di quella del coperchio, e le due
+     insieme incorniciano la linea di chiusura. La distanza dalla
+     chiusura è la STESSA per le due righe — se no non sono una coppia,
+     sono due righe — e si scala col formato ma con un tetto, se no su
+     un cofanetto da 175 finirebbero a mezzo centimetro dal filo. */
+  const FIL_DA = Math.max(0.0014, Math.min(0.0030, Math.min(LA, PR) * 0.035));
+  filettoBordo(LA + 0.00012, PR + 0.00012, RAG,
+               H_BASE - FIL_W - FIL_DA, 0, base);
 
   {
     const lun = Math.min(0.012, LA * 0.18);
@@ -765,13 +1008,55 @@ export function monta(el, opz = {}){
   cima.castShadow = cima.receiveShadow = true;
   perno.add(cima);
 
+  /* ── LE DUE RIGHE D'ORO DEL COPERCHIO ────────────────────────────
+     Una sul PIANO, rientrata — è quella che si vede per prima quando
+     l'astuccio è chiuso — e una attorno alla gonna, appena sopra il
+     filo basso: nelle foto il coperchio ne porta sempre due, e la
+     seconda è quella che, insieme alla riga della base, fa leggere la
+     linea di chiusura come una cucitura d'oro invece che come una
+     fessura. */
+  filettoPiano(LA - 2 * FIL_IN, PR - 2 * FIL_IN, Math.max(0.0008, RAG),
+               H_BASE - CERN_Y + H_COP + 0.00018, -CERN_Z, perno);
+  filettoBordo(LA + 0.00012, PR + 0.00012, RAG,
+               H_BASE - CERN_Y + FIL_DA, -CERN_Z, perno);
+
+  /* ── IL CIELO: RASO CHIARO COL MARCHIO STAMPATO ──────────────────
+     Qui c'era un pannello di velluto, ed era il tell più grosso del
+     coperchio: in ogni astuccio delle foto — Finer Premier, Westpack
+     Oslo, Astuccishop New York — il cielo è in RASO, e sul raso c'è il
+     MARCHIO. È lì che un astuccio da gioielleria dice chi è: non sul
+     coperchio fuori, che si vede solo prima di aprire, ma dentro, nel
+     momento esatto in cui la scatola si apre e la luce entra.
+     Il marchio dentro è più grande di quello fuori (un terzo del lato,
+     contro il 42 % del lato corto sulla cima) ed è COMPLETO: il file è
+     sempre `marchio.png`, mai una sua riduzione. */
+  const ALZA_FOD = 0.0008;
   const fodera = new THREE.Mesh(
-    cupola(C_LA - 0.0010, C_PR - 0.0010, 0.0012, Math.min(0.0012, RIM * 0.4)),
-    velluto(C_LA, C_PR));
+    cupola(C_LA - 0.0010, C_PR - 0.0010, ALZA_FOD, Math.min(0.0012, RIM * 0.4)),
+    raso(C_LA, C_PR));
   fodera.rotation.x = Math.PI / 2;
   fodera.position.set(0, H_BASE - CERN_Y + VANO, -CERN_Z);
   fodera.receiveShadow = true;
   perno.add(fodera);
+
+  const MD_LA = Math.min(C_LA, C_PR) * 0.46, MD_PR = MD_LA * 578 / 700;
+  /* IL MARCHIO STAMPATO STA ADDOSSO AL RASO, e per starci davvero si
+     appende ALLA FODERA invece che al coperchio: così eredita la sua
+     giacitura e resta a distanza costante dalla superficie, invece di
+     affondarci dentro dove la cupola si alza. Lo scarto è il colmo
+     della cupola più mezzo decimo. */
+  const marchioDentro = new THREE.Mesh(
+    tieni(new THREE.PlaneGeometry(MD_LA, MD_PR)),
+    tieni(new THREE.MeshPhysicalMaterial({
+      /* è una STAMPA su tessuto, non una foglia su pelle: meno
+         specchio, più opaca, e appena trasparente perché sotto si deve
+         continuare a leggere la trama del raso */
+      color: ORO, metalness: 0.28, roughness: 0.46,
+      transparent: true, opacity: 0.92, depthWrite: false,
+      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+    })));
+  marchioDentro.position.set(0, 0, ALZA_FOD + 0.0004);
+  fodera.add(marchioDentro);
 
   /* ── IL MARCHIO IN ORO, COTTO SULLA CIMA ─────────────────────────
      La misura si prende dal LATO CORTO, non dalla larghezza: il 42%
@@ -806,7 +1091,12 @@ export function monta(el, opz = {}){
       const t = tieni(new THREE.CanvasTexture(c));
       t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8;
       t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true;
+      /* LO STESSO DISEGNO SERVE DUE MARCHI: quello impresso a caldo
+         sulla cima e quello stampato sul raso del cielo. Un'immagine,
+         una texture, due materiali — e nessun rischio che i due
+         marchi dello stesso astuccio siano due file diversi. */
       marchio.material.alphaMap = t; marchio.material.needsUpdate = true;
+      marchioDentro.material.alphaMap = t; marchioDentro.material.needsUpdate = true;
       sveglia();
     };
     img.src = dove("marchio.png");
@@ -910,129 +1200,257 @@ export function monta(el, opz = {}){
 
   /* ══ GLI INTERNI, UNO PER MESTIERE ════════════════════════════════
      Non è lo stesso cuscino ridimensionato cinque volte: sono cinque
-     attrezzi diversi. Un astuccio da anello tiene il pezzo IN PIEDI
-     (due rulli e una fenditura), uno da orecchini lo tiene INFILATO (un
-     cartoncino con due fori), una collana si POSA su una sella e si
-     ancora (due fessure), un bracciale si BLOCCA (due linguette), un
-     orologio si APPOGGIA (un cuscino cilindrico incassato).
-     Se l'interno non cambia mestiere, la famiglia non esiste. */
+     attrezzi diversi. Un astuccio da anello tiene il pezzo IN PIEDI (un
+     cuscinetto con UNA fenditura), uno da orecchini lo tiene su un
+     PANNELLO INCLINATO (aletta coi due tagli per i perni, cuscino coi
+     due tagli in alto per i pendenti), una collana si POSA su un
+     cuscino piatto e sale nelle DUE TACCHE del bordo di dietro, un
+     bracciale si POSA e viene FERMATO da due elastici, un orologio si
+     APPOGGIA su un GUANCIALE.
+     Se l'interno non cambia mestiere, la famiglia non esiste.
+
+     ── E TRE DI QUESTI CINQUE MESTIERI ERANO INVENTATI ──
+     Quello che c'era prima non veniva dalle foto: veniva dalle schede
+     dei fornitori lette senza guardare i pixel, e dove la scheda non
+     diceva niente, dal buon senso. Il 21/09, con 108 foto vere sul
+     disco (`riferimenti/ASTUCCI.md`), tre costruzioni su cinque sono
+     risultate cose che in gioielleria non esistono:
+       · DUE RULLI per l'anello. I rulli (i «ring roll») stanno nei
+         PORTAGIOIE A VANI — Stackers, WOLF, il vassoio alto di Pandora
+         — dove si allineano dieci anelli. Nell'astuccio singolo c'è un
+         cuscinetto UNICO con una fenditura tagliata in mezzo, e
+         l'anello ci sta dentro in piedi, infilato a metà fascia
+         (`an-finer-majestic-con-anello.jpg`,
+         `an-westpack-oslo-crema.jpg`, `an-finer-premier-fenditura.jpg`).
+       · UNA CARTA FORATA per gli orecchini. La carta con i buchi è il
+         cartellino del banco, non l'interno dell'astuccio: lì c'è
+         un'ALETTA rialzata e inclinata con due tagli
+         (`or-finer-majestic-aletta-due-tagli.jpg`,
+         `or-astuccishop-velvet-aletta.jpg`).
+       · UNA SELLA CON DUE ASOLE per la collana. Non compare in nessun
+         fornitore: la collana sta su un cuscino PIATTO ed estraibile,
+         con due TACCHE negli angoli alti dove la catena sale e gira
+         dietro (`co-westpack-oslo-160x160x34.jpg`,
+         `co-astuccishop-newyork-165x165.jpg`).
+     Tenere una costruzione perché «l'abbiamo già misurata» è il modo
+     più veloce di fare un oggetto misurato bene e sbagliato. */
   const INT = {};
 
   if(FAM === "anelli" && !PROVINO){
-    /* DUE RULLI, non un cuscino tagliato. L'inserto del fornitore è
-       44 x 44 x 15: due mezzi cilindri da 7,5 di raggio e 20 di
-       larghezza con 4 di luce in mezzo fanno 44, e 7,5 x 2 fa 15. La
-       fenditura non si inventa: è quello che avanza.
-       E L'INSERTO STA SU UNO SPESSORE. A 36 gradi una parete che sporge
-       di h nasconde h/tan(36) di profondità: con 10 mm nasconde tutto
-       il rullo davanti, con 5 ne nasconde 7 e il rullo si vede quasi
-       tutto. Due rulli visibili sono la differenza fra una sede e una
-       piega. */
-    const R_RULLO = 0.0075, FENDITURA = 0.0040;
-    const SPESSORE = Math.max(H_FONDO, H_BASE - 0.005 - 2 * R_RULLO);
-    const CRESTA = SPESSORE + 2 * R_RULLO;
-    INT.cresta = CRESTA; INT.fenditura = FENDITURA;
-    if(SPESSORE > H_FONDO + 0.0002){
-      const ri = new THREE.Mesh(
-        tieni(new THREE.BoxGeometry(V_LA - 0.0004, SPESSORE, V_PR - 0.0004)),
-        velluto(V_LA, V_PR, VESTE, 0.50));
-      ri.position.y = SPESSORE / 2;
-      ri.receiveShadow = true;
-      base.add(ri);
+    /* UN CUSCINETTO SOLO, CON UNA FENDITURA IN MEZZO.
+       La cresta resta dov'era, 22 mm: non è un numero di gusto, è la
+       misura che lascia 5 mm di parete sopra il cuscino — e a 36 gradi
+       una parete che sporge di h nasconde h/tan(36) di profondità, cioè
+       con 10 mm si perde tutto il davanti della sede e con 5 se ne
+       perdono 7. Quello che cambia è che sopra quei 22 mm adesso c'è UN
+       pezzo di velluto e non due, e la fenditura è un TAGLIO dentro di
+       lui invece che l'avanzo fra due cilindri.
+       La fenditura è lunga 30 e larga 4,2: nelle foto non arriva mai ai
+       fianchi del cuscino — resta un dito di velluto per parte, ed è
+       quel dito a far vedere che il cuscino è uno solo. */
+    INT.cresta = 0.022;
+    INT.fenditura = FESSURA.W;
+    INT.fenditura_lunga = Math.min(V_LA - 0.014, FESSURA.Lmax);
+    costruisciCuscinoFesso();
+  }
+  /* il cuscinetto si costruisce in una funzione perché legge `INT`, e
+     `INT` lo riempie la riga qui sopra: dichiararlo inline vorrebbe
+     dire scrivere le stesse tre misure due volte */
+  function costruisciCuscinoFesso(){
+    const W = V_LA - 0.0008, D = V_PR - 0.0008;
+    const H = INT.cresta - H_FONDO;
+    const SM = 0.0016;                    /* il labbro, tondo come nelle foto */
+    const sh = rettangoloTondo(W, D, 0.0026);
+    sh.holes.push(pathStadio(0, 0, 0, INT.fenditura_lunga, INT.fenditura));
+    const g = new THREE.ExtrudeGeometry(sh, {depth: H - SM, bevelEnabled: true,
+      bevelThickness: SM, bevelSize: SM, bevelOffset: 0,
+      bevelSegments: SEG.smusso, curveSegments: SEG.angolo});
+    g.rotateX(-Math.PI / 2); g.translate(0, SM, 0);
+    /* ── E POI SI GONFIA, PERCHÉ È UN CUSCINO ──────────────────────
+       Un blocco di velluto a facce piane è un inserto di spugna, e si
+       vede. Un cuscinetto da astuccio è imbottito: si alza fra la
+       fenditura e i due fianchi, e torna giù sul filo. La bombatura
+       vale zero ESATTAMENTE sul labbro della fenditura — se no la sede
+       si alzerebbe sotto l'anello e tutte le quote della posa si
+       sposterebbero senza dirlo — e zero sul filo esterno, dove il
+       velluto è tirato e incollato. */
+    {
+      const pos = g.getAttribute("position");
+      const D2 = D / 2, W2 = W / 2;
+      const BORDO = INT.fenditura / 2 + SM;
+      const ALZA = 0.0013;
+      for(let i = 0; i < pos.count; i++){
+        const y = pos.getY(i);
+        if(y < H - 0.0030) continue;                 /* solo la faccia di sopra */
+        const z = pos.getZ(i), x = pos.getX(i);
+        const fz = Math.min(1, Math.max(0, (Math.abs(z) - BORDO) / Math.max(1e-6, D2 - BORDO)));
+        const fx = Math.min(1, Math.abs(x) / W2);
+        pos.setY(i, y + ALZA * Math.sin(Math.PI * fz) * Math.cos(Math.PI * 0.5 * fx));
+      }
+      pos.needsUpdate = true;
     }
-    for(const segno of [-1, 1]){
-      const g = tieni(new THREE.CylinderGeometry(
-        R_RULLO, R_RULLO, V_LA + 0.0016, SEG.rullo, 1, false, 0, Math.PI));
-      g.rotateZ(Math.PI / 2);
-      const m = new THREE.Mesh(g, velluto(V_LA, Math.PI * R_RULLO));
-      m.position.set(0, CRESTA - R_RULLO, segno * (FENDITURA / 2 + R_RULLO));
-      m.castShadow = !MOBILE; m.receiveShadow = true;
-      base.add(m);
-    }
-    /* il fondo della fenditura è buio, e il buio va messo: fra due rulli
-       l'occlusione non arriva, e senza fondo scuro la fessura legge come
-       una GIUNTA fra due pezzi invece che come una sede */
+    g.computeVertexNormals();
+    const pad = new THREE.Mesh(uvEstruso(g, CELLA), vellutoMondo());
+    pad.position.y = H_FONDO;
+    pad.castShadow = !MOBILE; pad.receiveShadow = true;
+    base.add(pad);
+    /* IL FONDO DELLA FENDITURA È BUIO, e il buio va messo: dentro un
+       taglio da 4 mm l'occlusione non arriva, e senza fondo scuro la
+       fessura legge come una GIUNTA fra due pezzi invece che come una
+       sede. Sta tre millimetri sotto il labbro: abbastanza da dare
+       profondità, non tanto da diventare una riga nera. */
     const ff = new THREE.Mesh(
-      tieni(new THREE.BoxGeometry(V_LA - 0.0010, 0.0002, FENDITURA + 0.0020)),
+      tieni(new THREE.BoxGeometry(INT.fenditura_lunga + 0.0020, 0.0002,
+                                  INT.fenditura + 0.0016)),
       tieni(new THREE.MeshBasicMaterial({color: 0x0A0806, toneMapped: false})));
-    ff.position.y = CRESTA - R_RULLO * 0.80;
+    ff.position.y = INT.cresta - 0.0030;
     base.add(ff);
+    INT.cuscino = {largo_mm: mm(W), lungo_mm: mm(D), alto_mm: mm(H),
+                   fenditura_lunga_mm: mm(INT.fenditura_lunga),
+                   fenditura_luce_mm: mm(INT.fenditura),
+                   labbro_mm: mm(SM), parete_sopra_mm: mm(H_BASE - INT.cresta)};
   }
 
   if(FAM === "orecchini" && !PROVINO){
-    /* IL CARTONCINO. Un astuccio da orecchini non ha un cuscino: ha una
-       carta tesa sopra il VUOTO, con due fori da 1,65 a 19 di
-       interasse. Sono i due fori a impaginare la coppia, non chi la
-       posa. */
-    /* il foro: 2,4 mm di diametro. Era 1,65 — la misura di catalogo del
-       foro NUDO — e a quella scala spariva. Le carte vere da orecchini
-       hanno un occhiello da 2-2,5 mm perché ci deve passare il gambo E
-       la farfallina non deve sfilarsi: 2,4 è dentro la misura vera, e
-       si vede. */
-    INT.foroR = 0.0012; INT.interasse = 0.019;
-    INT.cartaY = H_FONDO + 0.0055; INT.cartaH = 0.0022;
-    INT.cartaSu = INT.cartaY + INT.cartaH;
-    pieno.material.color.multiplyScalar(0.42);   /* sotto la carta è buio */
+    /* ── IL PANNELLO INCLINATO, IN DUE MESTIERI ────────────────────
+       Un astuccio da orecchini non ha una carta forata, e non ha
+       nemmeno un cuscino piatto: ha un PANNELLO che si alza dal
+       pavimento davanti e si corica all'indietro, a 58 gradi. Perché è
+       inclinato: un orecchino appoggiato piatto si guarda dall'alto,
+       uno su un pannello inclinato si guarda in FACCIA — e chi apre
+       l'astuccio lo guarda da 36 gradi, non da 90.
+       I due mestieri sono due pannelli diversi, e li distingue il
+       PEZZO, non la famiglia:
+         · PERNI (catalogo k = 2, 5, 8) → ALETTA: un pannello SOTTILE
+           (2,8 mm) con il vuoto dietro, due tagli a metà salita. Il
+           perno passa nel taglio, la farfallina resta dietro. È la
+           scheda Finer Majestic alla lettera: «two slits on the raised
+           flap to secure stud earrings».
+         · PENDENTI E CERCHI → CUSCINO: un pannello SPESSO (6 mm)
+           appoggiato su un corpo pieno, coi due tagli IN ALTO, e i
+           pezzi che ci PENDONO sotto. Foto: Finer Premier pad
+           reversibile, Westpack Oslo orecchini/pendente.
+       I due tagli non sono simmetrici per decreto: si mettono dove
+       stanno DAVVERO i due orecchini, che si trovano spaccando la
+       nuvola dei punti del pezzo posato. */
+    INT.perni = (PERNI[FAM] || new Set()).has(K_CHIESTO);
+    INT.gradi = INT.perni ? ALETTA.gradi : ALETTA.gradiPad;
+    INT.incl = INT.gradi * Math.PI / 180;
+    /* la salita è quella che il pannello può fare senza uscire dalla
+       base: lunga quanto basta a non superarne il filo di tre
+       millimetri, e comunque non più della profondità utile */
+    INT.pannelloL = Math.min(V_PR - 0.010,
+      (H_BASE - H_FONDO - 0.0030) / Math.sin(INT.incl));
+    /* ── IL PANNELLO NON PARTE DAL MURO DAVANTI ────────────────────
+       La cerniera stava attaccata al filo anteriore, ed era la posizione
+       che il buon senso suggerisce: il pannello si alza dal davanti e si
+       corica all'indietro. Solo che l'astuccio si guarda da 36 gradi, e
+       da 36 gradi una parete alta 26 nasconde 36 di profondità: l'aletta
+       partiva DENTRO il cono d'ombra della parete, e nello scatto i due
+       tagli — cioè l'unica cosa che dice che quello è un astuccio da
+       orecchini — non c'erano. Nella foto Majestic, infatti, davanti
+       all'aletta si vede un bel tratto di fondo: il pannello sta in
+       MEZZO alla base, non contro il muro. Si centra la sua impronta, e
+       i tagli escono dall'ombra. */
+    INT.pannelloZ = Math.min(V_PR / 2 - 0.0035,
+      (INT.pannelloL * Math.cos(INT.incl)) / 2);
+    INT.pannelloW = V_LA - (INT.perni ? 0.0070 : 0.0030);
+    INT.pannelloT = INT.perni ? ALETTA.spessa : ALETTA.spessaPad;
+    INT.pannelloS = INT.pannelloL * (INT.perni ? ALETTA.s_perni : ALETTA.s_pendenti);
+    /* LA TERNA DEL PANNELLO, una volta sola e in coordinate di mondo:
+       `nSu` è la normale della faccia (guarda avanti e in su), `eY` la
+       salita lungo il pannello, `eX` la larghezza. Tutto quello che si
+       posa sul pannello — il pezzo, i tagli — si misura in questa terna
+       e non in quella della scatola, se no ogni conto porta dentro un
+       seno e un coseno scritti a mano. */
+    INT.nSu = new THREE.Vector3(0, Math.cos(INT.incl), Math.sin(INT.incl));
+    INT.eY  = new THREE.Vector3(0, Math.sin(INT.incl), -Math.cos(INT.incl));
+    INT.eX  = new THREE.Vector3(1, 0, 0);
+    INT.cerniera = new THREE.Vector3(0, H_FONDO, INT.pannelloZ);
+    /* sotto un'aletta sottile c'è il VUOTO, e il vuoto è buio: è quello
+       che fa capire che l'aletta è ALZATA e non incollata al fondo */
+    if(INT.perni) pieno.material.color.multiplyScalar(0.42);
   }
-  /* LA CARTA SI COSTRUISCE DOPO AVER MISURATO IL PEZZO: i fori non
-     vanno «in mezzo», vanno DOVE STA IL PERNO. Al primo giro la carta
-     era già fatta quando il pezzo arrivava, i fori erano a z = 0, e i
-     due orecchini uscivano appesi al nulla dieci millimetri più in là. */
-  function costruisciCarta(fori, metallo){
-    const s = rettangoloTondo(V_LA - 0.0012, V_PR - 0.0012, 0.0022);
-    for(const f of fori){
-      const p = new THREE.Path();
-      p.absarc(f.x, -f.z, INT.foroR, 0, Math.PI * 2, true);
-      s.holes.push(p);
+
+  /* IL PANNELLO SI COSTRUISCE DOPO AVER MISURATO IL PEZZO: i tagli non
+     vanno «in mezzo», vanno DOVE STA L'ORECCHINO. Al primo giro la
+     carta era già fatta quando il pezzo arrivava, i fori erano a z = 0,
+     e i due orecchini uscivano appesi al nulla dieci millimetri più in
+     là. La lezione vale identica per i tagli dell'aletta. */
+  function costruisciPannello(tagli){
+    const W = INT.pannelloW, L = INT.pannelloL, T = INT.pannelloT;
+    const BV = 0.0006;
+    const sh = rettangoloTondo(W, L, 0.0022);
+    for(const t of tagli)
+      sh.holes.push(pathStadio(t.x, t.s - L / 2, Math.PI / 2, t.L, t.W));
+    const g = new THREE.ExtrudeGeometry(sh, {depth: Math.max(0.0004, T - 2 * BV),
+      bevelEnabled: true, bevelThickness: BV, bevelSize: BV, bevelOffset: 0,
+      bevelSegments: Math.max(2, SEG.smusso - 1), curveSegments: SEG.angolo});
+    /* dal piano del pannello al mondo: prima si porta la salita a
+       partire da zero (la forma è centrata), poi si inclina di
+       (58 - 90) gradi attorno a X — che è l'unica rotazione che manda
+       la y della forma sulla salita e la sua estrusione sulla normale —
+       e infine si appoggia sulla cerniera, davanti in basso. */
+    g.translate(0, L / 2, BV);
+    g.rotateX(INT.incl - Math.PI / 2);
+    g.translate(INT.cerniera.x, INT.cerniera.y, INT.cerniera.z);
+    g.computeVertexNormals();
+    const pan = new THREE.Mesh(uvEstruso(g, CELLA), vellutoMondo());
+    pan.castShadow = !MOBILE; pan.receiveShadow = true;
+    base.add(pan);
+    /* IL CORPO PIENO, solo per i pendenti. Un pannello sottile in un
+       astuccio alto 39 legge come una linguetta sospesa; il cuscino dei
+       pendenti è un pezzo pieno che arriva alla parete di dietro. Sta
+       tre millimetri DIETRO la faccia, così dentro i due tagli resta un
+       vuoto vero, e porta un velluto più scuro — la luce lì non arriva,
+       e un taglio che dà su un velluto della stessa luce si richiude
+       all'occhio. */
+    if(!INT.perni){
+      const GIU = 0.0030;
+      const zT = INT.pannelloZ - L * Math.cos(INT.incl);
+      const yT = H_FONDO + L * Math.sin(INT.incl);
+      const dz = -Math.sin(INT.incl) * GIU, dy = -Math.cos(INT.incl) * GIU;
+      const zB = -V_PR / 2 + 0.0010;
+      const s = new THREE.Shape();
+      s.moveTo(INT.pannelloZ + dz, H_FONDO + dy);
+      s.lineTo(zT + dz, yT + dy);
+      s.lineTo(zB, yT + dy);
+      s.lineTo(zB, H_FONDO);
+      s.closePath();
+      const WC = V_LA - 0.0016;
+      const gc = tieni(new THREE.ExtrudeGeometry(s, {depth: WC, bevelEnabled: false,
+                                                     curveSegments: 4}));
+      gc.rotateY(-Math.PI / 2);
+      gc.translate(WC / 2, 0, 0);
+      gc.computeVertexNormals();
+      const corpo = new THREE.Mesh(gc, vellutoMondo(VESTE, 0.30));
+      corpo.receiveShadow = true;
+      base.add(corpo);
     }
-    /* ── IL FORO SI VEDE PERCHÉ CI PASSA QUALCOSA ───────────────────
-       A 1,65 mm su una carta da 65 il buco era due pixel di velluto
-       appena più scuro: negli scatti non c'era. Allargarlo e basta
-       sarebbe stato un buco più grande e ancora vuoto — un foro in un
-       cartoncino da orecchini si vede perché ci passa IL GAMBO, e
-       perché sotto il gambo c'è l'ombra del passaggio.
-       Quindi tre cose insieme: il foro sale a 2,4 mm (che è la misura
-       vera delle carte da orecchini, non una licenza), dentro ci scende
-       un gambo di metallo dello stesso colore del pezzo, e attorno al
-       gambo resta l'anello scuro della luce del foro. */
-    for(const f of fori){
-      const g2 = tieni(new THREE.CylinderGeometry(
-        0.00060, 0.00052, INT.cartaH + 0.0028, MOBILE ? 8 : 12));
-      const mg = tieni(new THREE.MeshPhysicalMaterial({
-        color: metallo === undefined ? 0xC6A44E : metallo,
-        metalness: 0.70, roughness: 0.50}));
-      const perno = new THREE.Mesh(g2, mg);
-      perno.position.set(f.x, INT.cartaSu - (INT.cartaH + 0.0028) / 2 + 0.0004, f.z);
-      perno.castShadow = !MOBILE; perno.receiveShadow = true;
-      base.add(perno);
-    }
-    const g = new THREE.ExtrudeGeometry(s, {depth: INT.cartaH, bevelEnabled: false,
-                                            curveSegments: MOBILE ? 10 : 14});
-    g.rotateX(-Math.PI / 2);
-    const carta = new THREE.Mesh(uvEstruso(g, CELLA), vellutoMondo(VESTE, 0.86));
-    /* LA CARTA SI POSA SUL SUO SOTTO, NON SUL SUO SOPRA. `INT.cartaY` è
-       la faccia di sotto, `INT.cartaSu` quella di sopra (cartaY più i
-       2,2 mm di spessore), e l'estrusione cresce verso l'alto: messa a
-       `cartaSu` la carta finiva 2,2 mm più su di dove doveva stare, e
-       gli orecchini — posati a `cartaSu` — restavano affondati dentro
-       di lei per tutto il suo spessore. Non dava nessun errore: si
-       vedeva solo guardando lo scatto. */
-    carta.position.y = INT.cartaY;
-    carta.castShadow = !MOBILE; carta.receiveShadow = true;
-    base.add(carta);
-    /* L'ALETTA: la linguetta che si tira per sfilare la carta. Non è un
-       ornamento — è l'unica cosa che spiega come si toglie. */
-    const al = new THREE.Mesh(
-      uvScatola(new THREE.BoxGeometry(0.016, 0.0016, 0.007), CELLA),
-      vellutoMondo(VESTE, 0.86));
-    al.position.set(0, INT.cartaSu - 0.0002, V_PR / 2 - 0.0042);
-    al.rotation.x = -0.34;
-    al.castShadow = !MOBILE;
-    base.add(al);
+    INT.pannello = {
+      mestiere: INT.perni ? "aletta" : "cuscino",
+      gradi: INT.gradi, largo_mm: mm(W), salita_mm: mm(L), spesso_mm: mm(T),
+      cima_mm: mm(H_FONDO + L * Math.sin(INT.incl)),
+      tagli: tagli.map(t => ({x_mm: mm(t.x), salita_mm: mm(t.s),
+                              lungo_mm: mm(t.L), luce_mm: mm(t.W)})),
+    };
   }
 
   if((FAM === "collane" || FAM === "bracciali") && !PROVINO){
-    INT.padH = FAM === "collane" ? 0.0060 : 0.0050;
+    /* IL CUSCINO DELLA COLLANA È SOTTILE E QUELLO DEL BRACCIALE È
+       SPESSO, e non è un capriccio: è la stessa regola della parete
+       vista da due parti. La collana è alta 29 e il coperchio è alto
+       14 — ogni millimetro di cuscino è un millimetro che manca sopra,
+       quindi il cuscino è 4 e basta, come nelle foto Westpack dove il
+       pad della collana è una lastra di velour sottile. Il bracciale è
+       alto 7 dentro una base da 27: se il cuscino fosse sottile
+       resterebbero venti millimetri di parete, e a 36 gradi una parete
+       di venti nasconde ventotto di profondità — cioè un terzo del
+       cuscino. Il cuscino sale finché sopra restano sei millimetri di
+       filo, che è il labbro che si vede in `br-finer-duet-rigido-b`. */
+    INT.padH = FAM === "collane"
+      ? 0.0040
+      : Math.max(0.0050, H_BASE - H_FONDO - 0.0060);
     INT.padSu = H_FONDO + INT.padH;
     if(FAM === "bracciali") costruisciCuscinoPiatto([]);
   }
@@ -1068,26 +1486,13 @@ export function monta(el, opz = {}){
     const fondelli = [];
     for(const f of fessure){
       const L = (f.L || ASOLA.L), W = (f.W || ASOLA.W);
-      const r = W / 2, dritto = Math.max(0.0005, L / 2 - r);
-      const co = Math.cos(f.ang), si = Math.sin(f.ang);
-      const qua = (a2, b2) => [f.x + a2 * co - b2 * si, f.z + a2 * si + b2 * co];
-      /* lo stadio: due tratti dritti e due semicerchi ai capi */
-      const pa = new THREE.Path();
-      const N = MOBILE ? 7 : 10;
-      const punti = [];
-      punti.push(qua(-dritto, -r), qua(dritto, -r));
-      for(let i = 1; i < N; i++){
-        const a2 = -Math.PI / 2 + Math.PI * i / N;
-        punti.push(qua(dritto + r * Math.cos(a2), r * Math.sin(a2)));
-      }
-      punti.push(qua(dritto, r), qua(-dritto, r));
-      for(let i = 1; i < N; i++){
-        const a2 = Math.PI / 2 + Math.PI * i / N;
-        punti.push(qua(-dritto + r * Math.cos(a2), r * Math.sin(a2)));
-      }
-      pa.moveTo(punti[punti.length - 1][0], punti[punti.length - 1][1]);
-      for(const qq of punti) pa.lineTo(qq[0], qq[1]);
-      sh.holes.push(pa);
+      /* IL SEGNO DAVANTI A `f.z` NON È UN DETTAGLIO. Nella forma la y è
+         il -z del mondo (lo fa il `rotateX(-90)` che viene dopo), e qui
+         il taglio veniva messo a `f.z` invece che a `-f.z`: le asole si
+         disegnavano specchiate rispetto al punto misurato sulla catena,
+         e le quote dichiaravano il contrario di quello che si vedeva.
+         Trovato il 21/09 mentre si smontavano le asole per le tacche. */
+      sh.holes.push(pathStadio(f.x, -f.z, -f.ang, L, W));
       fondelli.push({x: f.x, z: f.z, ang: f.ang, L, W});
     }
     const g = new THREE.ExtrudeGeometry(sh, {depth: INT.padH, bevelEnabled: true,
@@ -1115,174 +1520,137 @@ export function monta(el, opz = {}){
       gradi: +(f.ang * 180 / Math.PI).toFixed(1)}));
   }
 
-  /* ── LA SELLA DELLA COLLANA ──────────────────────────────────────
-     DECISIONE DI MASSIMO, e una misura che la spiega. La collana di
-     Regina è modellata sul busto: anche nella posa più stesa conserva
-     29,5 mm di BOMBATURA. Su un cuscino piatto non si posa — si ALZA,
-     e sotto l'arco resta aria; il pezzo galleggia e il cofanetto sembra
-     più grande della merce.
-     La sella non si SCEGLIE, si MISURA sul pezzo già posato: si cerca
-     la fascia in cui la collana è più alta, si legge quanto sta sopra
-     il cuscino il suo lato di SOTTO in quella fascia, e ci si mette un
-     rullo di velluto che arriva a toccarlo. Un rullo tagliato al filo
-     del cuscino, non una palla nascosta: sotto la carta non c'è niente
-     da nascondere, e un arco di cilindro si legge come una sella.
-     UN CILINDRO NON È UNA SELLA, e la misura lo diceva: il rullo
-     tondo colmava 9 mm su 29 di bombatura. Il motivo è geometrico, non
-     di taratura — un cilindro ha UNA cresta, e una cresta tocca l'arco
-     in un punto solo; da lì in giù il fianco del rullo scappa via
-     mentre l'arco scende, e fra i due resta la stessa aria di prima,
-     spostata di qualche millimetro. Una sella da cofanetto non è
-     tonda: è SAGOMATA sul pezzo, e il suo profilo è il di sotto
-     dell'arco.
-     Quindi la si MISURA per intero. Si divide la fascia dell'arco in
-     ventiquattro fette lungo z, in ogni fetta si legge il punto più
-     basso della catena, e quel profilo diventa il bordo superiore di
-     una forma estrusa lungo x. Il velluto arriva sotto tutta la
-     bombatura, non sotto il suo colmo.
-     `pts` sono i punti del pezzo nel sistema della BASE. */
-  const SELLA_FETTE = 24;
-  function costruisciSella(pts){
-    if(!pts || pts.length < 40) return null;
-    let zlo = Infinity, zhi = -Infinity, ymax = -Infinity, apice = null;
-    for(const p of pts){
-      if(p.z < zlo) zlo = p.z; if(p.z > zhi) zhi = p.z;
-      if(p.y > ymax){ ymax = p.y; apice = p; }
+  /* ── IL CUSCINO DELLA COLLANA, E PERCHÉ LA SELLA È STATA TOLTA ───
+     Qui c'era una SELLA: un profilo misurato sotto l'arco della
+     collana, ventiquattro fette lungo z, estruso lungo x e sgonfiato ai
+     capi. Era misurata bene — colmava venti millimetri su ventotto di
+     bombatura — ed era un oggetto che in gioielleria non esiste. Nessun
+     fornitore, su centotto foto, mette una sella dentro un astuccio da
+     collana: ci mette un CUSCINO PIATTO estraibile, e in alto due
+     TACCHE dove la catena sale e gira dietro
+     (`co-westpack-oslo-160x160x34.jpg`, `co-astuccishop-newyork-165x165.jpg`,
+     `co-finer-majestic-clip-negli-angoli.jpg`).
+     La sella nasceva da una domanda giusta — la collana di Regina è
+     modellata sul busto e conserva 29,5 mm di bombatura anche stesa,
+     quindi sotto di lei resta aria — ma dava una risposta da officina
+     invece che da gioielleria. La risposta vera è un'altra, ed è nella
+     scatola: l'astuccio da collana è ALTO abbastanza (Madrid 41) perché
+     l'aria sotto l'arco non sia un difetto ma il normale gioco di una
+     catena posata. Quello che non deve succedere è che il pezzo tocchi
+     la fodera, e questo lo si misura (`spazio_nel_coperchio_mm`).
+     DICHIARATO: la nostra catena è un ANELLO CHIUSO modellato sul
+     busto, non una collana stesa a U con due capi. I due rami che
+     salgono verso il fondo sono veri e vanno nelle tacche; il fermaglio
+     no, perché il modello non ce l'ha. Il giorno che arriva una catena
+     modellata aperta, le tacche sono già dove servono. */
+  function costruisciCuscinoCollana(tacche){
+    const W = V_LA - 0.0010, D = V_PR - 0.0010, SM = 0.0010;
+    const sh = formaConTacche(W, D, 0.0030, tacche);
+    const g = new THREE.ExtrudeGeometry(sh, {depth: Math.max(0.0008, INT.padH - SM),
+      bevelEnabled: true, bevelThickness: SM, bevelSize: SM, bevelOffset: 0,
+      bevelSegments: SEG.smusso, curveSegments: SEG.angolo});
+    g.rotateX(-Math.PI / 2); g.translate(0, SM, 0); g.computeVertexNormals();
+    const pad = new THREE.Mesh(uvEstruso(g, CELLA), vellutoMondo());
+    pad.position.y = H_FONDO;
+    pad.castShadow = !MOBILE; pad.receiveShadow = true;
+    base.add(pad);
+    /* DENTRO LA TACCA CI VUOLE IL BUIO. La tacca è un varco aperto sul
+       fondo della base, che è dello stesso velluto e alla stessa luce:
+       senza niente sotto, l'intaglio si richiude all'occhio e resta un
+       bordo appena ondulato. Un fondello scurissimo sul pavimento,
+       largo quanto la tacca più un millimetro, la fa leggere come un
+       passaggio. */
+    for(const t of tacche){
+      const gg = new THREE.PlaneGeometry(t.larg + 0.0020, t.prof + 0.0020);
+      gg.rotateX(-Math.PI / 2);
+      const m = new THREE.Mesh(tieni(gg), vellutoMondo(VESTE, 0.16));
+      m.position.set(t.x, H_FONDO + 0.0003, -D / 2 + t.prof / 2);
+      m.receiveShadow = true;
+      base.add(m);
     }
-    if(!apice) return null;
-    const salita = ymax - INT.padSu;
-    if(!(salita > 0.004)) return null;
-    /* ── CHI È L'ARCO ───────────────────────────────────────────────
-       Non tutta la collana: i due rami laterali sono POSATI sul
-       cuscino, e un minimo che li include misura il pavimento invece
-       dell'arco. Si tengono i punti alzati almeno un terzo della
-       salita — quelli stanno su — e la loro estensione in x dà la
-       LUNGHEZZA della sella (una sella è larga quanto il collo, non
-       quanto la scatola). */
-    const soglia = INT.padSu + salita / 3;
-    const arco = pts.filter(p => p.y >= soglia);
-    if(arco.length < 12) return null;
-    let axlo = Infinity, axhi = -Infinity, azlo = Infinity, azhi = -Infinity;
-    for(const p of arco){
-      if(p.x < axlo) axlo = p.x; if(p.x > axhi) axhi = p.x;
-      if(p.z < azlo) azlo = p.z; if(p.z > azhi) azhi = p.z;
-    }
-    const spanZ = azhi - azlo;
-    if(!(spanZ > 0.004)) return null;
-    /* IL PROFILO, FETTA PER FETTA: in ogni fetta di z il punto più basso
-       dell'arco è il punto in cui la sella deve arrivare a toccare, meno
-       il mezzo millimetro in cui un velluto cede. */
-    const passo = spanZ / SELLA_FETTE;
-    const fette = new Array(SELLA_FETTE).fill(Infinity);
-    for(const p of arco){
-      const i = Math.min(SELLA_FETTE - 1, Math.max(0, Math.floor((p.z - azlo) / passo)));
-      if(p.y < fette[i]) fette[i] = p.y;
-    }
-    /* le fette vuote si colmano dai vicini: un buco nel campione non è
-       un buco nella catena */
-    for(let i = 0; i < SELLA_FETTE; i++) if(!isFinite(fette[i])){
-      let a = i - 1, b = i + 1;
-      while(a >= 0 && !isFinite(fette[a])) a--;
-      while(b < SELLA_FETTE && !isFinite(fette[b])) b++;
-      if(a >= 0 && b < SELLA_FETTE) fette[i] = (fette[a] + fette[b]) / 2;
-      else if(a >= 0) fette[i] = fette[a];
-      else if(b < SELLA_FETTE) fette[i] = fette[b];
-    }
-    const GIOCO = 0.0005;
-    const alte = fette.map(y => Math.max(INT.padSu, y - GIOCO));
-    const colma = Math.max(...alte) - INT.padSu;
-    /* meno di due millimetri di aria non sono una sella: sono una
-       piega, e si lascia il cuscino piatto */
-    if(!(colma > 0.002)) return null;
-    /* ── LA FORMA, NEL PIANO (z, y) ────────────────────────────────
-       Si parte dal filo del cuscino, si sale lungo il profilo misurato
-       e si torna giù: davanti e dietro l'arco ci sono sei millimetri di
-       RACCORDO, perché una sella che finisce di netto è un gradino. */
-    const RACC = 0.006;
-    const s = new THREE.Shape();
-    s.moveTo(azlo - RACC, INT.padSu);
-    for(let i = 0; i < SELLA_FETTE; i++)
-      s.lineTo(azlo + passo * (i + 0.5), alte[i]);
-    s.lineTo(azhi + RACC, INT.padSu);
-    s.closePath();
-    /* ── LA LUNGHEZZA LUNGO X, E PERCHÉ SI MISURA SULLA CORONA ──────
-       Presa su tutto l'arco, la sella arrivava da parete a parete: 142
-       mm su 151, cioè un secondo fondo. Ma l'arco è largo in basso e
-       stretto in cima, e quello che va sorretto è la CORONA — i punti
-       oltre metà della salita. Quelli danno la campata vera; sotto, la
-       catena scende e si appoggia da sola. */
-    let cxlo = Infinity, cxhi = -Infinity;
-    for(const p of arco) if(p.y >= INT.padSu + salita * 0.55){
-      if(p.x < cxlo) cxlo = p.x; if(p.x > cxhi) cxhi = p.x;
-    }
-    if(!isFinite(cxlo)){ cxlo = axlo; cxhi = axhi; }
-    const L = Math.min(V_LA - 0.0030, Math.max(0.020, (cxhi - cxlo) + 0.018));
-    const g = tieni(new THREE.ExtrudeGeometry(s, {depth: L, bevelEnabled: false,
-      curveSegments: MOBILE ? 8 : 12}));
-    /* dal piano locale (x=z del mondo, y=y, estrusione=z) al mondo:
-       una rotazione di -90 gradi attorno a Y porta l'estrusione sulla X */
-    g.rotateY(-Math.PI / 2);
-    const xMed = (cxlo + cxhi) / 2;
-    g.translate(xMed + L / 2, 0, 0);
-    /* ── E POI SI SGONFIA AI DUE CAPI ──────────────────────────────
-       Estrusa e basta, la sella è un PRISMA: il profilo misurato in
-       cima e due pareti verticali ai lati, che guardate in campo lungo
-       leggono come un blocco squadrato dentro la scatola — l'errore
-       del primo giro, e si vedeva nello scatto prima ancora che nei
-       numeri. Un cuscino da collana non ha pareti: è una cupola. Si
-       moltiplica l'altezza di ogni vertice per una salita morbida sul
-       quarto esterno, e il prisma diventa la cupola che era. */
-    {
-      const pos = g.getAttribute("position");
-      const x0 = xMed - L / 2, SPALLA = 0.26;
-      for(let i = 0; i < pos.count; i++){
-        const u = Math.min(1, Math.max(0, (pos.getX(i) - x0) / L));
-        const t2 = Math.min(1, Math.min(u, 1 - u) / SPALLA);
-        const f = t2 * t2 * (3 - 2 * t2);
-        pos.setY(i, INT.padSu + (pos.getY(i) - INT.padSu) * f);
-      }
-      pos.needsUpdate = true;
-    }
-    g.computeVertexNormals();
-    const sella = new THREE.Mesh(g, velluto(spanZ + 2 * RACC, L));
-    sella.castShadow = !MOBILE; sella.receiveShadow = true;
-    base.add(sella);
-    INT.sella = {colma, cresta: Math.max(...alte), z: apice.z, alza: colma,
-                 lunghezza: L, larga: spanZ + 2 * RACC, salita,
-                 corona: cxhi - cxlo,
-                 punti: arco.length, fette: SELLA_FETTE};
-    return INT.sella;
+    /* LA LINGUETTA PER SFILARE IL CUSCINO. Un pad estraibile si dichiara
+       da solo: è l'unica cosa che spiega come si toglie, ed è in tutte
+       le foto — Finer la chiama «easy lift tab». Sta davanti, dalla
+       parte opposta alle tacche. */
+    const al = new THREE.Mesh(
+      uvScatola(new THREE.BoxGeometry(Math.min(0.022, W * 0.16), 0.0016, 0.008), CELLA),
+      vellutoMondo(VESTE, 0.86));
+    al.position.set(0, INT.padSu - 0.0004, D / 2 - 0.0050);
+    al.rotation.x = -0.30;
+    al.castShadow = !MOBILE;
+    base.add(al);
+    INT.tacche = tacche.map(t => ({x_mm: mm(t.x), larga_mm: mm(t.larg),
+                                   profonda_mm: mm(t.prof)}));
   }
 
   if(FAM === "orologi" && !PROVINO){
-    /* IL CUSCINO CILINDRICO. 51 mm non è un numero di packaging: è il
-       diametro medio del GIRO di un orologio da polso chiuso. Lungo 76
-       perché deve reggere il cinturino su tutti e due i lati del
-       quadrante. */
-    INT.cuscinoR = 0.0255; INT.cuscinoL = 0.076;
+    /* ── UN GUANCIALE, NON UN CILINDRO ────────────────────────────
+       Qui c'era un arco di cilindro tagliato al filo del fondo: un
+       solido geometrico perfetto, la firma del procedurale. Nelle foto
+       — `ow-astuccishop-cuscino-microfibra-11x11x8.jpg`,
+       `ow-astuccishop-dubai-100x100x70-2.jpg`,
+       `ow-finer-majestic-aperto-con-orologio.jpg` — dentro l'astuccio da
+       orologio c'è un GUANCIALE: un sacchetto imbottito, largo quanto la
+       base meno un dito, gonfio in mezzo e raccolto ai quattro angoli,
+       con le pieghe della stoffa che si vedono. I fornitori italiani lo
+       chiamano «cuscino morbido», e morbido è esattamente la parola: un
+       cilindro non si schiaccia sotto il cinturino, un guanciale sì.
+       La forma è una SUPERELLISSE bombata: l'altezza va a zero sul filo
+       come una potenza alta (p = 3, cioè quasi un rettangolo in pianta,
+       come un cuscino cucito) e sale in mezzo con un esponente basso
+       (q = 0,52, cioè una calotta piena e non una punta). */
+    INT.guancialeW = Math.min(0.080, V_LA - 0.014);
+    INT.guancialeD = Math.min(0.068, V_PR - 0.026);
   }
-  /* IL CUSCINO SI COSTRUISCE DOPO AVER MISURATO L'OROLOGIO, e quanto
-     affonda lo decide il COPERCHIO: la cresta più l'altezza del pezzo
-     meno i due millimetri in cui affonda nella spugna deve stare sotto
-     la fodera con quattro millimetri di franco. Sotto il filo del fondo
-     il cilindro si TAGLIA, invece di sprofondare attraverso la scatola. */
-  function costruisciCuscino(altoPezzo){
-    const R = INT.cuscinoR, L = INT.cuscinoL;
-    const crestaMax = H_BASE + VANO - 0.004 - (altoPezzo - 0.002);
-    const cresta = Math.max(H_FONDO + 0.006,
-                            Math.min(H_FONDO + 2 * R, crestaMax));
-    const cy = cresta - R;
-    const taglio = Math.max(-1, Math.min(1, (H_FONDO - cy) / R));
-    const mezzo = Math.acos(taglio);
-    const g = tieni(new THREE.CylinderGeometry(R, R, L, MOBILE ? 26 : 44, 1, false,
-                                               Math.PI / 2 - mezzo, 2 * mezzo));
-    g.rotateZ(Math.PI / 2);
-    const cus = new THREE.Mesh(g, velluto(2 * mezzo * R, L));
+  /* IL GUANCIALE SI COSTRUISCE DOPO AVER MISURATO L'OROLOGIO, e non si
+     misura solo QUANTO È ALTO il pezzo: si misura se il pezzo è un
+     ANELLO CHIUSO. Il commento del 17/09 diceva «è una cassa con un
+     moncone di cinturino, e attorno a un cuscino da 51 non ci gira»:
+     era una supposizione, ed era sbagliata. Misurato il 21/09
+     (`_S2_diagnosi.json`): il pezzo è alto 41,1 mm, largo 20,6 sul
+     cinturino, e a mezza altezza fra i due tratti c'è un VUOTO di 31
+     mm. È un bracciale chiuso con la cassa in cima. Quindi il guanciale
+     non gli va SOTTO — gli va DENTRO, e il cinturino gli gira attorno
+     esattamente come in `ow-finer-majestic-aperto-con-orologio.jpg`.
+     Le misure del guanciale le detta il vuoto: profondo quanto il buco
+     meno sei millimetri di gioco, alto fino a toccare il di sotto della
+     cassa, e LUNGO quanto la scatola — perché un guanciale si vede ai
+     due fianchi del cinturino, ed è lì che si capisce che è morbido. */
+  function costruisciCuscino(gu){
+    const W = gu.L, D = gu.D, HP = gu.HP;
+    const N = MOBILE ? 34 : 54;
+    const g = tieni(new THREE.PlaneGeometry(W, D, N, N));
+    const pos = g.getAttribute("position");
+    const P = 3.0, Q = 0.52;
+    for(let i = 0; i < pos.count; i++){
+      const u = pos.getX(i) / (W / 2), v = pos.getY(i) / (D / 2);
+      const f = Math.max(0, (1 - Math.pow(Math.abs(u), P))
+                          * (1 - Math.pow(Math.abs(v), P)));
+      /* ── LE PIEGHE ─────────────────────────────────────────────
+         La stoffa di un guanciale non è tesa: si raccoglie verso i
+         quattro angoli, dove la cucitura la tira. Quattro onde attorno
+         all'asse, forti sul bordo e nulle sul colmo — se fossero forti
+         anche in mezzo diventerebbero un fiore, che è un altro tell. */
+      const piega = 1 + 0.055 * Math.cos(4 * Math.atan2(v, u)) * (1 - f);
+      pos.setZ(i, HP * Math.pow(f, Q) * piega);
+    }
+    pos.needsUpdate = true;
+    g.rotateX(-Math.PI / 2);
+    g.computeVertexNormals();
+    {
+      const uv = g.getAttribute("uv");
+      g.setAttribute("uv1", new THREE.BufferAttribute(uv.array.slice(), 2));
+    }
+    const cus = new THREE.Mesh(g, velluto(W, D));
     cus.material.side = THREE.DoubleSide;
-    cus.position.set(0, cy, 0);
+    cus.position.set(0, H_FONDO, gu.z || 0);
     cus.castShadow = !MOBILE; cus.receiveShadow = true;
     base.add(cus);
-    INT.cuscinoY = cy; INT.cuscinoSu = cresta; INT.cuscinoArco = mezzo;
+    INT.cuscinoY = H_FONDO; INT.cuscinoSu = H_FONDO + HP;
+    INT.guanciale = {dentro_il_cinturino: !!gu.dentro,
+                     largo_mm: mm(W), profondo_mm: mm(D), alto_mm: mm(HP),
+                     z_mm: mm(gu.z || 0), cresta_mm: mm(H_FONDO + HP),
+                     parete_sopra_mm: mm(H_BASE - H_FONDO - HP)};
   }
 
   /* ══ LA MACCHINA ══════════════════════════════════════════════════
@@ -1453,7 +1821,6 @@ export function monta(el, opz = {}){
     dentro.updateMatrixWorld(true);
     return dentro;
   }
-  const mm = v => +(v * 1000).toFixed(2);
 
   /* il gruppo che vola: la molla della cerimonia muove QUESTO, non il
      pezzo — così la posa misurata resta quella e il movimento è un
@@ -1494,11 +1861,24 @@ export function monta(el, opz = {}){
     involucro.updateMatrixWorld(true);
     const b = new THREE.Box3().setFromObject(involucro, true);
     const dd = b.getSize(new THREE.Vector3()), cc = b.getCenter(new THREE.Vector3());
-    /* scende per il 57% della sua altezza: resta fuori la calotta con la
-       pietra, e i due rulli restano scoperti a destra e a sinistra — ed
-       è lì che la fenditura si legge. Limite fisico: l'inserto è alto
-       15, la sede non può essere più profonda di 14. */
-    const affondo = Math.min(dd.y * 0.57, 0.014);
+    /* ── A METÀ FASCIA, NON SEPPELLITO ──────────────────────────────
+       Scendeva per il 57 % della sua altezza, e non era una scelta: era
+       il coperchio. Con la fodera messa a `H_COP * 0,60` restavano 7,8
+       mm di vano, e un anello alto 21 che sporge di più li tocca —
+       quindi lo si infilava fin quasi a metà pietra. Adesso la fodera
+       sta dove sta nelle foto (3,5 mm sotto il cielo) e il vano è 9,5:
+       l'anello può stare infilato a METÀ FASCIA come in
+       `an-finer-majestic-con-anello.jpg` e `an-westpack-oslo-crema.jpg`,
+       cioè per poco più di due quinti, con tutta la calotta e il
+       castone fuori.
+       Il 44 % è quello che si VUOLE; quello che si PUÒ lo dice il
+       coperchio, e fra i due vince il coperchio — un anello che tocca
+       la fodera è un difetto, un anello infilato un millimetro più giù
+       è una posa. Si dichiarano tutti e due. */
+    const VUOLE = dd.y * 0.44;
+    const MAX_SU = VANO - 0.0025;                    /* quanto può sporgere */
+    const SERVE  = (INT.cresta + dd.y - H_BASE) - MAX_SU;
+    const affondo = Math.min(0.016, Math.max(VUOLE, SERVE, 0.0020));
     involucro.position.x -= cc.x;
     involucro.position.z -= cc.z;
     involucro.position.y += (INT.cresta - affondo) - b.min.y;
@@ -1509,8 +1889,12 @@ export function monta(el, opz = {}){
       diametro_mm: mm(Math.max(dd.x, dd.y)), fascia_mm: mm(Math.min(dd.x, dd.y, dd.z)),
       alto_mm: mm(dd.y), dentro_la_sede_mm: mm(affondo),
       infilato_pct: +((affondo / dd.y) * 100).toFixed(1),
+      infilato_voluto_pct: 44,
+      comandato_dal_coperchio: SERVE > VUOLE,
       cima_sopra_il_bordo_mm: mm(b2.max.y - H_BASE),
-      fenditura_scoperta_mm: mm((V_LA - Math.max(dd.x, dd.z)) / 2),
+      spazio_nel_coperchio_mm: mm(VANO - (b2.max.y - H_BASE)),
+      cuscino: INT.cuscino || null,
+      velluto_di_fianco_mm: mm((V_LA - INT.fenditura_lunga) / 2),
     };
   }
 
@@ -1530,88 +1914,113 @@ export function monta(el, opz = {}){
     const involucro = new THREE.Group();
     const pts = campiona(dentro, 1800);
     const a = terna(pts);
+    const N = INT.nSu, EX = INT.eX, EY = INT.eY, C = INT.cerniera;
     /* GLI ORECCHINI DI REGINA NON STANNO IN PIEDI, e il motivo è una
        misura: tutti e nove i pezzi sono fra 27 e 40 mm di lunghezza —
        sono cerchi con una goccia, non perni. In piedi uscivano 18,5 mm
        FUORI dalla base, col coperchio che ci passava attraverso.
-       Coricati sono spessi 4,3, e il formato 65 x 65 x 25 torna giusto
-       al millimetro: era sbagliata la posa, non la scatola.
-       Il PIATTO (varianza minima) va in su; il LUNGO — che è la
-       congiungente delle due orecchine — si mette lungo la X, così la
+       Ma nemmeno coricati sul fondo, che era la correzione di prima:
+       coricati si guardano dall'alto, e chi apre l'astuccio li guarda da
+       36 gradi. Stanno APPOGGIATI AL PANNELLO, che è a 58 gradi: il
+       piatto del pezzo contro la faccia, il LUNGO — che è la
+       congiungente delle due orecchine — lungo la larghezza, così la
        coppia sta affiancata a chi guarda e non una dietro l'altra. */
     const rot = new THREE.Group(); rot.add(dentro); involucro.add(rot);
-    const qa = new THREE.Quaternion().setFromUnitVectors(
-      a.min.clone(), new THREE.Vector3(0, 1, 0));
+    const qa = new THREE.Quaternion().setFromUnitVectors(a.min.clone(), N);
     const lungoOra = a.max.clone().applyQuaternion(qa);
-    const gira = new THREE.Quaternion().setFromAxisAngle(
-      new THREE.Vector3(0, 1, 0), -Math.atan2(lungoOra.z, lungoOra.x));
-    rot.quaternion.copy(qa).premultiply(gira);
+    const ang = Math.atan2(lungoOra.dot(EY), lungoOra.dot(EX));
+    rot.quaternion.copy(qa).premultiply(
+      new THREE.Quaternion().setFromAxisAngle(N, -ang));
     rot.updateMatrixWorld(true);
     involucro.updateMatrixWorld(true);
-    const b = new THREE.Box3().setFromObject(involucro, true);
-    const dd = b.getSize(new THREE.Vector3()), cc = b.getCenter(new THREE.Vector3());
-    involucro.position.x -= cc.x;
-    involucro.position.z -= cc.z;
-    involucro.position.y += INT.cartaSu - b.min.y + 0.0002;
+
+    /* ── LE MISURE SI PRENDONO NELLA TERNA DEL PANNELLO ─────────────
+       `Box3` dà una scatola allineata agli assi del MONDO, e su un
+       pezzo appoggiato a un piano inclinato quella scatola non dice
+       niente di utile: né quanto è largo sul pannello, né quanto scende
+       lungo la salita, né quanto stacca dalla faccia. Si campiona e si
+       proietta sui tre versori del pannello — è la stessa lezione del
+       `precise` sulla collana, vista da un'altra parte. */
+    const q = campiona(involucro, 2000);
+    let xl = Infinity, xh = -Infinity, yl = Infinity, yh = -Infinity;
+    let nl = Infinity, nh = -Infinity;
+    for(const p of q){
+      const u = p.dot(EX), v = p.dot(EY), w = p.dot(N);
+      if(u < xl) xl = u; if(u > xh) xh = u;
+      if(v < yl) yl = v; if(v > yh) yh = v;
+      if(w < nl) nl = w; if(w > nh) nh = w;
+    }
+    const mezzo = (xl + xh) / 2;
+    /* ── IL TAGLIO DEVE RESTARE IN VISTA ───────────────────────────
+       Un taglio esattamente grande come il pezzo che ci sta sopra è un
+       taglio che non si vede: è la stessa lezione dei fori della carta,
+       dove l'orecchino si copriva il proprio foro e il cartoncino
+       usciva liscio. Qui non si sposta il taglio di lato — su
+       un'aletta il perno passa dove passa — si fa il taglio PIÙ LUNGO
+       del pezzo, di sei millimetri, così ne resta tre sopra e tre
+       sotto. Sui pendenti il problema non c'è: il taglio sta in cima e
+       il pezzo scende.
+       E IL TAGLIO SI CALCOLA PRIMA DELLA POSA, non dopo. Al primo giro
+       il pezzo si posava su `INT.pannelloS` e il taglio finiva dove la
+       tagliola del bordo lo lasciava stare: quattro millimetri più in
+       basso, cioè DIETRO il pezzo invece che in cima. Non dava nessun
+       errore — si vedeva solo nello scatto, con gli orecchini appesi a
+       niente in fondo al pannello. Un'altezza usata due volte si
+       decide una volta sola. */
+    const ALTO = yh - yl;
+    const L_T = INT.perni
+      ? Math.min(INT.pannelloL * 0.60, ALTO + 0.006)
+      : 0.010;
+    const sTag = Math.min(INT.pannelloL - L_T / 2 - 0.0025,
+                          Math.max(L_T / 2 + 0.0025, INT.pannelloS));
+    /* i perni si CENTRANO sul taglio (il gambo passa lì e la farfallina
+       resta dietro); i pendenti ci si APPENDONO, quindi è la loro CIMA
+       ad arrivare al taglio e il resto scende lungo la faccia */
+    const off = new THREE.Vector3();
+    off.addScaledVector(EX, -mezzo);
+    off.addScaledVector(EY, C.dot(EY) + sTag - (INT.perni ? (yl + yh) / 2 : yh));
+    off.addScaledVector(N, (C.dot(N) + INT.pannelloT + 0.0004) - nl);
+    involucro.position.copy(off);
     involucro.updateMatrixWorld(true);
     volo.add(involucro);
 
-    /* DOVE VANNO I DUE FORI. Si campiona il pezzo POSATO, si spacca la
-       nuvola a metà lungo la X (che adesso è l'asse della coppia) e si
-       prende il baricentro di ciascuna metà: è lì che il perno di
-       quell'orecchino passa attraverso la carta. Se la spaccatura non dà
-       due gruppi veri — un pezzo singolo, un giorno — resta un foro
-       solo, e la carta lo dice invece di inventarne due. */
-    const dopo = campiona(involucro, 2000).map(p => p.clone().add(involucro.position));
-    let sx = {x: 0, z: 0, n: 0}, dx = {x: 0, z: 0, n: 0};
-    for(const p of dopo){
-      const g2 = p.x < 0 ? sx : dx;
-      g2.x += p.x; g2.z += p.z; g2.n++;
+    /* DOVE VANNO I DUE TAGLI. Si spacca la nuvola a metà lungo la
+       larghezza del pannello (che adesso è l'asse della coppia) e si
+       prende il baricentro di ciascuna metà: è lì che quell'orecchino
+       incontra il pannello. Se la spaccatura non dà due gruppi veri —
+       un pezzo singolo, un giorno — resta un taglio solo, e il pannello
+       lo dice invece di inventarne due. */
+    let sx = {u: 0, n: 0}, dx = {u: 0, n: 0};
+    for(const p of q){
+      const u = p.dot(EX);
+      const g2 = u < mezzo ? sx : dx;
+      g2.u += u; g2.n++;
     }
-    /* ── IL FORO NON STA SOTTO L'ORECCHINO ──────────────────────────
-       Al primo giro i fori andavano esattamente sul baricentro di ogni
-       orecchino, che è il posto giusto in una carta vera — il gambo
-       passa di lì e la farfallina sta dietro — ma è anche il posto in
-       cui l'orecchino SE LI COPRE. Negli scatti la carta usciva senza
-       un foro: un cartoncino da orecchini senza fori non è un
-       cartoncino, è un pezzo di velluto.
-       Quindi i fori si spostano DI LATO: verso il filo davanti della
-       carta, di mezzo ingombro del pezzo più tre millimetri, che è
-       esattamente quanto basta perché restino scoperti. È anche il
-       verso giusto: su una carta gli orecchini si infilano dall'alto e
-       il foro resta in vista sotto di loro. Non si esce mai dalla
-       carta: il valore si taglia sul mezzo lato meno sei millimetri. */
-    const SPOSTA = dd.z / 2 + 0.0030;
-    const bordo = V_LA / 2 - 0.0060;
-    const fori = [];
+    const bordoX = INT.pannelloW / 2 - ALETTA.tagliaW / 2 - 0.0025;
+    const tagli = [];
     for(const g2 of [sx, dx]){
       if(g2.n < 40) continue;
-      const z0 = g2.z / g2.n + SPOSTA;
-      fori.push({x: g2.x / g2.n, z: Math.min(bordo, z0)});
+      const x = g2.u / g2.n - mezzo;
+      tagli.push({x: Math.max(-bordoX, Math.min(bordoX, x)),
+                  s: sTag, L: L_T, W: ALETTA.tagliaW});
     }
-    /* IL GAMBO PRENDE IL METALLO DEL PEZZO, non un oro di serie: su un
-       Perno Perla d'argento un gambo dorato è un errore di prodotto. */
-    let metallo;
-    dentro.traverse(o => {
-      if(metallo === undefined && o.isMesh && o.material
-         && o.material.metalness > 0.4 && o.material.color)
-        metallo = o.material.color.getHex();
-    });
-    costruisciCarta(fori, metallo);
-    INT.interasse = fori.length === 2 ? Math.abs(fori[1].x - fori[0].x) : 0;
+    costruisciPannello(tagli);
+    INT.interasse = tagli.length === 2 ? Math.abs(tagli[1].x - tagli[0].x) : 0;
     const b2 = new THREE.Box3().setFromObject(involucro, true);
     dati.pezzo = {
-      quanti: fori.length,
-      coppia_larga_mm: mm(dd.x), lungo_mm: mm(dd.z), spesso_mm: mm(dd.y),
-      interasse_mm: mm(INT.interasse), foro_mm: mm(INT.foroR * 2),
-      sopra_la_carta_mm: mm(b2.max.y - INT.cartaSu),
-      sotto_il_bordo_mm: mm(H_BASE - b2.max.y),
-      luce_della_carta_mm: mm(V_LA),
-      fori: fori.map(f => ({x_mm: mm(f.x), z_mm: mm(f.z)})),
+      quanti: tagli.length, mestiere: INT.perni ? "perni sull'aletta"
+                                                : "pendenti dal cuscino",
+      coppia_larga_mm: mm(xh - xl), lungo_mm: mm(ALTO), spesso_mm: mm(nh - nl),
+      interasse_mm: mm(INT.interasse),
+      taglio_lungo_mm: mm(L_T), taglio_luce_mm: mm(ALETTA.tagliaW),
+      taglio_scoperto_mm: INT.perni ? mm(L_T - ALTO) : mm(L_T / 2),
+      cima_sopra_il_bordo_mm: mm(b2.max.y - H_BASE),
+      spazio_nel_coperchio_mm: mm(VANO - (b2.max.y - H_BASE)),
+      pannello: INT.pannello || null,
     };
   }
 
-  /* ── COLLANA: la U posata sulla sella, i rami nelle due fessure ─── */
+  /* ── COLLANA: posata sul cuscino piatto, i due rami nelle tacche ── */
   function posaCollana(dentro){
     const involucro = new THREE.Group();
     const pts0 = campiona(dentro, 2000);
@@ -1635,148 +2044,125 @@ export function monta(el, opz = {}){
     const b = new THREE.Box3().setFromObject(involucro, true);
     const cc = b.getCenter(new THREE.Vector3());
     involucro.position.x -= cc.x;
-    involucro.position.z -= cc.z;
     involucro.position.y += INT.padSu - b.min.y - 0.0008;   /* affonda nel velluto */
+    /* ── LA COLLANA NON SI CENTRA: SI APPOGGIA ALLE TACCHE ──────────
+       Centrata in profondità, la catena restava in mezzo al cuscino e
+       le tacche del bordo di dietro erano due intagli che non
+       c'entravano niente con lei. In un astuccio vero è il contrario:
+       la collana si posa CONTRO il filo di dietro — è lì che sale e
+       gira — e quello che avanza avanza DAVANTI, dove sta il pendente.
+       Il di dietro del pezzo finisce a metà della profondità della
+       tacca, così i due rami sono dentro il varco e non davanti. */
+    /* il di dietro della catena cade dentro la tacca: la bocca
+       dell'intaglio resta scoperta dietro di lei, e si vede che il filo
+       ci ENTRA invece di fermarsi contro il bordo.
+       MA NON SI SPINGE OLTRE LA PARETE. Questa collana è lunga 163,7 in
+       un vano da 169: spostandola indietro di undici millimetri usciva
+       DAVANTI di quasi tre, cioè entrava nel muro — e il muro, a quel
+       punto, la taglia. Il posto giusto è il più indietro dei due
+       vincoli, non quello voluto. */
+    const zDietro = Math.min(-V_PR / 2 + TACCA.prof * 0.66,
+                             V_PR / 2 - 0.0015 - (b.max.z - b.min.z));
+    involucro.position.z = zDietro - b.min.z;
     involucro.updateMatrixWorld(true);
     volo.add(involucro);
-    /* DOVE SI TAGLIA. Questa collana è un anello CHIUSO: non ha due capi
-       da infilare, e cercarli dà due posti a caso. Quello che ha sono
-       due RAMI — a una certa quota la catena passa due volte, una a
-       sinistra e una a destra — ed è lì che in un cofanetto vero si
-       mette la fessura, perché è lì che la catena si ferma. */
-    const pts = campiona(involucro, 2600);
-    let zlo = Infinity, zhi = -Infinity;
-    for(const p of pts){ const z = p.z + involucro.position.z;
-      if(z < zlo) zlo = z; if(z > zhi) zhi = z; }
-    const z0 = zlo + (zhi - zlo) * 0.22;
+    /* DOVE VANNO LE TACCHE. Questa collana è un anello CHIUSO: non ha
+       due capi da infilare, e cercarli dà due posti a caso. Quello che
+       ha sono due RAMI — vicino al fondo la catena passa due volte, una
+       a sinistra e una a destra — ed è lì che in un astuccio vero si
+       mette la tacca, perché è lì che la catena sale e gira dietro. */
+    /* ── IL RAMO NON È L'INGOMBRO, E NEMMENO IL PUNTO PIÙ INDIETRO ──
+       Due tentativi sbagliati, e vale la pena scriverli tutti e due.
+       (1) La x MINIMA e la x MASSIMA dei punti vicini al fondo: davano
+       -60 e +20, cioè la larghezza della catena, non i suoi rami; due
+       intagli sbilenchi su un cuscino leggono come un errore di taglio.
+       (2) Il punto PIÙ INDIETRO di ciascuna metà: su un arco largo e
+       piatto il minimo cade dove capita, e le due tacche venivano a
+       -20 e +7, cioè appiccicate in mezzo.
+       Il ramo vero è dove la catena ATTRAVERSA una certa profondità
+       mentre sale: si fissa una quota dodici millimetri davanti al suo
+       punto più arretrato e si cerca, in ciascuna metà, il punto che ci
+       passa più vicino. Su un arco simmetrico i due vengono simmetrici
+       da soli, e stanno negli ANGOLI ALTI — che è dove le foto le
+       mettono. */
+    const pts = campiona(involucro, 2600)
+      .map(p => p.clone().add(involucro.position));
+    let zlo = Infinity;
+    for(const p of pts) if(p.z < zlo) zlo = p.z;
+    const quota = zlo + 0.012;
     let sx = null, dx = null;
     for(const p of pts){
-      const w = p.clone().add(involucro.position);
-      const d = Math.abs(w.z - z0);
-      if(w.x < -0.004){ if(!sx || d < Math.abs(sx.z - z0)) sx = w; }
-      else if(w.x > 0.004){ if(!dx || d < Math.abs(dx.z - z0)) dx = w; }
+      const d = Math.abs(p.z - quota);
+      if(p.x < -0.006){ if(!sx || d < Math.abs(sx.z - quota)) sx = p; }
+      else if(p.x > 0.006){ if(!dx || d < Math.abs(dx.z - quota)) dx = p; }
     }
-    const capi = [sx, dx].filter(Boolean);
-    /* ── L'ASOLA SI ORIENTA SULLA CATENA, NON SU UN NUMERO ──────────
-       Erano 35 gradi scritti a mano, gli stessi per tutte e due e per
-       qualunque collana: un'asola inclinata a caso rispetto al filo che
-       ci deve entrare è, di nuovo, un segno disegnato. La direzione
-       vera è quella in cui la catena passa in quel punto, e si misura —
-       si prendono i punti del pezzo vicini al capo e si legge da che
-       parte vanno. Se in quell'intorno non c'è abbastanza roba per dire
-       una direzione, si ripiega sui 35 gradi di prima, dichiarandolo. */
-    const versoDelFilo = (p0, verso) => {
-      const R = 0.010;
-      let sxx = 0, sxz = 0, szz = 0, n = 0;
-      for(const q of pts){
-        const w = q.clone().add(involucro.position);
-        const dx2 = w.x - p0.x, dz2 = w.z - p0.z;
-        if(Math.hypot(dx2, dz2) > R) continue;
-        sxx += dx2 * dx2; szz += dz2 * dz2; sxz += dx2 * dz2;
-        n++;
-      }
-      if(n < 10) return {ang: verso * 0.61, misurato: false};
-      /* la direzione principale della nuvoletta: l'autovettore grande
-         della matrice 2x2 delle covarianze, che in due dimensioni è una
-         formula chiusa e non un'iterazione */
-      const ang = 0.5 * Math.atan2(2 * sxz, sxx - szz);
-      return {ang, misurato: true};
-    };
-    const angoli = capi.map((p, i) => versoDelFilo(p, i === 0 ? -1 : 1));
-    costruisciCuscinoPiatto(capi.map((p, i) => ({
-      x: p.x, z: p.z, ang: angoli[i].ang})));
-    /* E POI LA SELLA, sui punti del pezzo nel sistema della base */
-    const nelBase = pts.map(p => p.clone().add(involucro.position));
-    const sella = costruisciSella(nelBase);
-    dati.sella = sella ? {cresta_mm: mm(sella.cresta),
-                          z_mm: mm(sella.z), aria_colmata_mm: mm(sella.colma),
-                          lunga_mm: mm(sella.lunghezza), larga_mm: mm(sella.larga),
-                          salita_mm: mm(sella.salita),
-                          colma_su_salita: +(sella.colma / sella.salita).toFixed(2),
-                          fette: sella.fette,
-                          punti_dell_arco: sella.punti} : null;
-    dati.asole = INT.asole || null;
-    dati.asole_misurate = angoli.every(a => a.misurato);
+    let misurate = !!(sx && dx);
+    let xlo = sx ? sx.x : -V_LA * 0.22, xhi = dx ? dx.x : V_LA * 0.22;
+    if(!misurate || xhi - xlo < 0.010){
+      /* nessun ramo leggibile: si ripiega su due tacche simmetriche, e
+         lo si DICHIARA invece di far finta che siano misurate */
+      misurate = false; xlo = -V_LA * 0.22; xhi = V_LA * 0.22;
+    }
+    const bordoT = V_LA / 2 - TACCA.larg / 2 - 0.0060;
+    const tacche = [xlo, xhi].map(x => ({
+      x: Math.max(-bordoT, Math.min(bordoT, x)),
+      larg: TACCA.larg, prof: TACCA.prof}));
+    costruisciCuscinoCollana(tacche);
+    dati.sella = null;                 /* la sella non c'è più: vedi sopra */
+    dati.asole = null;
+    dati.tacche = INT.tacche || null;
+    dati.tacche_misurate = misurate;
     const dd = b.getSize(new THREE.Vector3());
     const b2 = new THREE.Box3().setFromObject(involucro, true);
     dati.pezzo = {
       largo_mm: mm(dd.x), lungo_mm: mm(dd.z), alto_mm: mm(dd.y),
       sopra_il_cuscino_mm: mm(b2.max.y - INT.padSu),
-      sotto_il_bordo_mm: mm(H_BASE - b2.max.y),
-      fessure: capi.map(p => ({x_mm: mm(p.x), z_mm: mm(p.z)})),
+      cima_sopra_il_bordo_mm: mm(b2.max.y - H_BASE),
+      spazio_nel_coperchio_mm: mm(VANO - (b2.max.y - H_BASE)),
+      rami_nelle_tacche: misurate,
       avanza_di_lato_mm: mm((V_LA - dd.x) / 2),
+      avanza_davanti_mm: mm(V_PR / 2 - (b2.max.z)),
       bombatura_mm: mm(dd.y),
     };
   }
 
-  /* ── BRACCIALE: la catena ad anello, sotto due linguette ────────── */
-  /* LA LINGUETTA È UNA STRISCIA, E UNA STRISCIA HA UNA LARGHEZZA.
-     Nel primo giro usciva SOTTILE, e il conto dice perché: il tubo del
-     toro aveva raggio 2,4 mm ma veniva schiacciato di 0,34 lungo il suo
-     asse, cioè la striscia era larga 1,6 mm. Un millimetro e mezzo di
-     pelle non è una linguetta, è un filo — e un filo che scavalca un
-     bracciale legge come un elastico, che era proprio il tell da
-     evitare.
-     Le linguette vere dei cofanetti stanno fra 6 e 10 mm. Qui: 7 mm di
-     LARGHEZZA, 1,8 di SPESSORE (la striscia ha due facce e un filo,
-     non è una membrana), e la cucitura a SOLCO lungo i due bordi — lo
-     stesso trattamento del coperchio, bumpMap più aoMap sullo stesso
-     disegno, perché è la stessa pelle cucita dalla stessa macchina. */
-  const LING = {larga: 0.0070, spessa: 0.0018};
-  let _solcoLing = null;
-  function solcoLinguetta(lungo){
-    if(_solcoLing) return _solcoLing;
-    const PX = MOBILE ? 256 : 512;
-    const c = document.createElement("canvas"); c.width = c.height = PX;
-    const g = c.getContext("2d");
-    g.fillStyle = "#ffffff"; g.fillRect(0, 0, PX, PX);
-    /* v attraversa la sezione del tubo: la faccia ESTERNA della striscia
-       sta attorno a v = 0, quindi i suoi due bordi cadono a 0,10 e 0,90.
-       Le due cuciture corrono lì, lungo tutta la lunghezza (u). */
-    const passo = 0.0024;                      /* gli stessi 2,4 mm del coperchio */
-    const n = Math.max(6, Math.round((lungo || 0.06) / passo));
-    let seme = 20260920;
-    const caso = () => (seme = (seme * 1664525 + 1013904223) >>> 0) / 4294967296;
-    for(const v of [0.10, 0.90]){
-      const y = v * PX;
-      g.strokeStyle = "#d8d8d8"; g.lineWidth = PX * 0.016;
-      g.beginPath(); g.moveTo(0, y); g.lineTo(PX, y); g.stroke();
-      g.strokeStyle = "#9a9a9a"; g.lineWidth = PX * 0.007;
-      g.beginPath(); g.moveTo(0, y); g.lineTo(PX, y); g.stroke();
-      for(let i = 0; i < n; i++){
-        const x = (i + 0.5 + (caso() - 0.5) * 0.22) / n * PX;
-        const mez = PX * (0.016 + caso() * 0.005);
-        const dx = mez * Math.cos(0.60), dy = mez * Math.sin(0.60);
-        g.strokeStyle = "#8b8b8b"; g.lineWidth = PX * 0.005;
-        g.beginPath(); g.moveTo(x - dx, y - dy); g.lineTo(x + dx, y + dy); g.stroke();
-      }
-    }
-    const t = tieni(new THREE.CanvasTexture(c));
-    t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; t.needsUpdate = true;
-    _solcoLing = t;
-    return t;
-  }
-  function linguetta(x, mezzaLuce, alzata){
+  /* ── BRACCIALE: la catena posata, sotto due elastici ─────────────
+     LA LINGUETTA DI PELLE ERA L'OGGETTO SBAGLIATO, e la scheda del
+     fornitore lo diceva già: Finer Premier, astuccio da bracciale,
+     «removable base pad with an easy lift tab at the top and two
+     matching colour ELASTICS at either end». La linguetta è UNA, sta
+     davanti e serve a SOLLEVARE il cuscino; quello che tiene fermo il
+     bracciale sono DUE ELASTICI, e un elastico è tessuto dello stesso
+     colore della fodera, non pelle cucita. Si vede benissimo in
+     `br-westpack-oslo-lungo-219x55x23.jpg`, dove le due fasce sono di
+     scamosciato come il cuscino, e in `br-finer-premier-elastici-e-
+     linguetta.jpg`, dove i due tratti attraversano il pad alle
+     estremità del pezzo.
+     Resta vera la misura pagata al primo giro: una fascia da un
+     millimetro e mezzo non è una fascia, è un filo. Nove millimetri di
+     larghezza, uno e otto di spessore — il tubo del toro si allarga
+     lungo il proprio asse fino a quella misura e si schiaccia in
+     altezza sull'alzata del pezzo. */
+  const LING = {larga: 0.0090, spessa: 0.0018};
+  function elastico(x, mezzaLuce, alzata){
     const tubo = LING.spessa / 2;
     const g = new THREE.TorusGeometry(mezzaLuce, tubo, MOBILE ? 8 : 10,
                                       MOBILE ? 20 : 30, Math.PI);
-    /* si allarga lungo l'asse del tubo finché la striscia non misura
-       `LING.larga`, e si schiaccia in altezza sull'alzata misurata */
     g.scale(1, alzata / mezzaLuce, LING.larga / (2 * tubo));
     g.rotateY(Math.PI / 2);
     g.computeVertexNormals();
     const uv = g.getAttribute("uv");
     g.setAttribute("uv1", new THREE.BufferAttribute(uv.array.slice(), 2));
-    const m = new THREE.Mesh(tieni(g), similpelle());
-    const solco = solcoLinguetta(Math.PI * mezzaLuce);
-    m.material.bumpMap = solco; m.material.bumpScale = 0.34;
-    m.material.aoMap = solco; m.material.aoMapIntensity = 0.62;
-    m.material.needsUpdate = true;
+    /* stesso tessuto del cuscino, appena più chiaro: un elastico è
+       teso, e un tessuto teso riflette più di uno incollato. Appena:
+       a 0,86 le due fasce uscivano più chiare del cuscino e leggevano
+       come due manici di plastica. */
+    const m = new THREE.Mesh(tieni(g), vellutoMondo(VESTE, 0.80));
     m.position.set(x, INT.padSu - 0.0004, 0);
     m.castShadow = !MOBILE; m.receiveShadow = true;
     base.add(m);
-    INT.linguetta = {larga_mm: mm(LING.larga), spessa_mm: mm(LING.spessa),
-                     luce_mm: mm(2 * mezzaLuce), alzata_mm: mm(alzata)};
+    INT.elastico = {larga_mm: mm(LING.larga), spessa_mm: mm(LING.spessa),
+                    luce_mm: mm(2 * mezzaLuce), alzata_mm: mm(alzata)};
   }
   function posaBracciale(dentro){
     const involucro = new THREE.Group();
@@ -1798,20 +2184,30 @@ export function monta(el, opz = {}){
     involucro.position.y += INT.padSu - b.min.y - 0.0006;
     involucro.updateMatrixWorld(true);
     volo.add(involucro);
-    /* le linguette si mettono dove il pezzo è DAVVERO, e la loro luce è
-       la profondità misurata più un filo di gioco */
+    /* gli elastici si mettono dove il pezzo è DAVVERO, alle sue due
+       estremità, e la loro luce è la profondità misurata più un filo di
+       gioco: un elastico più stretto del pezzo che deve tenere è un
+       segno disegnato, uno più largo è una fascia che casca */
     const mezza = dd.z / 2 + 0.0026;
     const alzata = dd.y + 0.0026;
-    linguetta(-dd.x * 0.30, mezza, alzata);
-    linguetta( dd.x * 0.30, mezza, alzata);
+    elastico(-dd.x * 0.32, mezza, alzata);
+    elastico( dd.x * 0.32, mezza, alzata);
     const b2 = new THREE.Box3().setFromObject(involucro, true);
     dati.pezzo = {
+      /* DICHIARATO: questa catena è un ANELLO CHIUSO da 67 mm, non una
+         catena distesa. L'astuccio lungo 220 x 52 con i due elastici —
+         che è il formato vero di un bracciale a catena — le lascerebbe
+         sette centimetri di vuoto per parte. Qui sta nel quadrato
+         profondo dei rigidi (Oslo 90 x 90 x 41), che è la scatola che
+         un anello chiuso riceve davvero. */
+      posa: "anello chiuso posato piatto",
       lungo_mm: mm(dd.x), largo_mm: mm(dd.z), alto_mm: mm(dd.y),
       sopra_il_cuscino_mm: mm(b2.max.y - INT.padSu),
-      sotto_il_bordo_mm: mm(H_BASE - b2.max.y),
-      linguette_x_mm: [mm(-dd.x * 0.30), mm(dd.x * 0.30)],
-      linguetta: INT.linguetta || null,
-      avanza_in_lunghezza_mm: mm(V_LA - dd.x),
+      cima_sopra_il_bordo_mm: mm(b2.max.y - H_BASE),
+      spazio_nel_coperchio_mm: mm(VANO - (b2.max.y - H_BASE)),
+      elastici_x_mm: [mm(-dd.x * 0.32), mm(dd.x * 0.32)],
+      elastico: INT.elastico || null,
+      avanza_di_lato_mm: mm((V_LA - dd.x) / 2),
     };
   }
 
@@ -1863,21 +2259,59 @@ export function monta(el, opz = {}){
     involucro.updateMatrixWorld(true);
     const b = new THREE.Box3().setFromObject(involucro, true);
     const dd = b.getSize(new THREE.Vector3()), cc = b.getCenter(new THREE.Vector3());
-    /* SI APPOGGIA, NON SI AVVOLGE: il pezzo del catalogo non è un anello
-       chiuso, è una cassa con un moncone di cinturino, e attorno a un
-       cuscino da 51 non ci gira. È l'altezza misurata ADESSO a dire
-       quanto il cuscino deve affondare nella sua sede. */
-    costruisciCuscino(dd.y);
+    /* ── SI AVVOLGE, E LO DICE LA MISURA ───────────────────────────
+       In ogni fetta orizzontale si cerca il BUCO più largo lungo z: se
+       in tre fette su quattro c'è un vuoto di almeno dodici millimetri,
+       il cinturino è un anello chiuso e il guanciale ci va dentro. Se
+       non c'è, il pezzo è aperto e il guanciale torna a stare sotto,
+       grande quanto la base. Nessuno dei due casi è scritto a mano. */
+    const q = campiona(involucro, 2200);
+    let ylo = Infinity, yhi = -Infinity;
+    for(const p of q){ if(p.y < ylo) ylo = p.y; if(p.y > yhi) yhi = p.y; }
+    const H = yhi - ylo;
+    let sommaZ = 0, minAmp = Infinity, cima = ylo, quante = 0;
+    for(const f of [0.25, 0.40, 0.55, 0.68]){
+      const y0 = ylo + H * f, sp = H * 0.05, zz = [];
+      for(const p of q) if(Math.abs(p.y - y0) < sp) zz.push(p.z);
+      zz.sort((x, y) => x - y);
+      let buco = 0, dove = 0;
+      for(let i = 1; i < zz.length; i++)
+        if(zz[i] - zz[i - 1] > buco){ buco = zz[i] - zz[i - 1]; dove = (zz[i] + zz[i - 1]) / 2; }
+      if(buco > 0.012){ quante++; sommaZ += dove; cima = y0;
+                        if(buco < minAmp) minAmp = buco; }
+    }
+    const chiuso = quante >= 3;
     involucro.position.x -= cc.x;
     involucro.position.z -= cc.z;
-    involucro.position.y += (INT.cuscinoSu - 0.0020) - b.min.y;
+    if(chiuso){
+      /* il cinturino POGGIA sul fondo, come nelle foto: è il guanciale a
+         salire dentro di lui, non lui a salire sul guanciale */
+      involucro.position.y += (H_FONDO + 0.0008) - b.min.y;
+      costruisciCuscino({
+        dentro: true,
+        z: sommaZ / quante - cc.z,
+        D: Math.max(0.010, Math.min(0.030, minAmp - 0.0035)),
+        HP: Math.max(0.008, Math.min(0.032, (cima - ylo) - 0.0010)),
+        L: Math.min(0.082, V_LA - 0.018),
+      });
+    } else {
+      /* pezzo aperto: il guanciale sta sotto e il pezzo ci si appoggia */
+      costruisciCuscino({
+        dentro: false, z: 0, D: INT.guancialeD, L: INT.guancialeW,
+        HP: Math.max(0.008, Math.min(0.030,
+          (H_BASE + VANO - 0.004 - (dd.y - 0.002)) - H_FONDO)),
+      });
+      involucro.position.y += (INT.cuscinoSu - 0.0020) - b.min.y;
+    }
     involucro.updateMatrixWorld(true);
     volo.add(involucro);
     const b2 = new THREE.Box3().setFromObject(involucro, true);
     dati.pezzo = {
       modo, cassa_mm: mm(Math.max(dd.x, dd.z)), spesso_mm: mm(dd.y),
-      cuscino_diametro_mm: mm(INT.cuscinoR * 2), cuscino_lungo_mm: mm(INT.cuscinoL),
-      cresta_del_cuscino_mm: mm(INT.cuscinoSu),
+      guanciale: INT.guanciale || null,
+      cresta_del_guanciale_mm: mm(INT.cuscinoSu),
+      cinturino_avvolge: chiuso,
+      vuoto_nel_cinturino_mm: chiuso ? mm(minAmp) : null,
       sopra_il_bordo_mm: mm(b2.max.y - H_BASE),
       spazio_nel_coperchio_mm: mm(VANO - (b2.max.y - H_BASE)),
       largo_contro_la_luce_mm: mm(dd.x) + " su " + mm(V_LA),
@@ -2475,6 +2909,12 @@ export function monta(el, opz = {}){
         vano_coperchio_mm: mm(VANO), marchio_mm: mm(M_LA),
         cella_pelle_mm: mm(CELLA), cella_pelo_mm: mm(CELLA_PELO),
         profilo: MOBILE ? "mobile" : "banco", dpr: rend.getPixelRatio(),
+        /* IL FILETTO E IL MARCHIO DEL CIELO SONO QUOTE, non decorazioni:
+           sono le due cose che, nelle foto, separano un astuccio da
+           gioielleria da una scatola foderata, e una sonda deve poterle
+           leggere senza guardare un pixel. */
+        filetto_mm: mm(FIL_W), filetto_rientro_mm: mm(FIL_IN),
+        marchio_nel_cielo_mm: mm(MD_LA),
         sella: dati.sella, pezzo: dati.pezzo,
         /* `ripiego` non c'è più: era una riga di testo che diceva «ho
            aperto un altro pezzo» e che non leggeva nessuno. Al suo
@@ -2483,7 +2923,8 @@ export function monta(el, opz = {}){
         variante: dati.variante || null,
         perno: dati.perno || null,
         asole: dati.asole || null,
-        asole_misurate: dati.asole_misurate === undefined ? null : dati.asole_misurate,
+        tacche: dati.tacche || null,
+        tacche_misurate: dati.tacche_misurate === undefined ? null : dati.tacche_misurate,
         provino: dati.provino || false,
       };
     },

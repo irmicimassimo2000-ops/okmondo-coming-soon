@@ -133,6 +133,27 @@ export const FORME = {
 
   /* la spunta: fatto */
   spunta: '<path d="M4.8 12.4 9.7 17.3 19.2 6.6"/>',
+
+  /* ── I SEGNI DEL NEGOZIO (21/09, vetrina «Boutique») ───────────────
+     Stessa griglia 24, area viva 20, stesso tratto dal CSS. Sono i
+     disegni delle tavole scelte (`ventaglio-vetrina/_costruisci.py`),
+     portati qui perché un segno vive in un posto solo. */
+  /* la borsa: il sacchetto a trapezio coi manici ad arco */
+  borsa:
+    '<path d="M5.5 8.5h13l.9 11H4.6z"/>' +
+    '<path d="M8.8 8.5V7a3.2 3.2 0 0 1 6.4 0v1.5"/>',
+  /* il più e il meno dello stepper: punteggiatura, come la croce */
+  piu: '<path d="M12 5.5v13"/><path d="M5.5 12h13"/>',
+  meno: '<path d="M5.5 12h13"/>',
+  /* l'avviso: il tondo con la «i». Sta accanto a una riga d'errore */
+  avviso:
+    '<circle cx="12" cy="12" r="8.5"/>' +
+    '<path d="M12 11v5"/><path d="M12 7.6v.9"/>',
+  /* il negozio: la tenda, il muro, la porta. Sta nella riga del ritiro */
+  negozio:
+    '<path d="M4.5 9.5l1.2-4h12.6l1.2 4"/>' +
+    '<path d="M4.5 9.5h15v10h-15z"/>' +
+    '<path d="M9.5 19.5v-5h5v5"/>',
 };
 
 /* ── LE SCALE OTTICHE ──────────────────────────────────────────────
@@ -159,6 +180,9 @@ export const K = {
   credito:0.82,
   campanella:1.125,
   spunta:1.19,
+  /* i cinque del negozio: 1 finché `_A2_segni.mjs` non li misura. Un `k`
+     inventato è peggio di nessun `k` (vedi sopra). */
+  borsa:1, piu:1, meno:1, avviso:1, negozio:1,
 };
 
 /* ── LE DUE CLASSI DI PESO ─────────────────────────────────────────
@@ -178,8 +202,9 @@ export const K = {
 export const CLASSI = {
   oggetti: ["cofanetto","vetrina","stella","profilo","cuore","regalo",
             "collezione","assistenza","condividi","rimuovi","cerca",
-            "filtro","calendario","tessera","credito","campanella"],
-  glifi:   ["chevron","croce","spunta"],
+            "filtro","calendario","tessera","credito","campanella",
+            "borsa","avviso","negozio"],
+  glifi:   ["chevron","croce","spunta","piu","meno"],
 };
 
 export const NOMI = Object.keys(FORME);

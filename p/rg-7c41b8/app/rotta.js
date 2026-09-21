@@ -47,6 +47,19 @@ export function registraTab(id, sezione, radice){
    registraSchermo("pezzo", (id, el) => …) risponde a #/vetrina/pezzo/<id> */
 export function registraSchermo(tipo, fn){ schermi.set(tipo, fn); }
 
+/* UN VECCHIO INDIRIZZO A UN SEGMENTO SOLO (`#/profilo/credito`, da
+   prima che ogni schermo diventasse una COPPIA `tipo/id`) non forma
+   una coppia: `leggiHash()` lo scarta e la pila torna vuota — l'
+   indirizzo "funziona" ma dimentica la profondità a cui portava, e un
+   secondo indirizzo dello stesso genere subito dopo veniva accoppiato
+   CON IL PRIMO per puro caso pari/dispari. Chi registra l'alias dice
+   qual è l'id di comodo da completare in coda: una volta sola, e la
+   coppia si forma come se fosse stata spinta col nuovo indirizzo. */
+const aliasUnSegmento = new Map();
+export function registraAliasUnSegmento(tipo, idDiComodo = "apri"){
+  aliasUnSegmento.set(tipo, idDiComodo);
+}
+
 export const tabCorrente = () => tab;
 export const profondita  = (t = tab) => pile[t].length;
 
@@ -56,6 +69,13 @@ function leggiHash(){
   if(h && h[0] !== "/") h = "/" + h;              /* i vecchi `#cofanetto` */
   const pz = h.split("/").filter(Boolean);
   const t = TABS.includes(pz[0]) ? pz[0] : "cofanetto";
+  /* un solo segmento spaiato in coda, e quel segmento è un alias
+     registrato: si completa la coppia (vedi `registraAliasUnSegmento`)
+     prima di appaiare, non dopo — altrimenti resterebbe scartato. */
+  if(pz.length > 1 && (pz.length - 1) % 2 === 1){
+    const ultimo = pz[pz.length - 1];
+    if(aliasUnSegmento.has(ultimo)) pz.push(aliasUnSegmento.get(ultimo));
+  }
   const pila = [];
   for(let i = 1; i + 1 < pz.length + 1; i += 2){
     if(pz[i] && pz[i+1] && schermi.has(pz[i])) pila.push(pz[i] + "/" + pz[i+1]);
@@ -171,6 +191,18 @@ export async function spingi(rotta, opz = {}){
    posto. */
 export function torna(){ history.back(); }
 
+/* LO STRATO CHE TORNA IN CIMA STA A ZERO, SEMPRE (21/09, trovato dalla
+   sonda della vetrina). Uno strato SPINTO parte da `translateX(100%)`
+   per regola di CSS ed è in vista solo grazie alla traslazione scritta
+   in linea. Azzerargli lo stile in linea — giusto per la RADICE, che a
+   riposo non ha trasformazioni — lo rimandava fuori schermo: in una
+   pila a due o più piani (scheda → borsa, impostazioni → dati) chi
+   tornava indietro trovava una pagina vuota. Vale per tutti i rami di
+   `stacca()`: animato, ridotto, e gesto dal bordo confermato (`gia`). */
+function aRiposo(el){
+  el.style.transform = el.classList.contains("spinto") ? "translateX(0%)" : "";
+}
+
 async function stacca(opz = {}){
   const p = pile[tab];
   if(!p.length){ occupato = false; return; }
@@ -191,7 +223,7 @@ async function stacca(opz = {}){
   el.remove();
   if(sotto){
     sotto.classList.remove("anima", "sotto");
-    sotto.style.transform = ""; sotto.style.removeProperty("--velo");
+    aRiposo(sotto); sotto.style.removeProperty("--velo");
   }
   invia("nav/pop", {tab}, {locale:true});
   occupato = false;

@@ -38,7 +38,10 @@ export const cliente = {
   /* numero inventato, sulla decade 347 e con un gruppo che non esiste come
      prefisso reale: non deve poter squillare a casa di nessuno. */
   telefono: "+39 347 55 12 908",
-  email: "lucia.sabatini@example.it",
+  /* DATO DI PROVA, DICHIARATO: un indirizzo chiaramente finto, senza un
+     dominio reale di terzi (niente `.it`/`.com` che potrebbe esistere
+     davvero) — vedi il README dei dati. */
+  email: "lucia@reginajewels.prova",
   consenso_email: true,
   consenso_sms: true,
   consenso_data: "2025-03-08",
@@ -330,11 +333,11 @@ export const preferenze = {
 export const notifiche = [
   { id: "not-1", tipo: "arrivo", data: "2026-09-10",
     titolo: "Sono arrivate le Creole Grandi",
-    testo: "Acciaio dorato, 18 mm. Le teniamo da parte se ci dici di si'.",
+    testo: "Acciaio dorato, 18 mm. Le teniamo da parte se ci dici di sì.",
     articolo: "creola-grande", letta: true },
   { id: "not-2", tipo: "collezione", data: "2026-09-14",
     titolo: "A Filo di Luce manca un pezzo solo",
-    testo: "Il Pendente Filo è l'ultimo. Alla chiusura l'incisione è compresa.",
+    testo: "Il Pendente Filo è l’ultimo. Alla chiusura l’incisione è compresa.",
     collezione: "filo", letta: false },
   { id: "not-3", tipo: "compleanno", data: "2026-09-17",
     titolo: "Dal 24 il tuo credito vale il doppio",

@@ -333,11 +333,15 @@ export function montaIngresso(store, opz = {}) {
      IL COFANETTO È UN ASTUCCIO VERO, IN TRE DIMENSIONI, e dentro c'è il
      PEZZO — il modello vero preso dal .glb della sua famiglia, non una
      fotografia ritagliata appoggiata in un vano. Ogni famiglia ha il suo
-     astuccio e il suo mestiere: l'anello sta IN PIEDI fra due rulli, gli
-     orecchini INFILATI in un cartoncino forato, la collana POSATA su una
-     sella, il bracciale BLOCCATO sotto due linguette, l'orologio
-     APPOGGIATO su un cuscino. Se l'interno non cambia mestiere, la
-     famiglia non esiste.
+     astuccio e il suo mestiere — e dal 21/09 quel mestiere viene dalle
+     FOTO VERE dei fornitori (`riferimenti/ASTUCCI.md`), non dalle loro
+     schede: l'anello sta IN PIEDI in UNA fenditura tagliata in un
+     cuscinetto unico, gli orecchini su un PANNELLO INCLINATO (aletta
+     coi due tagli per i perni, cuscino coi due tagli in alto per i
+     pendenti), la collana POSATA su un cuscino piatto che sale nelle
+     DUE TACCHE del bordo di dietro, il bracciale POSATO e fermato da
+     due elastici, l'orologio col GUANCIALE dentro il cinturino. Se
+     l'interno non cambia mestiere, la famiglia non esiste.
      La scena sta nel telaio `astuccio.html`; qui restano i TESTI, il
      tasto e la voce — cioè tutto ciò che ha bisogno del carattere, del
      lettore di schermo e della tastiera, e che dentro un telaio vivrebbe

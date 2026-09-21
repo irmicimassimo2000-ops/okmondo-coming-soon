@@ -1672,3 +1672,50 @@ html,body{background-color:var(--scocca);
 /* LA FASCIA DEL COFANETTO, rimisurata (vedi causa 3). */
 body[data-nav="c"][data-sez="cofanetto"] #fascia{
   height:calc(84px + env(safe-area-inset-bottom))}
+
+/* ═══ 21/09/2026 · LA VETRINA DIVENTA UN NEGOZIO, E DIVENTA DI CARTA ═══
+   Direzione A «Boutique», scelta da Massimo. Si AGGIUNGE in coda e non
+   si tocca niente di sopra.
+
+   1 · I TOKEN CHE MANCAVANO.
+   `--provino` è il campo dei packshot (#E7E0D3, lo stesso valore di
+   `PROVINO_FONDO` in `app/dati/provini.js`: la cella si tinge di questo
+   e il provino ci si fonde dentro senza bordo). La SCALA DEGLI SPAZI
+   4/8 aveva un solo nome (`--u`): le viste scrivevano 6, 10, 14, 18 a
+   mano — il banco li contava come «spazi fuori griglia». Da qui in poi
+   uno spazio si chiama. `--r-mini` è il raggio delle miniature da 80;
+   `--scrim` è il velo sotto un foglio che vive nella pila. */
+:root{
+  --provino:#E7E0D3;
+  --s-05:2px; --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px;
+  --s-6:24px; --s-8:32px; --s-12:48px; --s-24:96px;
+  --r-mini:8px;
+  --scrim:rgb(20 17 14/.42);
+}
+
+/* 2 · LA BARRA DI VETRO SULLA CARTA DELLA VETRINA. La barra è approvata
+   e NON cambia: «la tinta del vetro segue la sezione» è scritto sopra
+   (blocco C), e fino a ieri la sola sezione di carta era il cofanetto.
+   Adesso sono due: stessi valori, stessa pastiglia (finitura 3), riga
+   per riga. Il fondo del documento lo scrive il telaio (`fondoScocca`
+   legge il `data-tema` della sezione). */
+body[data-nav="c"][data-sez="vetrina"]{--vetro:rgba(255,255,255,.74);
+  --riflesso:rgba(255,255,255,.90);
+  --pastiglia:color-mix(in srgb,var(--carta) 98%,transparent);
+  --pastiglia-orlo:rgba(26,22,20,.055);
+  --pastiglia-posa:0 1px 2px rgba(40,30,20,.07);
+  --stacco:0 0 0 .5px rgba(26,22,20,.07), 0 2px 8px -4px rgba(40,30,20,.16);
+  --acceso:var(--firma);
+  --spento:rgba(42,33,27,.70);
+  --spento-su:rgba(42,33,27,1)}
+body[data-nav="c"][data-sez="vetrina"] #fascia{background:var(--carta)}
+
+/* 3 · LO SCHELETRO DELL'ELENCO, mentre il corpo della vetrina arriva a
+   richiesta (`viste/vetrina.js`): la forma vera, monocroma e ferma. */
+.va-ossa{display:grid;gap:var(--s-4);
+  padding:calc(var(--safe-t) + var(--s-2)) max(var(--margine),var(--safe-dx)) 0
+          max(var(--margine),var(--safe-sx))}
+.va-osso-titolo{width:40%;height:var(--s-8)}
+.va-osso-riga{width:100%;height:var(--s-8);border-radius:var(--r-capsula)}
+.va-ossa-griglia{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-5) var(--s-3)}
+.va-osso-quadro{aspect-ratio:1/1;border-radius:var(--r-card)}

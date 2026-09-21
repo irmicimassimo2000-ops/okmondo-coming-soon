@@ -1,347 +1,646 @@
 /* ═══════════════════════════════════════════════════════════════════
-   app/viste/vetrina.css — F4 · quello che la VETRINA aggiunge.
+   app/viste/vetrina.css — LA VETRINA «BOUTIQUE» (direzione A, 21/09).
 
-   Regola d'ingaggio: qui dentro non nasce nessun colore e nessun corpo
-   di carattere. Solo ruoli e token di `app/sistema.css` — `--testo`,
-   `--piano`, `--accento`, `--linea`, le sei durate, le due curve, la
-   griglia da 8. Un hex nudo in questo file sarebbe un colore che il
-   tema non sa spegnere.
+   Regola d'ingaggio, la stessa di prima: qui non nasce nessun colore,
+   nessun corpo di carattere e nessuna misura sciolta. Ruoli e token di
+   `app/sistema.css` — `--testo`, `--piano`, `--incavo`, `--provino`,
+   la scala degli spazi `--s-*` (4/8), i raggi, le durate, le curve.
 
-   Quello che NON c'è qui, e non è una dimenticanza: la griglia due
-   colonne (`.griglia-pezzi`), la cella-pezzo (`.pezzo-cella`), la riga
-   dei chip (`.elenco-seg`, `.chip-tocco`), il redatto (`.redatto`), i
-   tondi della collezione (`.tondo`). Esistono già nel sistema, scritte
-   per il foglio del cofanetto, e si riusano tali e quali: due schermate
-   che mostrano gioielli a due colonne devono mostrarli nello stesso
-   modo, o sono due app.
+   TRE CORPI PER SCHERMATA, come le tavole: 28 (Bodoni, `--t-1`) per il
+   titolo o il totale, 17 (`--t-body`/`--t-head`) per ciò che si legge e
+   si tocca, 13 (`--t-foot`) per ciò che accompagna.
+   NERO SOLO su nome, prezzo, titolo e sulla data della conferma; tutto
+   il resto è `--testo-2`. L'ACCENTO turchese è UNO per schermata (il
+   primario, quando non è Apple Pay); `--errore` compare in un posto
+   solo — la riga sotto i tasti — e arriva con segno e parola.
+
+   In coda restano le regole `vt-*` delle tre schermate conservate
+   («Da parte», il negozio, la lista di chi regala).
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ═══ S1 · IL CATALOGO ══════════════════════════════════════════════ */
+/* ═══ S1 · L'ELENCO ═════════════════════════════════════════════════ */
 
-/* LA CAPSULA DEL CONTEGGIO, in barra a destra. Il bersaglio è 44
-   pieni (il <button>); quello che si VEDE è la pastiglia dentro, più
-   piccola, con lo scavalco trasparente tutto intorno — lo stesso
-   trucco di «Annulla» nella pillola da 36 e della capsula «Elenco». */
-.vt-cap{display:inline-flex;align-items:center;justify-content:flex-end;
-  min-width:var(--tocco-min);min-height:var(--tocco-min);
-  margin-right:-8px;padding:0 8px;border:0;background:none;cursor:pointer;
-  color:var(--accento);
-  transition:transform var(--d-tocco) var(--ios)}
-.vt-cap:active{transform:scale(.97)}
-.vt-cap:focus-visible{outline:none}
-.vt-cap:focus-visible .vt-cap-pil{outline:2px solid var(--accento);outline-offset:2px}
-.vt-cap-pil{display:inline-flex;align-items:center;gap:5px;
-  height:calc(var(--u) * 4);padding:0 10px;border-radius:var(--r-capsula);
-  background:color-mix(in srgb,var(--accento) 16%,transparent)}
-.vt-cap .segno-filo{transform:translateY(-1px)}
-/* il conteggio prende il grado pieno del testo: su fondo velato
-   `--accento` fa 5,7:1 nel tema scuro, e non scende mai sotto. */
-.vt-conto{font:var(--t-foot);color:var(--accento)}
-
-/* LA RIGA D'APERTURA — Bodoni 22, subito sotto il titolo grande.
-   È la sola cosa in questa schermata che una griglia di gioielli non
-   ha per conto suo: due numeri veri e una dichiarazione di cosa l'app
-   NON è («gli altri li vedi in negozio»). Sta nel corpo del display
-   perché è voce del negozio, non didascalia. */
-.vt-apertura{margin:-4px 0 18px;color:var(--testo);max-width:22em}
-
-/* LA CELLA DEL CATALOGO — tre righe sotto la fotografia, SEMPRE le
-   stesse tre, sempre nello stesso ordine e negli stessi pesi. Baymard
-   misura che il 64% dei siti cambia gli attributi da una cella
-   all'altra e che i partecipanti scartavano pezzi credendo che
-   mancasse qualcosa: una cella con una riga in meno legge come un
-   pezzo con qualcosa in meno. */
-/* `min-width:0` NON è ornamento: una colonna di griglia parte da
-   `auto`, cioè dal contenuto minimo, e un testo a riga unica non ha
-   contenuto minimo — la cella si allarga oltre metà schermo e la
-   griglia esce dal telefono. Misurato: senza questa riga il catalogo
-   scorreva in orizzontale. */
-.vt-cella{gap:6px;min-width:0}
-.vt-scatto{position:relative;display:block}
-.vt-cella .fig{display:block;width:100%;aspect-ratio:4/5;
-  border-radius:var(--u);background:var(--incavo);object-fit:cover}
-/* il redatto tiene il CENTRO: il nome sta in mezzo al posto vuoto, come
-   nel foglio del cofanetto. Qui si dichiara solo la misura del posto —
-   toccare anche il `display` lo schiaccerebbe in alto a sinistra, e
-   l'occhiello «Nuovo» ci finirebbe sopra. Difetto visto a schermo. */
-.vt-cella .senza-foto{width:100%;aspect-ratio:4/5;border-radius:var(--u)}
-/* NOME, MATERIA, PREZZO. Il nome sta su UNA riga (i nomi di Regina
-   arrivano a «Bracciale Maglia Larga», 22 caratteri, e a 15 px in una
-   colonna da 173 ci stanno); la MATERIA sta su DUE, sempre, e il posto
-   è alto due righe anche quando ne basta una.
-   Perché due e non una tagliata: «Acciaio dorato e cabochon turchese»
-   su una riga diventava «Acciaio dorato e cabocho…», che non dice né
-   la materia né la pietra. Perché l'altezza è FISSA: una cella che
-   cresce di 18 px disallinea i prezzi fra le due colonne — in una
-   griglia si misura, non si spera. Le due righe le tiene `line-clamp`,
-   che è un fermo di sicurezza: chi sfora davvero lo scopre `vetrina.js`
-   misurando, e scende alla materia principale invece di tagliare. */
-.vt-cella b{display:block;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  font:var(--t-sub);font-weight:400;color:var(--testo)}
-.vt-materia{display:-webkit-box;-webkit-box-orient:vertical;
-  -webkit-line-clamp:2;line-clamp:2;overflow:hidden;
-  margin-top:-2px;font:var(--t-foot);color:var(--testo-2);
-  /* 2 × 18 px di interlinea di `--t-foot`: il posto c'è sempre */
-  height:36px}
-.vt-prezzo{display:block;font:var(--t-sub);color:var(--testo)}
-
-/* L'OCCHIELLO «NUOVO» — una parola, maiuscoletto, in alto a sinistra,
-   su uno scrim che non è una tinta ma il fondo del tema tirato
-   sull'88%: così regge sopra una fotografia chiara come sopra una
-   scura senza sapere cosa c'è sotto. Mai due occhielli sulla stessa
-   cella, mai un badge colorato (reference 47, anti-pattern 3). */
-.vt-nuovo{position:absolute;left:var(--u);top:var(--u);
-  padding:3px 7px;border-radius:5px;
-  background:color-mix(in srgb,var(--notte) 88%,transparent);
-  color:var(--luce)}
-
-/* IL SEGNO «3D» — a filo, in basso a destra, sulla stessa materia
-   dell'occhiello. Dice che il pezzo esiste anche sul banco; non è un
-   tasto, e infatti non si tocca: il tasto è tutta la cella. */
-.vt-3d{position:absolute;right:var(--u);bottom:var(--u);
-  display:grid;place-items:center;width:26px;height:26px;
-  border-radius:var(--r-capsula);
-  background:color-mix(in srgb,var(--notte) 88%,transparent);
-  color:var(--luce)}
-
-/* ═══ S2 · LA PAGINA DEL PEZZO ══════════════════════════════════════ */
-
-/* LA GALLERIA A PAGINE. Tutta larghezza — la fotografia di un gioiello
-   indossato non si rientra: si guarda. I fermi sono quelli del
-   browser (`scroll-snap`), non una libreria. */
-/* 12 e non 18 sotto la galleria: sono i sei punti che tengono la riga
-   della materia sopra il filo della fascia ancorata a pagina ferma.
-   Misurato nella sonda `_E2_finitura.mjs` («la fascia non copre la
-   testa»), non stimato. */
-.vt-gal-avvolge,.vt-gal-uno{position:relative;
-  margin:0 calc(-1 * max(var(--margine),var(--safe-sx)))
-        12px calc(-1 * max(var(--margine),var(--safe-dx)))}
-.vt-gal{display:flex;overflow-x:auto;overflow-y:hidden;
-  scroll-snap-type:x mandatory;overscroll-behavior-x:contain;
-  scrollbar-width:none}
-.vt-gal::-webkit-scrollbar{display:none}
-.vt-gal-pag{flex:0 0 100%;scroll-snap-align:start}
-.vt-gal-fig,.vt-gal-uno .fig,.vt-gal-uno .senza-foto{
-  display:block;width:100%;aspect-ratio:4/5;object-fit:cover;
-  background:var(--incavo)}
-.vt-gal-uno .senza-foto{display:grid;place-items:center;padding:24px;
-  text-align:center;border-radius:0}
-
-/* I PUNTI: 6 px, la stessa misura del badge-punto del sistema, a 12 dal
-   fondo. Il punto attivo non cambia misura — cambia grado di colore:
-   un punto che cresce sposta gli altri, e cinque punti che ballano per
-   una foto sono più movimento del contenuto che annunciano. */
-.vt-punti{position:absolute;left:0;right:0;bottom:12px;
-  display:flex;gap:var(--u);justify-content:center;pointer-events:none}
-.vt-punto{width:6px;height:6px;border-radius:var(--r-capsula);
-  background:color-mix(in srgb,var(--luce) 40%,transparent);
-  transition:background var(--d-alert) var(--ios)}
-.vt-punto.qui{background:var(--luce)}
-
-.vt-testa{margin:0 0 18px}
-.vt-nome{margin-bottom:4px;color:var(--testo)}
-.vt-testa .t-sub{margin-bottom:6px}
-.vt-prezzo-pdp{color:var(--testo)}
-/* LA PROVENIENZA — «REGINA · SAN SEVERO», maiuscoletto 13, `--testo-2`.
-   Occhiello e non accento: è un fatto, non uno stato e non un comando,
-   e in questa app il turchese vuol dire «si può fare qualcosa». */
-.vt-provenienza{display:block;margin:0 0 5px;color:var(--testo-2)}
-
-/* «LA MISURA» — un piano, non una lista: è una spiegazione, e una
-   spiegazione dentro una lista raggruppata diventa una riga che
-   qualcuno prova a toccare. */
-.vt-misura{padding:15px var(--margine) 12px;
-  border-radius:var(--r-lista);background:var(--piano)}
-.vt-misura p{margin-bottom:6px}
-.vt-misura .tasto{margin-left:-8px;color:var(--accento)}
-
-/* IL FOGLIO DELLA GUIDA */
-.vt-guida-riga{margin-bottom:16px}
-.vt-guida-riga b{display:block;margin-bottom:3px;color:var(--testo)}
-.vt-guida .vt-nota{margin:2px 0 16px;text-align:left}
-
-/* IL PEZZO IN PAGINA, e il tondo che lo indica: il posto di questo
-   pezzo nella collezione si vede, e non serve dirlo con una parola. */
-.tondo.questo{box-shadow:inset 0 0 0 2px var(--accento)}
-
-/* LE AZIONI — un primario solo per schermata, e sotto la frase che
-   dice cos'e'. La frase NON è un dettaglio di cortesia: senza, il
-   tasto legge come un carrello, e questa è una riserva senza
-   pagamento. */
-.vt-azioni{display:flex;flex-direction:column;align-items:stretch;
-  gap:var(--u);margin:22px 0 4px}
-.vt-nota{text-align:center;margin:0}
-/* il percorso umano, in pagina e non sotto il pollice: tasto di testo,
-   allineato a sinistra come «Come misuro il dito», e con lo stesso
-   scavalco di 8 px che il terziario si porta dentro. */
-.vt-sotto{display:flex;margin:18px 0 4px 0}
-.vt-sotto .tasto{margin-left:-8px;justify-content:flex-start}
-/* l'azione di testo in una riga sua: il bersaglio è 44 pieno
-   (`.tasto.terziario`), l'allineamento ottico si recupera dagli 8 px di
-   respiro che il tasto si porta dentro. */
-.vt-riga-testuale{display:flex;margin-left:-8px}
-
-/* ── LA FASCIA ANCORATA DEL PEZZO ─────────────────────────────────
-   Il primario resta SOPRA LA PIEGA insieme al prezzo, come su Cartier e
-   Mejuri: si ancora sopra la barra delle sezioni e ci resta finché c'è
-   pagina sotto. Il `bottom` è lo scavalco della capsula di vetro (gli
-   stessi 96 px che `.pagina` già si riserva sotto in `data-nav="c"`),
-   meno l'aria che la fascia si porta dentro.
-   Materiale REGULAR (30/.72): la regola dei materiali dice barre e
-   fogli, e una fascia ancorata è una barra. Il filo in alto la stacca
-   dal contenuto che le passa dietro. */
-/* Il `bottom` vale 48 e non 96: sotto lo scroller c'è già `#fascia`,
-   46 punti di fondale che il telaio si tiene per la capsula delle
-   sezioni, quindi 96 lascerebbero sessanta punti di vuoto sopra la
-   capsula. Il margine negativo di pari misura mangia la metà di riserva
-   che `.pagina` tiene in coda (`safe-b + 96`): così la fascia sta allo
-   STESSO posto mentre si scorre e a scorrimento finito — se i due
-   numeri non combaciano, all'ultimo tratto la barra fa un salto. */
-.vt-fascia{position:sticky;z-index:4;
-  bottom:calc(var(--safe-b) + 48px);
-  display:block;
-  margin:26px calc(-1 * max(var(--margine),var(--safe-sx)))
-         calc(-1 * (var(--safe-b) + 48px)) calc(-1 * max(var(--margine),var(--safe-dx)));
-  padding:9px max(var(--margine),var(--safe-dx)) 11px
+/* LA TESTA: titolo + borsa, 44 punti più la safe-area. È l'unico cromo
+   fisso; chip e strumenti scorrono via col contenuto. */
+.va-testa{position:sticky;top:0;z-index:6;
+  display:flex;align-items:center;justify-content:space-between;
+  min-height:calc(var(--safe-t) + var(--tocco-min));
+  padding:var(--safe-t) max(var(--margine),var(--safe-dx)) 0
           max(var(--margine),var(--safe-sx));
-  box-shadow:inset 0 1px 0 var(--linea)}
-/* PREZZO E INVITO NELLO STESSO RETTANGOLO, su una riga: il prezzo tiene
-   il suo posto a sinistra (larghezza minima dichiarata, così due prezzi
-   di lunghezza diversa non fanno ballare la capsula) e la capsula prende
-   tutto il resto. */
-.vt-fascia-riga{display:flex;align-items:center;gap:14px}
-.vt-fascia-riga .vt-prezzo-pdp{flex:none;min-width:72px;color:var(--testo)}
-.vt-fascia-riga .tasto{flex:1 1 auto;padding:0 16px}
-.vt-fascia .vt-nota{margin-top:5px}
-/* la materia della scheda può andare a capo: è sotto il titolo, non in
-   una griglia, e non ha nessun prezzo da tenere allineato. */
-.vt-materia-pdp{margin-bottom:0}
-/* il tasto che è diventato uno STATO: resta pieno (è successo
-   qualcosa), ma non chiama più — il peso scende sul filo. */
-.tasto.vt-tenuto{background:none;color:var(--accento);
-  box-shadow:inset 0 0 0 1px var(--linea)}
-/* i due <a> vestiti da tasto: un collegamento che porta fuori
-   dall'app resta un collegamento, ma pesa come il tasto che affianca. */
-a.tasto{text-decoration:none}
-a.tasto.largo{display:flex;width:100%}
+  background:var(--fondo);
+  transition:background var(--d-alert) ease}
+.va-testa.posata{background:color-mix(in srgb,var(--fondo) 72%,transparent);
+  -webkit-backdrop-filter:saturate(180%) blur(30px);
+  backdrop-filter:saturate(180%) blur(30px)}
+.va-testa.posata::after{content:"";position:absolute;left:0;right:0;bottom:0;
+  height:1px;background:var(--linea);transform:scaleY(.333);transform-origin:bottom}
+.va-titolo{font:var(--t-1);letter-spacing:var(--ls-display);font-optical-sizing:auto;
+  color:var(--testo)}
+.va-titolo:focus,.va-nome-pezzo:focus,.va-pannello-titolo:focus{outline:none}
 
-.vt-coda{margin:6px 0 0}
-.vt-riga-testo{margin-bottom:8px}
+/* LA BORSA col conteggio: 44 di bersaglio, la capsula del numero in tono */
+.va-borsa{display:inline-flex;align-items:center;justify-content:flex-end;gap:var(--s-1);
+  min-width:var(--tocco-min);min-height:var(--tocco-min);
+  margin-right:calc(-1 * var(--s-2));padding:0 var(--s-2);
+  border:0;background:none;cursor:pointer;color:var(--testo);
+  -webkit-tap-highlight-color:transparent;
+  transition:transform var(--d-tocco) var(--molla)}
+.va-borsa:active{transform:scale(.94)}
+.va-borsa:focus-visible,.va-x:focus-visible,.va-chiudi:focus-visible,
+.va-strumento:focus-visible,.va-riga-pref:focus-visible,.va-cella-apri:focus-visible,
+.va-ev:focus-visible,.va-preferito:focus-visible,.va-passo:focus-visible,
+.va-collassata:focus-visible,.va-ordine:focus-visible,.va-cambia:focus-visible,
+.va-capsula:focus-visible,.va-chip:focus-visible{
+  outline:2px solid var(--accento);outline-offset:-2px;border-radius:var(--r-campo)}
+.va-conto{display:grid;place-items:center;min-width:calc(var(--u) * 2.5);
+  height:calc(var(--u) * 2.5);padding:0 var(--s-1);
+  border-radius:var(--r-capsula);background:var(--piano);
+  font:var(--t-foot);font-weight:600;color:var(--testo)}
+.va-conto[hidden]{display:none}
 
-/* ═══ S3 · DA PARTE ═════════════════════════════════════════════════ */
+.va-pagina{padding:0 0 calc(var(--safe-b) + var(--s-24))}
 
-/* LA RIGA: foto 44, due righe di testo, lo stato accanto all'oggetto
-   (regola 5 del sistema: lo stato si dice accanto alla cosa, non in
-   una barra in cima) e «Togli» a filo, con il suo bersaglio da 44. */
-/* LA MINIATURA CHE NON C'E'. A 44 px il nome dentro il redatto non ci
-   sta e usciva dal riquadro sopra il testo della riga: a quella misura
-   il posto vuoto basta da solo — il nome sta già accanto, in chiaro. */
-.cella .senza-foto{overflow:hidden;box-shadow:inset 0 0 0 1px var(--linea)}
-.cella .senza-foto span{display:none}
-.vt-riga{gap:12px;min-height:72px;padding-right:var(--u)}
-.vt-riga .testo{flex:1 1 auto;min-width:0}
-.vt-riga .testo b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* la specificita' va dichiarata, non sperata: `.cella .testo span` del
-   sistema pesa (0,2,1) e vince su una classe sola — lo stato «viva»
-   usciva grigio invece che in accento. Si pareggia con il contesto. */
-/* IL TURCHESE È UNO SOLO PER SCHERMATA, oltre al primario, e in questa
-   schermata è «Lo regalo io». Lo stato della riserva era in accento e
-   i tre «Togli» pure: quattro turchesi sopra una capsula turchese
-   rendono la capsula una delle cinque cose turchesi invece che LA cosa
-   da fare. Lo stato lo dicono le PAROLE («Da parte fino al 22/09»
-   contro «In attesa»), non il colore; «Togli» resta un comando, e un
-   comando secondario in una lista di tre si legge benissimo in
-   `--testo-2` (5,4 su carta, 8,0 su velluto). */
-.vt-riga .testo .vt-stato{display:block;margin-top:1px;
-  font:var(--t-foot);color:var(--testo-2);
+/* I CHIP DI FAMIGLIA: una riga sola che scorre; 32 a vedersi, 44 a
+   toccarsi (lo scavalco è del tasto, non della riga). */
+.va-chips{display:flex;gap:var(--s-2);overflow-x:auto;scrollbar-width:none;
+  padding:0 max(var(--margine),var(--safe-dx)) 0 max(var(--margine),var(--safe-sx))}
+.va-chips::-webkit-scrollbar{display:none}
+.va-chip{flex:none;display:inline-flex;align-items:center;
+  min-height:var(--tocco-min);padding:0;border:0;background:none;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.va-chip span{display:inline-flex;align-items:center;height:var(--seg);
+  padding:0 var(--s-4);border-radius:var(--r-capsula);
+  background:var(--piano);color:var(--testo-2);
+  font:var(--t-foot);font-weight:600;white-space:nowrap;
+  transition:background var(--d-alert) ease,color var(--d-alert) ease,
+    transform var(--d-tocco) var(--molla)}
+.va-chip:active span{transform:scale(.96)}
+.va-chip[aria-pressed="true"] span{background:var(--testo);color:var(--fondo)}
+
+/* LA RIGA STRUMENTI (NAP): «Filtri · N pezzi» a sinistra, ordinamento a
+   destra. 13 grigio, in nero solo la parola che comanda. */
+.va-strumenti{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);
+  padding:0 max(var(--margine),var(--safe-dx)) 0 max(var(--margine),var(--safe-sx))}
+.va-strumento{position:relative;display:inline-flex;align-items:center;gap:var(--s-2);
+  min-height:var(--tocco-min);padding:0;border:0;background:none;cursor:pointer;
+  font:var(--t-foot);color:var(--testo-2);white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+  transition:opacity var(--d-tocco) linear}
+.va-strumento:active{opacity:.55}
+.va-strumento b{font-weight:600;color:var(--testo)}
+.va-strumento .segno-filo{color:var(--testo)}
+.va-giu{transform:rotate(90deg)}
+.va-giu.va-su{transform:rotate(-90deg)}
+.va-sx{transform:scaleX(-1)}
+/* l'ordinamento è un <select> VERO, invisibile sopra l'etichetta: su
+   iPhone apre il menu di sistema, da tastiera si usa con le frecce */
+.va-select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;
+  font:var(--t-body)}
+.va-ordina:has(.va-select:focus-visible){outline:2px solid var(--accento);
+  outline-offset:2px;border-radius:var(--r-campo)}
+
+/* «PREFERITI · N»: la riga sotto gli strumenti (H&M «44 ITEMS»). I
+   preferiti vivono qui perché la barra approvata ha quattro voci. */
+.va-riga-pref{display:flex;align-items:center;gap:var(--s-2);width:100%;
+  min-height:var(--tocco-min);border:0;background:none;cursor:pointer;
+  padding:0 max(var(--margine),var(--safe-dx)) 0 max(var(--margine),var(--safe-sx));
+  font:var(--t-foot);font-weight:600;color:var(--testo);text-align:left;
+  -webkit-tap-highlight-color:transparent;
+  transition:opacity var(--d-tocco) linear}
+.va-riga-pref[hidden]{display:none}
+.va-riga-pref:active{opacity:.55}
+.va-riga-pref-t{flex:1 1 auto}
+.va-freccia{flex:none;color:var(--testo-2)}
+.va-pieno path{fill:currentColor}
+
+/* LA GRIGLIA: due colonne, nessuna cornice fra le celle. */
+.va-corpo-elenco{padding:var(--s-2) max(var(--margine),var(--safe-dx)) 0
+  max(var(--margine),var(--safe-sx))}
+.pagina > .va-corpo-elenco{padding-left:0;padding-right:0}
+.va-griglia{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-5) var(--s-3)}
+.va-griglia + .va-griglia{margin-top:var(--s-6)}
+.va-cella{position:relative;min-width:0}
+.va-cella-apri{display:block;width:100%;padding:0;border:0;background:none;
+  cursor:pointer;text-align:left;color:var(--testo);
+  -webkit-tap-highlight-color:transparent}
+.va-foto{display:block;aspect-ratio:1/1;border-radius:var(--r-card);overflow:hidden;
+  background:var(--provino);margin-bottom:var(--s-2);
+  transition:transform var(--d-tocco) var(--molla)}
+.va-cella-apri:active .va-foto{transform:scale(.98)}
+.va-fig{display:block;width:100%;height:100%;object-fit:contain}
+.va-cella-testi{display:grid;gap:var(--s-05)}
+.va-eti{display:block;font:var(--t-foot);color:var(--testo-2)}
+.va-nome{display:block;font:var(--t-body);color:var(--testo);text-wrap:balance}
+.va-materia{display:block;font:var(--t-foot);color:var(--testo-2);
+  white-space:nowrap;overflow:hidden}
+.va-prezzo{display:block;font:var(--t-head);color:var(--testo)}
+
+/* IL CUORE: fratello della cella, in alto a destra dell'immagine. 44 di
+   bersaglio, un disco da 36 a vedersi, carta all'82%. */
+.va-cuore{position:absolute;top:0;right:0;display:grid;place-items:center;
+  width:var(--tocco-min);height:var(--tocco-min);padding:0;border:0;background:none;
+  cursor:pointer;color:var(--testo);-webkit-tap-highlight-color:transparent}
+.va-cuore-disco,.va-chiudi-disco{display:grid;place-items:center;
+  width:calc(var(--u) * 4.5);height:calc(var(--u) * 4.5);border-radius:var(--r-capsula);
+  background:color-mix(in srgb,var(--fondo) 82%,transparent);
+  transition:transform var(--d-tocco) var(--molla)}
+.va-cuore:active .va-cuore-disco,.va-chiudi:active .va-chiudi-disco{transform:scale(.9)}
+.va-cuore:focus-visible{outline:none}
+.va-cuore:focus-visible .va-cuore-disco{outline:2px solid var(--accento);outline-offset:2px}
+
+/* LA CELLA DI SOLO TESTO — i dodici pezzi senza fotografia. Mai un
+   riquadro vuoto: un filo in testa, poi famiglia, nome, materia,
+   prezzo. Stanno in fondo, in una griglia loro. */
+/* il cuore occupa solo l'angolo: gli fanno posto le prime due righe,
+   la materia si prende tutta la colonna (e due righe, sempre: i prezzi
+   di due celle vicine restano allineati) */
+.va-senza .va-cella-apri{padding:var(--s-3) 0 0;position:relative}
+.va-senza .va-eti,.va-senza .va-nome{padding-right:var(--tocco-min)}
+.va-senza .va-cella-apri::before{content:"";position:absolute;left:0;right:0;top:0;
+  height:1px;background:var(--linea);transform:scaleY(.333);transform-origin:top}
+.va-senza .va-cuore-disco{background:none}
+.va-senza .va-materia{white-space:normal;text-wrap:pretty;min-height:calc(var(--u) * 4.5)}
+
+/* LE PORTE IN FONDO */
+.va-coda{padding:var(--s-8) max(var(--margine),var(--safe-dx)) 0
+  max(var(--margine),var(--safe-sx))}
+.va-elenco .vuoto{padding-left:0;padding-right:0}
+
+/* ═══ S2 · LA SCHEDA ════════════════════════════════════════════════ */
+.va-scheda{display:flex;flex-direction:column;min-height:100%;
+  padding-bottom:0}
+
+/* LA GALLERIA: metà dello schermo VERO, sul campo del provino. */
+.va-gal{position:relative;flex:none;height:calc(var(--alt-vera, 100dvh) * .5);
+  background:var(--provino)}
+.va-gal-nastro{display:flex;height:100%;overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none}
+.va-gal-nastro::-webkit-scrollbar{display:none}
+.va-gal-nastro:focus-visible{outline:2px solid var(--accento);outline-offset:-2px}
+.va-gal-pag{flex:0 0 100%;height:100%;scroll-snap-align:start}
+.va-gal-fig{display:block;width:100%;height:100%}
+.va-contieni{object-fit:contain;padding-top:var(--safe-t)}
+.va-copri{object-fit:cover}
+.va-chiudi{position:absolute;top:calc(var(--safe-t) + var(--s-2));right:var(--s-2);z-index:2;
+  display:grid;place-items:center;width:var(--tocco-min);height:var(--tocco-min);
+  padding:0;border:0;background:none;cursor:pointer;color:var(--testo);
+  -webkit-tap-highlight-color:transparent}
+.va-chiudi:focus-visible{outline:none}
+.va-chiudi:focus-visible .va-chiudi-disco{outline:2px solid var(--accento);outline-offset:2px}
+.va-trattini{position:absolute;left:0;right:0;bottom:var(--s-3);
+  display:flex;gap:var(--s-2);justify-content:center;pointer-events:none}
+.va-trattini i{display:block;width:calc(var(--u) * 3.5);height:3px;
+  border-radius:var(--r-capsula);background:var(--linea);
+  transition:background var(--d-alert) var(--ios)}
+.va-trattini i.qui{background:var(--testo)}
+
+/* senza galleria (i dodici): una barra con la X, e il testo subito */
+.va-scheda-barra{display:flex;justify-content:flex-end;
+  padding:var(--safe-t) var(--s-2) 0;min-height:calc(var(--safe-t) + var(--tocco-min))}
+.va-scheda-barra .va-chiudi{position:static}
+.va-scheda-testo .va-chiudi-disco{background:none}
+
+.va-testa-pezzo{padding:var(--s-2) max(var(--margine),var(--safe-dx)) 0
+  max(var(--margine),var(--safe-sx))}
+.va-occhiello{font:var(--t-foot);color:var(--testo-2)}
+.va-nome-pezzo{margin-top:var(--s-05);font:var(--t-1);letter-spacing:var(--ls-display);
+  font-optical-sizing:auto;color:var(--testo);text-wrap:balance}
+.va-prezzo-riga{display:flex;align-items:center;justify-content:space-between;
+  min-height:var(--tocco-min)}
+.va-prezzo-pezzo{font:var(--t-head);color:var(--testo)}
+.va-preferito{display:inline-flex;align-items:center;gap:var(--s-2);
+  min-height:var(--tocco-min);padding:0 0 0 var(--s-2);border:0;background:none;
+  cursor:pointer;font:var(--t-body);color:var(--testo-2);
+  -webkit-tap-highlight-color:transparent;transition:opacity var(--d-tocco) linear}
+.va-preferito:active{opacity:.55}
+.va-preferito[aria-pressed="true"]{color:var(--testo)}
+
+/* LA RIGA ETICHETTA/VALORE (LV): etichetta grigia, valore nero, chevron */
+.va-ev{position:relative;display:flex;align-items:center;gap:var(--s-3);width:100%;
+  min-height:calc(var(--u) * 6.5);padding:0;border:0;background:none;cursor:pointer;
+  font:var(--t-body);text-align:left;-webkit-tap-highlight-color:transparent;
+  transition:opacity var(--d-tocco) linear}
+.va-ev:active{opacity:.55}
+.va-ev::before,.va-fatti::before,.va-collezione::before{content:"";position:absolute;
+  left:0;right:0;top:0;height:1px;background:var(--linea);
+  transform:scaleY(.333);transform-origin:top}
+.va-ev-eti{flex:1 1 auto;color:var(--testo-2)}
+.va-ev-valore{flex:none;color:var(--testo);text-align:right}
+
+.va-sotto{padding:0 max(var(--margine),var(--safe-dx)) 0
+  max(var(--margine),var(--safe-sx))}
+.va-fatti{position:relative;display:grid;grid-template-columns:auto 1fr;
+  gap:var(--s-3) var(--s-4);padding:var(--s-4) 0;font:var(--t-body)}
+.va-fatti dt{color:var(--testo-2)}
+.va-fatti dd{color:var(--testo);text-align:right}
+.va-collezione{position:relative;display:grid;gap:var(--s-3);padding:var(--s-4) 0}
+.va-collezione-t{display:flex;justify-content:space-between;gap:var(--s-3);font:var(--t-body)}
+.va-nota-pezzo{font:var(--t-foot);color:var(--testo-2);max-width:34em}
+.va-sotto > .va-nota-pezzo{padding:var(--s-2) 0 var(--s-4)}
+.va-daparte-riga{display:grid;justify-items:start;gap:0;padding-bottom:var(--s-4)}
+/* senza questa riga `hidden` non basta: un `display` d'autore vince
+   sempre sul default dell'agente utente, a parità di specificità —
+   trovato qui (scheda esaurita, 21/09) e già noto altrove nel foglio. */
+.va-daparte-riga[hidden]{display:none}
+/* azione di TESTO del sistema (terziario, accento): premuta resta testo */
+.va-daparte{margin-left:calc(-1 * var(--s-2))}
+.tasto.va-daparte[aria-pressed="true"]{background:none;color:var(--testo)}
+.tondo.questo{box-shadow:inset 0 0 0 2px var(--testo)}
+
+/* IL FONDO ANCORATO: la riga del ritiro e i tasti, SEMPRE a vista.
+   Arriva fino in fondo allo strato e si tiene 48 punti sotto i tasti —
+   i 36 di cui la capsula di vetro scavalca lo strato, più 12 di aria —
+   PIENI del fondo: così dietro il vetro non trapela la pagina che
+   scorre. Il margine superiore `auto` lo spinge in fondo quando la
+   scheda è corta. */
+.va-fondo{position:sticky;z-index:4;bottom:0;margin-top:auto;
+  display:grid;gap:var(--s-2);
+  /* i 48 sono la capsula di vetro (36 + 12 d'aria); l'area sicura del
+     dispositivo si somma, non li sostituisce — su un iPhone col
+     cursore in basso l'errore di un Apple Pay rifiutato dalla scheda
+     resta comunque sopra entrambi. */
+  padding:var(--s-2) max(var(--margine),var(--safe-dx))
+          calc(var(--s-12) + env(safe-area-inset-bottom))
+          max(var(--margine),var(--safe-sx));
+  background:linear-gradient(transparent,var(--fondo) var(--s-2))}
+.va-ritiro{display:flex;align-items:flex-start;gap:var(--s-2);
+  font:var(--t-foot);color:var(--testo-2);text-wrap:balance}
+.va-ritiro .segno-filo{margin-top:var(--s-05)}
+.va-ritiro[hidden]{display:none}
+.va-tasti{display:grid;gap:var(--s-3)}
+.va-coppia{grid-template-columns:1fr 1fr}
+.va-tasto-largo{display:flex;width:100%;padding:0 var(--s-3);white-space:nowrap}
+a.va-tasto-largo{text-decoration:none}
+/* il secondario IN TONO: stessa misura del primario, contenitore
+   `--incavo`, testo nero. Non è un filo: accanto ad Apple Pay nero un
+   tasto a filo sparisce, e due pieni sono due primari. */
+.tasto.va-tono{background:var(--incavo);color:var(--testo)}
+.tasto.va-tono[aria-pressed="true"]{background:var(--incavo);color:var(--testo-2)}
+/* APPLE PAY: nero, mai attenuato (linee guida Apple). Dove il browser
+   sa disegnare il tasto ufficiale lo disegna lui. */
+.tasto.va-applepay{background:var(--notte);color:var(--luce);padding:0 var(--s-3)}
+.va-applepay-ripiego{display:inline-flex;align-items:center;gap:var(--s-1);
+  font:var(--t-head)}
+.va-applepay-ripiego svg{transform:translateY(-1px)}
+@supports (-webkit-appearance:-apple-pay-button){
+  .tasto.va-applepay{-webkit-appearance:-apple-pay-button;
+    -apple-pay-button-type:plain;-apple-pay-button-style:black}
+  .va-applepay-ripiego{display:none}
+}
+
+/* la pillola dei riscontri sopra la fascia dei tasti (vedi
+   `aggiornaCopertura`): la stessa zona del sistema, alzata di quanto è
+   alta la fascia più 8 di aria */
+body[data-va-fascia] #toast-zona{
+  bottom:calc(96px + var(--safe-b) + var(--sborda, 0px) + var(--va-fascia-h, 0px) + var(--s-2))}
+
+/* L'ERRORE: una riga SOTTO i tasti, con segno e parola, mai un banner */
+.va-errore{display:flex;align-items:flex-start;gap:var(--s-2);
+  font:var(--t-foot);color:var(--errore)}
+.va-errore[hidden]{display:none}
+.va-errore .segno-filo{margin-top:-1px}
+
+/* ═══ I FOGLI (misura, filtri, indirizzo, pagamento di prova) ═══════
+   Il foglio del sistema è alto metà schermo; questi sono A MISURA del
+   contenuto, col tasto in fondo. */
+#foglio[data-vista="va"],#foglio[data-vista="va"][data-fermo="alto"]{height:auto;
+  background:var(--fondo)}
+#foglio[data-vista="va"] h2{font:var(--t-head);letter-spacing:0;
+  padding:0 max(var(--margine),var(--safe-sx)) var(--s-2)}
+#foglio[data-vista="va"] .corpo{height:auto;
+  max-height:calc(var(--alt-vera, 100dvh) - var(--safe-t) - var(--s-24))}
+.va-foglio-corpo{display:grid;gap:var(--s-3)}
+.va-misura-tua{font:var(--t-foot);color:var(--testo-2)}
+.va-capsule{display:flex;flex-wrap:wrap;gap:var(--s-2)}
+.va-capsula{display:grid;place-items:center;min-width:calc(var(--u) * 7);
+  height:var(--tocco-min);padding:0 var(--s-4);border:0;border-radius:var(--r-capsula);
+  background:var(--piano);color:var(--testo);font:var(--t-head);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:background var(--d-alert) ease,color var(--d-alert) ease,
+    transform var(--d-tocco) var(--molla)}
+.va-capsula:active{transform:scale(.96)}
+.va-capsula[aria-pressed="true"],.va-capsula[aria-checked="true"]{
+  background:var(--testo);color:var(--fondo)}
+.va-finita{color:var(--testo-2);text-decoration:line-through;text-decoration-thickness:1.5px}
+.va-misura-piede{padding-top:var(--s-2)}
+.va-filtri{display:grid;gap:var(--s-3);padding-bottom:var(--s-2)}
+.va-filtri-t{font:var(--t-foot);font-weight:400;color:var(--testo-2)}
+.va-filtri .va-capsula{font:var(--t-body)}
+.va-foglio-corpo > .tasto.terziario{justify-self:center;font:var(--t-body);color:var(--testo-2)}
+.va-foglio-corpo > .tasto.terziario[hidden]{display:none}
+.va-prova-detto{color:var(--testo)}
+.va-campo{display:grid;gap:var(--s-1)}
+.va-campo .campo[aria-invalid="true"]{box-shadow:inset 0 0 0 1px var(--errore)}
+.va-campo-errore{font:var(--t-foot);color:var(--errore)}
+.va-campo-errore[hidden]{display:none}
+.va-indirizzo .tasto{margin-top:var(--s-2)}
+
+/* LE SOMME: etichetta grigia, valore nero; il TOTALE un gradino di
+   scala sopra i numeri che somma (canone del 16/09). */
+.va-somme{display:grid;gap:var(--s-2);padding:var(--s-2) 0}
+.va-somma{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s-3);
+  font:var(--t-body);color:var(--testo-2)}
+.va-somma[hidden]{display:none}
+.va-somma b{font-weight:400;color:var(--testo)}
+.va-totale{position:relative;margin-top:var(--s-1);padding-top:var(--s-3)}
+.va-totale::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:var(--linea);transform:scaleY(.333);transform-origin:top}
+.va-totale span{color:var(--testo)}
+/* IL TOTALE NON È PIÙ LEGGERO DEGLI ADDENDI. `--t-1` è Bodoni 400: un
+   gradino di scala sopra le righe che somma, ma un serif regular ha il
+   tratto più sottile di un sans 600 — a fianco di `.va-riga-prezzo`
+   (Inter 600, 17px) il totale si leggeva più debole pur essendo più
+   grande. Stessa famiglia del resto dei numeri (Inter), stesso peso
+   delle righe che chiude, un gradino di misura sopra (canone 16/09). */
+.va-totale b{font:600 28px/34px var(--f-testo);letter-spacing:normal;
   font-feature-settings:"tnum","lnum"}
-.vt-riga .testo .vt-stato.viva{color:var(--testo-2);font-weight:600}
+
+/* ═══ S3 · LA BORSA — un foglio dentro la pila ══════════════════════
+   `rotta.js` fa entrare ogni strato da destra: un foglio no. La
+   traslazione laterale si annulla, lo strato sotto resta fermo, e il
+   pannello sale dal basso per conto suo. */
+.strato.spinto.va-foglio-strato{transform:none !important;box-shadow:none;
+  background:none;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+.strato.sotto:has(+ .va-foglio-strato){transform:none !important}
+.strato.sotto:has(+ .va-foglio-strato)::after{opacity:0 !important}
+.va-foglio-strato.va-spento{visibility:hidden}
+.va-velo{position:absolute;inset:0;width:100%;border:0;padding:0;cursor:pointer;
+  background:var(--scrim);animation:va-appare var(--d-alert) ease both;
+  transition:opacity var(--d-ct-out) ease}
+.va-pannello{position:relative;display:flex;flex-direction:column;
+  max-height:calc(100% - var(--safe-t) - var(--s-6));
+  border-radius:var(--r-sheet) var(--r-sheet) 0 0;
+  background:var(--fondo);box-shadow:var(--ombra-sheet);
+  animation:va-sale var(--d-sheet) var(--ios) both;
+  transition:transform var(--d-push) var(--ios)}
+.va-esce .va-pannello{transform:translateY(100%)}
+.va-esce .va-velo{opacity:0}
+@keyframes va-sale{from{transform:translateY(100%)}}
+@keyframes va-appare{from{opacity:0}}
+/* la barra di vetro sotto borsa e pagamento: coperta (Apple Store Bag).
+   Lo strato che copre scende anche SOPRA la fascia che il telaio tiene
+   per la capsula (`--va-sotto` lo misura `vetrina.js`): un foglio che si
+   ferma 46 punti sopra il fondo dello schermo non è appoggiato. */
+body[data-va-copre] #barra{visibility:hidden}
+.strato.va-copre{bottom:calc(-1 * var(--va-sotto, 0px))}
+/* L'OMBRA DELLA PILA, SULLA CARTA. Quella del sistema (.55) è tarata sul
+   velluto: su uno strato chiaro diventa una riga grigia lungo il fondo.
+   Più leggera, e solo dal lato da cui lo strato entra. */
+.strato.spinto[data-tema="chiaro"]{box-shadow:-2px 0 18px -6px rgb(20 17 14/.22);
+  clip-path:inset(0 0 0 calc(-1 * var(--s-6)))}
+.strato.spinto.va-foglio-strato{clip-path:none}
+
+.va-maniglia{display:block;flex:none;width:calc(var(--u) * 4.5);height:5px;
+  margin:var(--s-1) auto 0;border-radius:var(--r-capsula);
+  background:color-mix(in srgb,var(--testo) 26%,transparent)}
+.va-pannello-testa,.va-pag-testa{flex:none;display:flex;align-items:center;
+  justify-content:space-between;min-height:var(--tocco-min);padding:0 var(--s-2)}
+.va-pannello-titolo{font:var(--t-head);color:var(--testo)}
+.va-x{display:grid;place-items:center;width:var(--tocco-min);height:var(--tocco-min);
+  padding:0;border:0;background:none;cursor:pointer;color:var(--testo);
+  -webkit-tap-highlight-color:transparent;transition:opacity var(--d-tocco) linear}
+.va-x:active{opacity:.55}
+.va-x-posto{width:var(--tocco-min)}
+.va-pannello-corpo{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  padding:0 max(var(--margine),var(--safe-dx)) 0 max(var(--margine),var(--safe-sx))}
+.va-pannello-piede{flex:none;display:grid;gap:var(--s-2);
+  padding:var(--s-2) max(var(--margine),var(--safe-dx)) calc(var(--safe-b) + var(--s-3))
+          max(var(--margine),var(--safe-sx))}
+
+/* LA RIGA: miniatura + nome nero + variante grigia + prezzo + stepper */
+.va-riga{position:relative;display:flex;align-items:center;gap:var(--s-3);
+  padding:var(--s-3) 0}
+.va-riga + .va-riga::before{content:"";position:absolute;right:0;top:0;height:1px;
+  left:calc(var(--u) * 10 + var(--s-3));background:var(--linea);
+  transform:scaleY(.333);transform-origin:top}
+.va-riga-nuda + .va-riga::before,.va-riga + .va-riga-nuda::before{left:0}
+.va-mini{flex:none;display:block;width:calc(var(--u) * 10);height:calc(var(--u) * 10);
+  border-radius:var(--r-mini);overflow:hidden;background:var(--provino)}
+.va-mini img{display:block;width:100%;height:100%;object-fit:contain}
+.va-mini-44{width:var(--tocco-min);height:var(--tocco-min)}
+.va-riga-testi{flex:1 1 auto;min-width:0;display:grid;gap:var(--s-05)}
+.va-riga-nome{font:var(--t-body);color:var(--testo)}
+.va-riga-sotto{font:var(--t-foot);color:var(--testo-2)}
+.va-riga-prezzo{font:var(--t-head);color:var(--testo)}
+.va-stepper{flex:none;display:flex;align-items:center;
+  /* il «+» è un glifo da 20 in un bersaglio da 44: si tira a destra di
+     12 perché sia il GLIFO, non il bersaglio, ad allinearsi al margine */
+  margin-right:calc(-1 * var(--s-3))}
+.va-passo{display:grid;place-items:center;width:var(--tocco-min);height:var(--tocco-min);
+  padding:0;border:0;background:none;cursor:pointer;color:var(--testo);
+  -webkit-tap-highlight-color:transparent;
+  transition:transform var(--d-tocco) var(--molla),opacity var(--d-tocco) linear}
+.va-passo:active{transform:scale(.9)}
+.va-passo[aria-disabled="true"]{color:var(--testo-2);opacity:.5}
+.va-q{min-width:calc(var(--u) * 3);text-align:center;font:var(--t-head);color:var(--testo)}
+
+/* LA BORSA VUOTA: lo stato vuoto del sistema, dentro il foglio */
+.va-borsa-vuota{display:grid;justify-items:center;text-align:center;gap:var(--s-2);
+  padding:var(--s-8) max(var(--margine),var(--safe-sx)) var(--s-6)}
+.va-borsa-vuota .segno-filo{color:var(--testo-2);margin-bottom:var(--s-2)}
+.va-borsa-vuota b{font:var(--t-2);letter-spacing:var(--ls-display);font-optical-sizing:auto;
+  font-weight:400;color:var(--testo)}
+.va-borsa-vuota p{max-width:20em;font:var(--t-body);color:var(--testo-2);text-wrap:pretty}
+
+/* ═══ S4 · IL PAGAMENTO ═════════════════════════════════════════════ */
+.va-pag-strato{display:flex;flex-direction:column}
+.va-pag-testa{position:sticky;top:0;z-index:6;padding-top:var(--safe-t);
+  min-height:calc(var(--safe-t) + var(--tocco-min));background:var(--fondo)}
+.va-pag-totale{min-width:var(--tocco-min);padding-right:var(--s-2);text-align:right;
+  font:var(--t-head);color:var(--testo)}
+.va-pag-colonna{flex:1 0 auto;
+  padding:0 max(var(--margine),var(--safe-dx)) var(--s-4) max(var(--margine),var(--safe-sx))}
+.va-collassata{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:var(--s-3);width:100%;min-height:var(--tocco-min);padding:var(--s-3) 0;
+  border:0;background:none;cursor:pointer;text-align:left;
+  -webkit-tap-highlight-color:transparent}
+.va-collassata-testi{display:grid;gap:var(--s-1);min-width:0}
+.va-collassata-valore{font:var(--t-body);color:var(--testo);overflow-wrap:anywhere}
+.va-collassata .va-giu{flex:none;margin-top:var(--s-2);color:var(--testo-2);
+  transition:transform var(--d-alert) var(--ios)}
+.va-contatto-dettaglio{display:grid;gap:var(--s-1);padding:0 0 var(--s-3);
+  font:var(--t-foot);color:var(--testo-2)}
+.va-contatto-dettaglio[hidden]{display:none}
+.va-blocco{position:relative;display:grid;gap:var(--s-2);padding:var(--s-3) 0}
+.va-blocco::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:var(--linea);transform:scaleY(.333);transform-origin:top}
+
+/* LA SCELTA: nome · costo · stima; la prima preselezionata. L'unica
+   superficie in tono della schermata. */
+.va-scelta{border-radius:var(--r-lista);background:var(--piano);overflow:hidden}
+.va-scelta-riga{position:relative;display:flex;align-items:center;gap:var(--s-3);
+  min-height:calc(var(--u) * 7.5);padding:var(--s-3) var(--s-4);cursor:pointer}
+.va-scelta-riga + .va-scelta-riga::before{content:"";position:absolute;right:0;top:0;
+  left:calc(var(--s-4) + var(--s-6) + var(--s-3));height:1px;background:var(--linea);
+  transform:scaleY(.333);transform-origin:top}
+.va-scelta input{appearance:none;-webkit-appearance:none;flex:none;margin:0;
+  width:var(--s-6);height:var(--s-6);border-radius:var(--r-capsula);
+  border:1.7px solid var(--testo-2);background:var(--fondo);cursor:pointer;
+  transition:border-width var(--d-tocco) var(--ios),border-color var(--d-tocco) linear}
+.va-scelta input:checked{border-color:var(--accento);border-width:var(--s-2)}
+.va-scelta input:focus-visible{outline:2px solid var(--accento);outline-offset:2px}
+.va-scelta-testi{flex:1 1 auto;min-width:0;display:grid;gap:var(--s-05)}
+.va-scelta-nome{font:var(--t-body);color:var(--testo)}
+.va-scelta-sotto{font:var(--t-foot);color:var(--testo-2)}
+.va-scelta-costo{flex:none;font:var(--t-head);color:var(--testo)}
+.va-cambia{justify-self:start;min-height:var(--tocco-min);padding:0;border:0;background:none;
+  cursor:pointer;font:var(--t-foot);color:var(--testo);text-decoration:underline;
+  text-underline-offset:2px}
+.va-cambia[hidden]{display:none}
+.va-riga-compatta{padding:var(--s-1) 0;min-height:calc(var(--u) * 6.5)}
+.va-riga-compatta + .va-riga-compatta::before{display:none}
+.va-riepilogo .va-somma{padding-top:var(--s-2)}
+
+/* L'ULTIMA RIGA (l'errore, quando c'è) sta SOPRA l'area sicura: il
+   padding in basso è `env(safe-area-inset-bottom) + 12`, scritto qui
+   per esteso e non solo per token — è la riga che un iPhone col cursore
+   in basso potrebbe coprire per prima. */
+.va-pag-piede{position:sticky;bottom:0;z-index:4;flex:none;display:grid;gap:var(--s-2);
+  padding:var(--s-2) max(var(--margine),var(--safe-dx))
+          calc(env(safe-area-inset-bottom) + 12px)
+          max(var(--margine),var(--safe-sx));
+  background:linear-gradient(transparent,var(--fondo) var(--s-2))}
+.va-legale{font:var(--t-foot);color:var(--testo-2);white-space:nowrap}
+/* 44 di tocco sulla stessa riga: il riempimento è (44 − 18) / 2 */
+.va-legale a{display:inline-block;--pad:calc((var(--tocco-min) - 18px) / 2);
+  padding:var(--pad) 0;margin:calc(-1 * var(--pad)) 0;text-align:center;
+  min-width:var(--tocco-min);color:inherit;text-decoration:underline;text-underline-offset:2px}
+.va-legale a:focus-visible{outline:2px solid var(--accento);outline-offset:2px}
+
+/* ═══ S5 · LA CONFERMA ══════════════════════════════════════════════ */
+.va-ordine-strato{display:flex;flex-direction:column}
+.va-ordine-strato .va-scheda-barra{flex:none}
+.va-conferma{flex:1 0 auto;display:grid;align-content:start;gap:var(--s-2);
+  padding:0 max(var(--margine),var(--safe-dx)) var(--s-6) max(var(--margine),var(--safe-sx))}
+.va-conferma-quando{font:var(--t-body);color:var(--testo);text-wrap:pretty}
+.va-conferma-dove{font:var(--t-foot);color:var(--testo-2)}
+.va-conferma-pezzi{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-1);
+  margin:var(--s-3) 0 var(--s-2);border-radius:var(--r-card);overflow:hidden;
+  background:var(--provino)}
+.va-conferma-pezzi.va-uno{grid-template-columns:1fr}
+.va-conferma-pezzi img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:contain}
+.va-conferma-pezzi.va-uno img{aspect-ratio:2/1}
+/* LE QUATTRO TAPPE: solo la corrente in nero; «In preparazione» sta su
+   una riga (le colonne sono uguali, la parola può sporgere nelle vicine,
+   che sono corte). */
+.va-tappe{position:relative;display:grid;grid-template-columns:repeat(4,1fr);
+  margin-top:var(--s-2);padding:var(--s-4) 0 0;list-style:none}
+.va-tappe::before,.va-tappe::after{content:"";position:absolute;left:12.5%;top:var(--s-2);
+  height:3px;border-radius:var(--r-capsula)}
+.va-tappe::before{right:12.5%;background:var(--linea)}
+.va-tappe::after{width:calc(75% * var(--fatto, 0));background:var(--testo)}
+.va-tappe li{position:relative;padding-top:var(--s-2);text-align:center;white-space:nowrap;
+  font:var(--t-foot);color:var(--testo-2)}
+.va-tappe li::before{content:"";position:absolute;left:50%;top:calc(-1 * var(--s-3) - 1px);
+  width:var(--s-3);height:var(--s-3);margin-left:calc(-1 * var(--s-3) / 2);
+  border-radius:var(--r-capsula);background:var(--fondo);
+  box-shadow:inset 0 0 0 1.7px var(--testo-2);z-index:1}
+.va-tappe li.qui{color:var(--testo);font-weight:600}
+.va-tappe li.qui::before,.va-tappe li.fatta::before{background:var(--testo);box-shadow:none}
+.va-ordine-strato .vuoto{flex:1 0 auto}
+
+/* ═══ S6 · I TUOI ORDINI ════════════════════════════════════════════ */
+.va-ordini{display:grid}
+.va-ordine{position:relative;display:flex;align-items:center;gap:var(--s-3);width:100%;
+  min-height:calc(var(--u) * 9);padding:var(--s-3) 0;border:0;background:none;
+  cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent;
+  transition:opacity var(--d-tocco) linear}
+.va-ordine:active{opacity:.55}
+.va-ordine + .va-ordine::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:var(--linea);transform:scaleY(.333);transform-origin:top}
+.va-ordine-frase{font:var(--t-head);color:var(--testo);text-wrap:pretty}
+
+/* ═══ S8 · LE PAGINE DI LEGGE ═══════════════════════════════════════ */
+.va-legale-testo{display:grid;gap:var(--s-2);max-width:34em}
+.va-legale-t{margin-top:var(--s-4);font:var(--t-head);color:var(--testo)}
+.va-legale-p{font:var(--t-body);color:var(--testo)}
+.va-legale-segnaposto{font:var(--t-foot);color:var(--testo-2)}
+
+/* ═══ LE TRE SCHERMATE CONSERVATE («Da parte», negozio, ospite) ═════ */
+.cella .vt-fig{background:var(--provino);object-fit:contain}
+.vt-riga{gap:var(--s-3);min-height:calc(var(--u) * 9);padding-right:var(--u)}
+.vt-riga .testo{flex:1 1 auto;min-width:0}
+.vt-riga .testo .vt-stato{display:block;margin-top:1px;
+  font:var(--t-foot);color:var(--testo-2);font-feature-settings:"tnum","lnum"}
+.vt-riga .testo .vt-stato.viva{font-weight:600}
 .vt-togli{flex:none;min-height:var(--tocco-min);min-width:var(--tocco-min);
   padding:0 var(--u);border:0;background:none;cursor:pointer;
-  color:var(--testo-2);font:var(--t-foot);
-  transition:opacity var(--d-tocco) linear}
+  color:var(--testo-2);font:var(--t-foot);transition:opacity var(--d-tocco) linear}
 .vt-togli:active{opacity:.55}
 .vt-togli:focus-visible{outline:2px solid var(--accento);outline-offset:-3px;
   border-radius:var(--r-campo)}
-
-.vt-totale{display:flex;align-items:center;justify-content:space-between;
-  gap:12px;padding:0 4px;margin:-8px 0 4px;color:var(--testo)}
-
-/* IL FOGLIO DI CHI REGALA */
+.vt-totale{display:flex;align-items:baseline;justify-content:space-between;
+  gap:var(--s-3);padding:0 var(--s-1);margin:calc(-1 * var(--s-2)) 0 var(--s-1);color:var(--testo)}
+.vt-azioni{display:flex;flex-direction:column;align-items:stretch;
+  gap:var(--u);margin:var(--s-6) 0 var(--s-1)}
+.vt-nota{text-align:center;margin:0}
+.vt-riga-testuale{display:flex;margin-left:calc(-1 * var(--s-2))}
+.vt-riga-testo{margin-bottom:var(--s-2)}
+.tasto.vt-tenuto{background:none;color:var(--accento);box-shadow:inset 0 0 0 1px var(--linea)}
+a.tasto{text-decoration:none}
+a.tasto.largo{display:flex;width:100%}
 .vt-regalo p{margin-bottom:var(--u)}
-.vt-link{display:block;padding:10px 12px;border-radius:var(--r-campo);
+.vt-link{display:block;padding:var(--s-3);border-radius:var(--r-campo);
   background:var(--incavo);word-break:break-all}
-
-/* ═══ S4 · IL NEGOZIO ═══════════════════════════════════════════════ */
-
-/* NIENTE MAPPA DENTRO (NN/g: la mappa la apre il telefono, e una chiave
-   API per un negozio solo è una dipendenza per niente). Al suo posto
-   il piano 3:2 col MARCHIO INTERO al centro — mai ridotto, mai un
-   pittogramma ritagliato: il marchio completo è l'unico marchio. */
+.vt-testa{margin:0 0 var(--s-4)}
 .vt-insegna{display:grid;place-items:center;aspect-ratio:3/2;
   margin:0 calc(-1 * max(var(--margine),var(--safe-sx)))
-        18px calc(-1 * max(var(--margine),var(--safe-dx)));
-  padding:var(--margine);
-  /* IL MARCHIO È DI CARTA, NON DEL TEMA. Il marchio di Regina è scuro
-     su chiaro, e su `--piano` in tema velluto sparisce — misurato a
-     schermo: 1,1:1. Il piano dell'insegna è perciò un MATERIALE di
-     marca (`--carta`), come la tessera, non una superficie del tema:
-     è anche cio' che si vede davvero in vetrina, un cartoncino chiaro
-     col marchio stampato sopra. Nessun filtro, nessuna inversione: il
-     marchio non si ricolora. */
-  background:var(--carta)}
+        var(--s-4) calc(-1 * max(var(--margine),var(--safe-dx)));
+  padding:var(--margine);background:var(--piano)}
 .vt-marchio{display:block;width:min(62%,220px);height:auto}
-/* la targhetta della pagina pubblica: lo stesso cartoncino, più piccolo */
-.vt-insegna-piccola{aspect-ratio:auto;margin:0 0 20px;padding:18px;
+.vt-insegna-piccola{aspect-ratio:auto;margin:0 0 var(--s-5);padding:var(--s-4);
   border-radius:var(--r-card)}
 .vt-insegna-piccola .vt-marchio{width:min(52%,180px)}
-
 .vt-aperto{color:var(--testo-2)}
-.vt-aperto.si{color:var(--accento)}
-/* oggi in evidenza: il peso, non un colore. Un giorno colorato in una
-   lista di sette diventa un avviso. */
+.vt-aperto.si{color:var(--testo);font-weight:600}
 .vt-oggi .testo b,.vt-oggi .coda{font-weight:600}
-
-/* la riga che porta fuori: è un <a>, e deve vestirsi da cella senza
-   portarsi dietro la sottolineatura e il colore dei collegamenti. */
 .vt-esterno{text-decoration:none;color:var(--testo)}
 .vt-esterno:active{background:color-mix(in srgb,var(--testo) 6%,transparent)}
 .vt-esterno:focus-visible{outline:2px solid var(--accento);outline-offset:-3px}
-
-/* ═══ S3b · LA LISTA DI CHI REGALA ══════════════════════════════════
-   Una pagina pubblica: nessuna barra delle sezioni, nessun ritorno di
-   sistema — chi arriva qui non ha l'app, ha un link. Sta SOPRA tutto
-   perché non è una delle quattro sezioni; il tema se lo prende dal
-   <main>, così non esce di carta mentre l'app è di velluto. */
-.vt-ospite{position:fixed;inset:0;z-index:35;overflow-y:auto;
-  overscroll-behavior:contain;
+.vt-ospite{position:fixed;inset:0;z-index:35;overflow-y:auto;overscroll-behavior:contain;
   background:var(--fondo);color:var(--testo)}
-.vt-ospite-dentro{padding:calc(var(--safe-t) + 32px)
-  max(var(--margine),var(--safe-dx)) calc(var(--safe-b) + 32px)
+.vt-ospite-dentro{padding:calc(var(--safe-t) + var(--s-8))
+  max(var(--margine),var(--safe-dx)) calc(var(--safe-b) + var(--s-8))
   max(var(--margine),var(--safe-sx))}
-.vt-ospite h1{margin-bottom:2px;
-  font:var(--t-1);letter-spacing:var(--ls-display);font-optical-sizing:auto;
-  color:var(--testo)}
-/* il fuoco ci arriva da CODICE (chi apre la pagina deve sapere dove è
-   arrivato), non da un tabulatore: l'anello resterebbe acceso senza che
-   nessuno l'abbia chiesto. È la stessa scelta che il sistema fa sul
-   titolo grande (`.titolone:focus-visible`). */
+.vt-ospite h1{margin-bottom:var(--s-05);font:var(--t-1);letter-spacing:var(--ls-display);
+  font-optical-sizing:auto;color:var(--testo)}
 .vt-ospite h1:focus,.vt-ospite h1:focus-visible{outline:none}
-.vt-ospite > .vt-ospite-dentro > .t-sub{margin-bottom:22px}
+.vt-ospite > .vt-ospite-dentro > .t-sub{margin-bottom:var(--s-6)}
 .vt-ospite .lista-blocco{margin-top:0}
-/* la barra delle sezioni non deve restare toccabile sotto una pagina
-   che, per chi la guarda, è tutto il sito. */
+.vt-ospite .cella .fig{background:var(--provino);object-fit:contain}
 body[data-ospite] #barra{visibility:hidden}
 
+/* ═══ PIÙ LARGO DI UN TELEFONO ══════════════════════════════════════
+   L'app nasce in tasca (393), ma un link della vetrina si apre anche da
+   un iPad o da un portatile. 768: quattro colonne, e le schermate a
+   colonna (scheda, borsa, pagamento, conferma) restano una colonna da
+   560 al centro — una scheda larga 1440 è un manifesto, non una scheda.
+   1100: cinque colonne dentro 1200. */
+@media (min-width:700px){
+  .va-griglia{grid-template-columns:repeat(4,1fr);gap:var(--s-8) var(--s-4)}
+  .va-scheda,.va-conferma,.va-pag-colonna{width:100%;max-width:560px;margin-left:auto;margin-right:auto}
+  .va-pag-piede,.va-fondo-conferma,.va-pannello{width:100%;max-width:560px;align-self:center}
+  .va-pannello{border-radius:var(--r-sheet) var(--r-sheet) 0 0}
+  .va-ordine-strato .va-scheda-barra{width:100%;max-width:560px;align-self:center}
+}
+@media (min-width:1100px){
+  .va-griglia{grid-template-columns:repeat(5,1fr)}
+  .va-testa,.va-chips,.va-strumenti,.va-riga-pref,.va-corpo-elenco,.va-coda{
+    padding-left:max(var(--margine),calc((100% - 1200px) / 2));
+    padding-right:max(var(--margine),calc((100% - 1200px) / 2))}
+  .va-coda .lista-blocco{max-width:560px}
+}
+
 /* ═══ CHI HA CHIESTO MENO MOVIMENTO ═════════════════════════════════
-   Le compressioni al tocco restano (100 ms, sotto il tetto), ma
-   diventano lineari e non scalano. Il FLIP della griglia si spegne da
-   solo in JS (`RIDOTTO`), come nel cofanetto. */
+   I tocchi restano (100 ms) ma non scalano; il foglio non sale: appare. */
 @media (prefers-reduced-motion: reduce){
-  .vt-cap,.vt-cella{transition-duration:var(--d-tocco) !important;
-    transition-timing-function:linear !important}
-  .vt-cap:active{transform:none}
-  .vt-punto{transition-duration:var(--d-ct-out)}
-  .vt-gal{scroll-behavior:auto}
+  .va-pannello{animation:va-appare var(--d-ct-in) linear both;transition:opacity var(--d-ct-out) linear}
+  .va-esce .va-pannello{transform:none;opacity:0}
+  .va-borsa:active,.va-chip:active span,.va-capsula:active,.va-passo:active,
+  .va-cella-apri:active .va-foto,.va-cuore:active .va-cuore-disco,
+  .va-chiudi:active .va-chiudi-disco{transform:none}
+  .va-gal-nastro{scroll-behavior:auto}
+}
+@media (hover:hover){
+  .va-strumento:hover,.va-riga-pref:hover,.va-ev:hover,.va-ordine:hover{opacity:.7}
 }

@@ -12,7 +12,7 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 export const CHIAVE = "regina:v1";
-export const V = 5;                 /* la versione dello schema salvato */
+export const V = 6;                 /* la versione dello schema salvato */
 export const CANALE = "regina";     /* il BroadcastChannel dell'app */
 
 /* ── F1 · L'INGRESSO, VERSIONATO A SE' ─────────────────────────────
@@ -187,6 +187,19 @@ const PASSI = {
   4: (d) => ({
     ...d,
     proposte: d.proposte || PROPOSTE_VUOTE()
+  }),
+  /* 5 → 6 : LA VETRINA DIVENTA UN NEGOZIO (21/09, direzione A). Tre rami
+     della persona: la borsa, i preferiti, gli ordini. Nascono vuoti e
+     non si ricostruiscono da niente: `wishlist` e `daparte` sono la
+     RISERVA senza pagamento (resta com'è, e resta un'altra cosa) — un
+     pezzo messo da parte non è un preferito e non è in borsa, e
+     travasarlo vorrebbe dire far trovare a qualcuno un carrello che non
+     ha mai riempito. */
+  5: (d) => ({
+    ...d,
+    borsa: Array.isArray(d.borsa) ? d.borsa : [],
+    preferiti: Array.isArray(d.preferiti) ? d.preferiti : [],
+    ordini: Array.isArray(d.ordini) ? d.ordini : []
   })
 };
 export function migra(dati, daV){
@@ -247,6 +260,15 @@ function daSeme(seme){
        pezzi che il negozio le ha venduto, questo porta ciò che lei ha
        detto alle proposte e ciò che il negozio ha corretto a mano. */
     proposte: PROPOSTE_VUOTE(),
+    /* V6 — IL NEGOZIO. Vuoti anche col seme pieno: sono gesti suoi.
+         borsa     [{id, misura, quanti}]      una riga per pezzo+misura
+         preferiti [<id articolo>]
+         ordini    [{codice, quando, righe:[{id,nome,misura,quanti,prezzo}],
+                     totale, consegna:{tipo, costo, indirizzo?},
+                     stato, tappe:[{stato, quando}], pagamento:{id, metodo}}] */
+    borsa: [],
+    preferiti: [],
+    ordini: [],
     /* F1 — la porta. Un cofanetto nuovo non è ancora stato aperto. */
     ingresso: ingressoVuoto(),
     /* F1.3 — il ritorno. `ultimaApertura` è QUANDO, `istantanea` è
@@ -265,7 +287,7 @@ function daSeme(seme){
    solo ramo toccato. Non è purismo — è il motivo per cui un
    `iscrivi` può confrontare `prima.wishlist !== dopo.wishlist` e
    sapere in un colpo se deve ridisegnare. */
-function riduci(s, e){
+export function riduci(s, e){
   const {tipo, dato} = e;
   switch(tipo){
 
@@ -684,6 +706,101 @@ function riduci(s, e){
       }]}};
     }
 
+    /* == V6 · LA BORSA, I PREFERITI, GLI ORDINI ======================
+       Riduttori PURI: l'orologio, il codice dell'ordine e il tetto di
+       disponibilità li porta CHI INVIA (`quando`, `codice`, `massimo`).
+       Una riga della borsa è la coppia pezzo+misura: lo stesso anello in
+       due misure sono due righe, come al banco. */
+    case "borsa/aggiungi":{
+      const misura = dato.misura == null ? null : String(dato.misura);
+      const tetto = Number.isFinite(dato.massimo) ? Math.max(0, dato.massimo) : Infinity;
+      const b = s.borsa || [];
+      const i = b.findIndex(r => r.id === dato.id && r.misura === misura);
+      if(i < 0){
+        if(tetto < 1) return s;
+        return {...s, borsa: [...b, {id: dato.id, misura, quanti: 1}]};
+      }
+      if(b[i].quanti >= tetto) return s;
+      return {...s, borsa: b.map((r, k) => k === i ? {...r, quanti: r.quanti + 1} : r)};
+    }
+    case "borsa/togli":{
+      const misura = dato.misura == null ? null : String(dato.misura);
+      const b = s.borsa || [];
+      if(!b.some(r => r.id === dato.id && r.misura === misura)) return s;
+      return {...s, borsa: b.filter(r => !(r.id === dato.id && r.misura === misura))};
+    }
+    case "borsa/quanti":{
+      const misura = dato.misura == null ? null : String(dato.misura);
+      const tetto = Number.isFinite(dato.massimo) ? Math.max(0, dato.massimo) : Infinity;
+      const n = Math.min(tetto, Math.max(0, Math.round(Number(dato.quanti) || 0)));
+      const b = s.borsa || [];
+      const i = b.findIndex(r => r.id === dato.id && r.misura === misura);
+      if(i < 0 || b[i].quanti === n) return s;
+      if(n === 0) return {...s, borsa: b.filter((_, k) => k !== i)};
+      return {...s, borsa: b.map((r, k) => k === i ? {...r, quanti: n} : r)};
+    }
+    /* rimette una riga tolta, al suo posto: è l'«Annulla» della pillola */
+    case "borsa/rimetti":{
+      const r = dato.riga;
+      if(!r || !r.id) return s;
+      const b = s.borsa || [];
+      if(b.some(x => x.id === r.id && x.misura === (r.misura == null ? null : String(r.misura)))) return s;
+      const riga = {id: r.id, misura: r.misura == null ? null : String(r.misura),
+                    quanti: Math.max(1, r.quanti | 0)};
+      const dove = Math.min(b.length, Math.max(0, dato.posto == null ? b.length : dato.posto | 0));
+      return {...s, borsa: [...b.slice(0, dove), riga, ...b.slice(dove)]};
+    }
+    case "borsa/svuota":
+      if(!(s.borsa || []).length) return s;
+      return {...s, borsa: []};
+
+    case "preferito/alterna":{
+      const p = s.preferiti || [];
+      return {...s, preferiti: p.includes(dato.id)
+        ? p.filter(x => x !== dato.id) : [...p, dato.id]};
+    }
+
+    /* L'ORDINE NASCE DA UN PAGAMENTO RIUSCITO, e chi lo invia lo porta
+       già intero. Qui si fanno due cose sole: lo si mette in testa (il
+       più recente per primo) e si tolgono dalla borsa le righe comprate.
+       Un codice già visto non si riscrive: due conferme dello stesso
+       pagamento non sono due ordini. */
+    case "ordine/crea":{
+      const o = dato.ordine;
+      if(!o || !o.codice) return s;
+      if((s.ordini || []).some(x => x.codice === o.codice)) return s;
+      const ordine = {
+        codice: o.codice, quando: o.quando,
+        righe: (o.righe || []).map(r => ({...r})),
+        totale: o.totale | 0,
+        consegna: {...(o.consegna || {tipo: "ritiro"})},
+        stato: "ricevuto",
+        tappe: [{stato: "ricevuto", quando: o.quando}],
+        pagamento: o.pagamento ? {...o.pagamento} : null
+      };
+      const comprate = new Set(ordine.righe.map(r => r.id + "|" + (r.misura == null ? "" : r.misura)));
+      return {...s,
+        ordini: [ordine, ...(s.ordini || [])],
+        borsa: dato.daBorsa === false ? (s.borsa || [])
+          : (s.borsa || []).filter(r => !comprate.has(r.id + "|" + (r.misura == null ? "" : r.misura)))};
+    }
+    /* lo stato lo cambia il NEGOZIO (oggi la maniglia di prova, domani il
+       gestionale). Si avanza e basta: un ordine ritirato non torna in
+       preparazione. */
+    case "ordine/stato":{
+      const SCALA = ["ricevuto", "preparazione", "pronto", "spedito", "ritirato", "consegnato"];
+      if(!SCALA.includes(dato.stato)) return s;
+      let toccato = false;
+      const l = (s.ordini || []).map(o => {
+        if(o.codice !== dato.codice || o.stato === dato.stato) return o;
+        if(SCALA.indexOf(dato.stato) < SCALA.indexOf(o.stato)) return o;
+        toccato = true;
+        return {...o, stato: dato.stato,
+                tappe: [...(o.tappe || []), {stato: dato.stato, quando: dato.quando || null}]};
+      });
+      return toccato ? {...s, ordini: l} : s;
+    }
+
     case "demo/reset":
       return daSeme(dato.seme);
 
@@ -830,6 +947,14 @@ function ricarica(){
     proposte: d.proposte
       ? {...d.proposte, chiusa_fino: d.proposte.chiusa_fino == null ? null : d.proposte.chiusa_fino}
       : PROPOSTE_VUOTE(),
+    /* V6 — LA BORSA, I PREFERITI E GLI ORDINI SI TENGONO: un ordine
+       pagato che sparisce al ricarico è il difetto peggiore che un
+       negozio possa avere. Il filtro regge uno stato scritto a mano o
+       troncato: una riga senza `id` o un ordine senza `codice` si
+       lasciano cadere invece di far cadere la borsa. */
+    borsa: (Array.isArray(d.borsa) ? d.borsa : []).filter(r => r && r.id && (r.quanti | 0) > 0),
+    preferiti: (Array.isArray(d.preferiti) ? d.preferiti : []).filter(x => typeof x === "string"),
+    ordini: (Array.isArray(d.ordini) ? d.ordini : []).filter(o => o && o.codice),
     nav: d.nav || {tab:"cofanetto", pile:{cofanetto:[],vetrina:[],perte:[],profilo:[]}}};
 }
 

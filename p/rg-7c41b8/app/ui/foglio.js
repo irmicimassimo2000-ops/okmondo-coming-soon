@@ -111,8 +111,18 @@ function arma(){
 
   let preso = false, y0 = 0, uy = 0, ut = 0, v = 0, H = 1, id = -1;
 
+  /* UN COMANDO NON È UNA MANIGLIA (21/09, trovato dalla sonda della
+     vetrina). La cattura del puntatore sul <dialog> sposta anche il
+     `click` che segue: Chrome lo consegna all'antenato comune fra chi ha
+     ricevuto il `pointerdown` (il tasto) e chi ha ricevuto il
+     `pointerup` (il <dialog>, per via della cattura) — cioè al <dialog>.
+     Un tocco VERO su «Conferma» dentro un foglio non arrivava mai al
+     tasto; passavano solo i `.click()` da codice, che non hanno
+     puntatore. Da un comando il trascinamento non parte. */
+  const COMANDI = "button:not(.maniglia),a,input,select,textarea,label,[role=radio]";
   const puoPartire = (ev) =>
-    ev.target.closest(".maniglia") || corpo.scrollTop <= 0;
+    ev.target.closest(".maniglia") ||
+    (!ev.target.closest(COMANDI) && corpo.scrollTop <= 0);
 
   dlg.addEventListener("pointerdown", (ev) => {
     if(!ev.isPrimary || !puoPartire(ev)) return;

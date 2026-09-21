@@ -90,8 +90,8 @@ collaudabile.
 | # | Componente (regola) | Peso | Segnale · `s` vale 1 quando | Frase (esempio vero) |
 |---|---|---|---|---|
 | 1 | `chiude_collezione` / `collezione` | **40** (+10 se è l'ultimo che manca) | è in una collezione dove ha ≥ 1 pezzo **comprato** e che non è chiusa | «Ti chiude la collezione Filo di Luce — 4 su 5» · «Della collezione del tuo Anello Uno» |
-| 2 | `da_prendere` | **35** | è nella lista «Da prendere» | «Lo hai messo da parte il 30 agosto» |
-| 3 | `data_vicina` | **30** (+10 se la persona è nota) | c'è una ricorrenza entro 14 giorni | «Per il tuo compleanno, il 24 settembre» · «Per Marta, il 3 ottobre — della sua misura» |
+| 2 | `data_vicina` | **35** (+10 se la persona è nota) | c'è una ricorrenza entro 14 giorni | «Per il tuo compleanno, il 24 settembre» · «Per Marta, il 3 ottobre — della sua misura» |
+| 3 | `da_prendere` | **30** | è nella lista «Da prendere» | «Lo hai messo da parte il 30 agosto» |
 | 4 | `pin` | **25** | il negozio l'ha messo, con mittente e data | «Regina lo abbina al tuo Anello Uno» |
 | 5 | `co_acquisto` | **20** | `n ≥ 5` **e** `lift ≥ 1,5` con un pezzo che possiede; `s = min(1, (lift−1)/2)` | «7 clienti con l'Anello Uno l'hanno preso» |
 | 6 | `arrivo_in_collezione` | **12** | arrivo di ≤ 30 giorni, nella sua collezione o nella sua materia | «In vetrina da giovedì, in argento come i tuoi» |
@@ -99,6 +99,14 @@ collaudabile.
 | 8 | `famiglia_mancante` | **8** | ha ≥ 3 pezzi e zero in questa famiglia | «Non hai ancora una collana» |
 | 9 | `prezzo` | **8** / **−10** | dentro `[0,6× ; 1,6×]` della mediana di ciò che ha **pagato lei** / oltre `2,5×` del suo massimo | **nessuna, mai** |
 | 10 | `misura` | **6** | misura uguale alla sua | «Della tua misura (14)» |
+
+> **21/09/2026 — decisione di Massimo: la data viene prima.** Fino al 21
+> settembre `da_prendere` valeva 35 e `data_vicina` 30. Sono invertiti, e non
+> per simmetria: **la data scade, il pezzo da parte resta.** Un compleanno
+> mancato non torna per un anno; un pezzo messo da parte è ancora lì domani.
+> Fra due cose vere si mette avanti quella che ha una scadenza. Invertito
+> anche in `ORDINE_REGOLE`, che è ciò che decide a parità di punteggio.
+> `chiude_collezione` resta in testa (40, +10 se è l'ultimo).
 
 `S = min(100, Σ w_k · s_k)`. Tie-break dichiarato: prezzo più vicino alla
 mediana → arrivo più recente → id (nessuna casualità: una proposta che cambia
@@ -110,7 +118,7 @@ contributo più alto è la fascia di prezzo, la proposta non esce. Il prezzo non
 
 ### Chi può prendersi il blocco grande
 
-`chiude_collezione` › `da_prendere` › `data_vicina` › `pin` › `co_acquisto` ›
+`chiude_collezione` › `data_vicina` › `da_prendere` › `pin` › `co_acquisto` ›
 `arrivo_in_collezione`.
 
 `collezione` (quando i mancanti sono più di uno), `materia`,
