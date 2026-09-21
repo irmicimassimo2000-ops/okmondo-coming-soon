@@ -48,6 +48,12 @@ import { toast } from "app/ui/toast.js";
 import { spingi, registraSchermo, torna, vaiA, tabCorrente } from "app/rotta.js";
 import { conTransizione, RIDOTTO, lineare } from "app/moto.js";
 import { osso } from "app/ui/scheletro.js";
+import { vuoto } from "app/ui/vuoto.js";
+/* IL TITOLARE, per la riga del pin del negozio («Stefano ha pensato a
+   te», F6 21/09): il nome vero vive in `dati/negozio.js` e non si
+   scrive a mano una seconda volta qui. Modulo leggero (un oggetto),
+   import statico come `provini.js` qui sotto. */
+import { NEGOZIO } from "app/dati/negozio.js";
 /* F5b — IL MOTORE, MAI STATICO (banco prestazioni 20/09: 616 KB di JS
    all'avvio, e la causa era proprio questo `import` — 60 KB di motore
    dentro una vista che a boot non è nemmeno quella attiva, delle
@@ -59,7 +65,7 @@ import { osso } from "app/ui/scheletro.js";
 /* il colore di fondo dei provini (non un ruolo del sistema: è un dato
    del modulo dei provini, quindi si porta da lì e si scrive in linea —
    mai un hex dentro `perte.css`). Serve solo quando il blocco grande
-   mostra una foto: vedi `vestiFotoMotore`. Questo modulo è leggero
+   mostra una foto: vedi `cardProposta`. Questo modulo è leggero
    (una mappa di stringhe): resta un import statico. */
 import { PROVINO_FONDO } from "app/dati/provini.js";
 
@@ -139,6 +145,14 @@ export function giornoEMese(iso){
    mercoledì alle 9», dove la data per esteso sarebbe rumore. */
 export function soloGiorno(iso){
   return String(dataLunga(iso)).split(" ")[0] || "";
+}
+/* «lunedì 22» — giorno della settimana + numero, SENZA il mese: la
+   forma scelta da Massimo per «Va bene: torno a proporti qualcosa
+   lunedì 22» (E08-C, 21/09). `dataLunga` porta anche il mese, che qui
+   sarebbe la terza informazione in una frase che ne vuole due. */
+export function giornoBreve(iso){
+  const g = aGiorni(iso); if(!isFinite(g)) return "";
+  return soloGiorno(iso) + " " + new Date(g * GIORNO).getUTCDate();
 }
 
 /* Nessun countdown, mai: la carta psicologica lo vieta, e Sephora e
@@ -461,12 +475,17 @@ export function proposte(stato = {}){
       pezzi: p.slice(0, CARD_PER_RAIL), altri: Math.max(0, p.length - CARD_PER_RAIL)});
   }
 
-  /* ── GLI ARRIVI in home: al massimo due, i più recenti ─────────── */
-  const inNegozio = arrivi
+  /* ── GLI ARRIVI: l'elenco intero, i più recenti in testa ──────────
+     F6 (21/09, verdetto di Massimo, riga «Arrivi» del gruppo di lista):
+     la radice non mostra più le card degli arrivi — mostra la RIGA che
+     apre l'elenco intero. `arriviTutti` è quell'elenco, senza taglio;
+     `arrivi` resta il vecchio taglio a due (ARRIVI_IN_HOME) perché
+     `_F5_motore.mjs` lo misura così da prima del 21/09 — due campi,
+     stessa fonte, un solo `.map`. */
+  const arriviTutti = arrivi
     .filter((a) => !gia.has(a.articolo) && !posseduti.has(a.articolo))
     .slice()
     .sort((x, y) => String(y.data).localeCompare(String(x.data)))
-    .slice(0, ARRIVI_IN_HOME)
     .map((a) => {
       const art = perId.get(a.articolo) || {};
       const c = collezioni.find((x) => x.id === art.collezione) || null;
@@ -483,6 +502,7 @@ export function proposte(stato = {}){
         avviso: giorniFra(oggi, a.data) >= 1 ? isoMeno(a.data, 1) : isoPiu(oggi, 1)
       };
     });
+  const inNegozio = arriviTutti.slice(0, ARRIVI_IN_HOME);
 
   /* ── LE CARD P4: promo attiva OGGI, e il mese del compleanno ────── */
   const promoViva = (s.promozioni || []).find((p) =>
@@ -506,7 +526,13 @@ export function proposte(stato = {}){
       titolo: "Un pezzo per te, fino a 30 €",
       riga: "Lo scegli in negozio, entro il " + giornoEMese(fine) + ".",
       nota: tre.length === 3 ? "Tre a scelta: " + tre.map((a) => a.nome).join(", ") + "." : null,
-      scelte: tre
+      scelte: tre,
+      /* F6 — QUANDO SCADE, non solo quando è nato (riga «Per te questo
+         mese» del gruppo di lista, che sceglie fra compleanno e promo
+         quella più vicina alla fine): il regalo di compleanno chiude
+         all'ultimo del mese, la stessa data che `riga` già scrive a
+         parole. `al` è quella data in ISO, per il confronto. */
+      al: fine
     };
   }
   const promo = promoViva ? {
@@ -514,7 +540,8 @@ export function proposte(stato = {}){
     occhiello: "Dal " + giornoEMese(promoViva.dal) + " al " + giornoEMese(promoViva.al),
     titolo: promoViva.nome || "Una promozione del negozio",
     riga: promoViva.testo || "",
-    nota: "In negozio, al banco. Nessun codice."
+    nota: "In negozio, al banco. Nessun codice.",
+    al: promoViva.al
   } : null;
 
   /* la riga del ritorno: SOLO se lo store ha davvero un fatto da dire.
@@ -527,7 +554,7 @@ export function proposte(stato = {}){
   return {
     oggi, posseduti, inAttesa, materia, cliente,
     blocco, rail: rail.slice(0, RAIL_MASSIMO), collezioni, mie, altre,
-    arrivi: inNegozio, promo, compleanno, ritorno,
+    arrivi: inNegozio, arriviTutti, promo, compleanno, ritorno,
     fine: "Non c’è altro, per ora."
   };
 }
@@ -588,10 +615,13 @@ function vestiti(){
    sbagliata. `riduciPromemoria` resta esportato: è esattamente la
    funzione che il riduttore applica, e le prove del motore la usano da
    sola, fuori dalla pagina. */
-function leggiPromemoria(s){
+/* esportate (bilancio JS, coordinatore 21/09): `perte-collezioni.js`
+   — caricato a richiesta, solo per hub/collezione/chiusura — le
+   riusa per «Ricordamelo per giovedì» invece di duplicarle. */
+export function leggiPromemoria(s){
   return (s && Array.isArray(s.promemoria)) ? s.promemoria : [];
 }
-function segnaPromemoria(store, dato){
+export function segnaPromemoria(store, dato){
   store.invia(EVENTO_PROMEMORIA, dato);
   return leggiPromemoria(store.leggi());
 }
@@ -608,7 +638,10 @@ function segnaPromemoria(store, dato){
    Il documento chiede «silhouette con luce se il pezzo non è ancora
    fotografato»: il riquadro muto porta perciò una pozza di luce dal
    foglio di stile, non un pannello piatto. */
-function figura(p, classe, opz = {}){
+/* esportata: `perte-collezioni.js` la riusa per la fila e la chiusura
+   (bilancio JS, coordinatore 21/09) — la stessa funzione, non una
+   copia. */
+export function figura(p, classe, opz = {}){
   const senza = () => e("div", {class: "redatto " + classe},
     opz.muto ? [] : [e("span", {class: "t-cap1", testo: p.nome})]);
   if(!p.foto) return senza();
@@ -618,99 +651,109 @@ function figura(p, classe, opz = {}){
   return img;
 }
 
-/* LA FILA — cinque posti da 61 con passo 14 (5 × 61 + 4 × 14 = 361).
-   Il posto vuoto NON è una card grigia col punto interrogativo: è una
-   SILHOUETTE a tono `--incavo` col nome sotto in Inter 11, cioè un
-   posto che aspetta. È il gradiente di scopo di Kivetz, detto senza
-   urlare. */
-function fila(c, opz = {}){
-  const posti = c.posti.map((p, i) => e("div", {
-    class: "posto" + (p.ha ? " ha" : " manca"), "data-f5-posto": String(i)
-  }, [
-    p.ha ? figura(p, "posto-foto") : e("i", {class: "posto-vuoto", "aria-hidden": "true"}),
-    e("span", {class: "t-cap2 posto-nome", testo: p.nome})
-  ]));
-  return e("div", {
-    class: "fila" + (opz.classe ? " " + opz.classe : ""), role: "img",
-    "aria-label": c.nome + ", " + c.ha + " di " + c.totale +
-      (c.manca ? ", ti manca " + c.mancanti.map((m) => m.nome).join(", ") : ", completa")
-  }, posti);
-}
+/* `fila()` — spostata in `perte-collezioni.js` (bilancio JS,
+   coordinatore 21/09): qui in P0 non serve più (la home usa i
+   pallini), la usano solo l'hub, la collezione e la chiusura, che
+   sono già caricati a richiesta. */
 
-/* la mini-fila di pallini della riga di elenco: pieni = posseduti */
-function pallini(c){
+/* esportata: usata qui (E12, riga hub sulla radice) e da
+   `perte-collezioni.js` (hub, chiusura) — stessa funzione. */
+export function pallini(c){
   return e("span", {class: "pallini", "aria-hidden": "true"},
     c.posti.map((p) => e("i", {class: "pallino" + (p.ha ? " ha" : "")})));
 }
 
-/* ── LA CARD DEL BLOCCO GRANDE — 361 × 452 ──────────────────────── */
-/* PARITÀ (critic 20/09): la card con foto porta anche lei l'occhiello
-   (famiglia · materia) e il prezzo — non solo il nome e la frase — e la
-   frase-regola ha lo STESSO ruolo di colore in entrambe le varianti,
-   --testo-2 ('tenue' è la classe globale che lo scrive, sistema.css).
-   `b.occhiello`/`b.prezzo` sono opzionali apposta: P2 («Il pezzo che
-   chiude») chiama questa stessa funzione senza passarli, e resta come
-   sempre — un campo in più non scritto non disegna niente. */
-function cardGrande(b, suClick){
-  return e("button", {
-    type: "button", class: "card-grande", "data-f5-blocco": b.regola || "pezzo",
-    "aria-label": b.nome + (b.riga ? ". " + b.riga : ""),
-    suClick
-  }, [
-    e("span", {class: "card-grande-foto"}, [figura(b, "grande-fig", {muto: true})]),
-    b.occhiello ? e("span", {class: "occhiello card-occhiello", testo: b.occhiello}) : null,
-    e("b", {class: "t-2 card-nome", testo: b.nome}),
-    b.riga ? e("span", {class: "t-sub tenue card-riga", testo: b.riga}) : null,
-    b.prezzo != null ? e("span", {class: "t-foot tenue card-prezzo", testo: b.prezzo}) : null,
-    b.perche ? e("span", {class: "t-foot tenue card-perche", testo: b.perche}) : null
-  ].filter(Boolean));
+/* ── L'ETICHETTA-MOTIVO ═════════════════════════════════════════════
+   F6, verdetto di Massimo (21/09, tavole «Per te», tabella «Etichette-
+   motivo» di SCELTE-MASSIMO.md): sei righe, una per regola del motore,
+   ciascuna un'etichetta corta (segno ✦ + maiuscoletto, ≤ 26 caratteri —
+   oltre, si ripiega sul generico e il nome scende nella riga sotto) più
+   una riga sotto con UN dato vero. Non tocca `app/motore/proposte.js`:
+   legge `g.dati` — che il motore scrive già per ogni componente vinto —
+   e traduce, non inventa. */
+function campoDati(g, nome){
+  const d = (g.dati || []).find((x) => x.campo === nome);
+  return d ? d.valore : null;
 }
-
-/* ── IL BLOCCO GRANDE DEL MOTORE, SENZA FOTO ───────────────────────
-   Pendente Filo — il primo candidato sul seme vero — non ha né scatto
-   né provino: `cardGrande` lì sopra disegnerebbe 361×452 di riquadro
-   scuro vuoto (il critic l'aveva già contato il 17/09: «35 % di vuoto
-   disegnato»). Quando la foto manca il blocco grande diventa perciò
-   QUESTA card, senza nessuna area immagine — mai un segnaposto, mai
-   «foto in arrivo»: l'occhiello dice la famiglia e la materia (un fatto
-   vero, non un buco travestito), il nome sale a Bodoni 28 (non c'è più
-   la foto a portare peso, lo porta la tipografia), poi la frase e il
-   prezzo — stessa forma della card con foto qui sopra, PARITÀ voluta. */
-function occhielloArticolo(a){
-  const fam = (a && (a.famiglia_nome || a.tipo)) || "";
-  const met = a && a.attributi && a.attributi.metallo;
-  return fam && met ? fam + " · " + met : (fam || met || "");
+function tempoRelativo(giorni){
+  if(giorni <= 0) return "oggi";
+  if(giorni === 1) return "domani";
+  if(giorni < 14) return "tra " + giorni + " giorni";
+  return "tra " + Math.round(giorni / 7) + " settimane";
 }
-function cardGrandeCompatta(g, suClick, soldi){
-  const a = g.articolo;
-  return e("button", {
-    type: "button", class: "blocco-compatta", "data-f5-blocco": g.regola || "pezzo",
-    "aria-label": a.nome + (g.frase ? ". " + g.frase : ""),
-    suClick
-  }, [
-    e("span", {class: "occhiello blocco-compatta-occ", testo: occhielloArticolo(a)}),
-    e("b", {class: "t-1 blocco-compatta-nome", testo: a.nome}),
-    g.frase ? e("span", {class: "t-sub tenue blocco-compatta-frase", testo: g.frase}) : null,
-    e("span", {class: "t-foot tenue blocco-compatta-prezzo", testo: soldi(a.prezzo)})
-  ].filter(Boolean));
-}
-
-/* ── IL BLOCCO GRANDE DEL MOTORE, CON FOTO ─────────────────────────
-   La stessa card di sempre (`cardGrande`, la stessa che usa P2 per «Il
-   pezzo che chiude»): qui si corregge solo COME la foto riempie il
-   riquadro. Il packshot dei provini è già inquadrato sul suo fondo
-   (`PROVINO_FONDO`); ritagliarlo con `object-fit:cover` (il difetto di
-   prima) ne tronca i bordi. `contain` più il fondo vero del provino in
-   linea — mai `cover` che tronca, mai un fondo che non è il suo. La
-   card di P2 non passa da qui: resta `cover`, non era il difetto
-   segnalato. */
-function vestiFotoMotore(nodoCard){
-  const img = nodoCard.querySelector("img.grande-fig");
-  if(img){
-    img.classList.add("grande-fig-contain");
-    img.style.backgroundColor = PROVINO_FONDO;
+const ETICHETTE_GENERICHE = {
+  da_prendere: "MESSO DA PARTE", co_acquisto: "PRESO INSIEME AL TUO",
+  materia: "SI ABBINA AI TUOI", misura: "DELLA TUA MISURA",
+  famiglia_mancante: "TI MANCA ANCORA"
+};
+function etichettaMotivo(g, s){
+  const chiave = g.chiave || g.regola;
+  if(chiave === "chiude_collezione" || chiave === "collezione"){
+    const nome = String(campoDati(g, "collezione") || "");
+    const lunga = "L’ULTIMO DI " + nome.toUpperCase();
+    return lunga.length <= 26
+      ? {etichetta: lunga, sotto: "Ti manca solo questo"}
+      : {etichetta: "L’ULTIMO DELLA COLLEZIONE", sotto: "Ti manca solo " + nome};
   }
-  return nodoCard;
+  if(chiave === "data_vicina"){
+    const r = ((s && s.ricorrenze) || []).find((x) => x.id === g.gruppo);
+    const etichetta = r && r.tipo === "anniversario" ? "PER L’ANNIVERSARIO"
+      : r && r.tipo === "compleanno" ? "PER IL COMPLEANNO" : "PER LA TUA DATA";
+    const data = campoDati(g, "data"), giorni = campoDati(g, "giorni");
+    return {etichetta, sotto: data
+      ? giornoEMese(data) + (giorni != null ? ", " + tempoRelativo(giorni) : "")
+      : g.frase};
+  }
+  if(chiave === "arrivo_in_collezione"){
+    const arr = campoDati(g, "arrivo");
+    return {etichetta: "NUOVO IN VETRINA", sotto: arr ? "Da " + dataLunga(arr) : g.frase};
+  }
+  if(chiave === "pin"){
+    const chi = String(campoDati(g, "chi") || "Regina");
+    const primo = (chi === "Regina" ? (NEGOZIO.proprietario || chi) : chi).split(" ")[0];
+    return {etichetta: "TE LO CONSIGLIA IL NEGOZIO", sotto: primo + " ha pensato a te"};
+  }
+  /* le regole senza una riga propria in tabella (misura, materia sul
+     rail, famiglia mancante…): l'etichetta resta il nome della regola,
+     la riga sotto è la frase che il motore ha già scritto — verificata
+     (≤ 60 caratteri, un dato vero dentro), mai un testo nuovo. */
+  return {etichetta: ETICHETTE_GENERICHE[chiave] || "SCELTO PER I TUOI DATI", sotto: g.frase};
+}
+
+/* ── LA SCHEDA DELLA PROPOSTA — 361 di larghezza, CON o SENZA foto ═══
+   F6 (21/09): sostituisce le vecchie `cardGrande`/`cardGrandeCompatta`,
+   due funzioni che disegnavano la stessa idea in due misure di nome
+   diverse (28 senza foto, 22 con — il difetto che E07 chiude alla
+   radice). Un'ossatura sola: l'etichetta-motivo SOPRA (E02-B/E04-B),
+   la foto se c'è (mai un riquadro quando non c'è — E03-B/E13-C), nome
+   e prezzo sulla STESSA riga a 22 px sempre (E05-B: il prezzo un
+   gradino sopra, colore pieno), la riga del motivo sotto.
+   Esportata: «Il pezzo che chiude» (P2, `perte-collezioni.js`) la
+   riusa — la stessa scheda, non una seconda. */
+export function cardProposta(d, suClick, opz = {}){
+  const parti = [];
+  if(d.etichetta) parti.push(e("span", {class: "motivo-pillola"}, [
+    segno("stella", {misura: 14}),
+    e("span", {class: "occhiello", testo: d.etichetta})]));
+  if(d.foto){
+    const fig = figura(d, "grande-fig", {muto: true});
+    if(opz.contain && fig.tagName === "IMG"){
+      fig.classList.add("grande-fig-contain");
+      fig.style.backgroundColor = PROVINO_FONDO;
+    }
+    parti.push(e("span", {class: "card-grande-foto"}, [fig]));
+  }
+  parti.push(e("div", {class: "riga-nome-prezzo"}, [
+    e("b", {class: "t-2 card-nome", testo: d.nome}),
+    d.prezzo != null ? e("span", {class: "t-sub card-prezzo", testo: d.prezzo}) : null
+  ].filter(Boolean)));
+  if(d.sotto) parti.push(e("span", {class: "t-sub tenue card-riga", testo: d.sotto}));
+  if(d.nota) parti.push(e("span", {class: "t-foot tenue card-nota", testo: d.nota}));
+  return e("button", {
+    type: "button", class: "card-grande", "data-f5-blocco": d.chiave || "pezzo",
+    "aria-label": d.nome + (d.sotto ? ". " + d.sotto : ""),
+    suClick
+  }, parti);
 }
 
 /* UN'AZIONE PRINCIPALE, UNA NO (critic 20/09). Un tasto «terziario»
@@ -727,49 +770,129 @@ function vestiFotoMotore(nodoCard){
 function vestiPrincipale(t){ t.classList.add("azione-principale"); return t; }
 function vestiSecondaria(t){ t.classList.add("azione-secondaria"); return t; }
 
-/* IL RIQUADRO SENZA FOTO DEL RAIL — MAI IL NOME (critic 20/09): il nome
-   sta già sotto la card una volta sola (`.card-rail-nome`); scriverlo
-   anche dentro il riquadro lo ripete due volte nello stesso sguardo.
-   Qui va un fatto IN PIÙ — la materia — in Inter 13 --testo-2
-   (`div.rail-fig` la scrive già così, vedi perte.css). */
-/* Nel rail PER MATERIA il titolo dice già la materia: il riquadro porta
+/* IL FATTO IN PIÙ DELLA CELLA SENZA FOTO — MAI IL NOME (critic 20/09):
+   il nome sta già sotto la card una volta sola (`.card-rail-nome»).
+   Nel rail PER MATERIA il titolo dice già la materia: la cella porta
    allora la FAMIGLIA (anello, creola…), che è il fatto in più (critic
    20/09, seconda verifica). Negli altri rail resta la materia. */
-function redattoRail(p, r){
+function testoRail(p, r){
   const perMateria = r && /materia/.test(String(r.regola || ""));
-  const scritta = perMateria ? (p.tipo || p.famiglia_nome || p.materia) : p.materia;
-  return e("div", {class: "redatto rail-fig"},
-    scritta ? [e("span", {class: "t-foot", testo: scritta})] : []);
+  return perMateria ? (p.tipo || p.famiglia_nome || p.materia) : p.materia;
 }
+
+/* ── LA CELLA SENZA FOTO — TEXTURE, MAI UN RIQUADRO MUTO ────────────
+   E11-C, verdetto di Massimo (21/09), corretto dal coordinatore lo
+   stesso giorno: il fatto in più (materia/famiglia) NON scende più in
+   una terza riga sotto il nome — sfalsava la griglia contro le celle
+   fotografate, che ne hanno due. Vive DENTRO la texture, in piccolo,
+   come una didascalia posata sulla superficie (`.rail-fig-eti`,
+   perte.css): la cella resta a due righe (nome, prezzo) sempre. */
 function figuraRail(p, r){
-  if(!p.foto) return redattoRail(p, r);
+  const eti = testoRail(p, r);
+  const vuoto = () => e("div", {class: "redatto rail-fig"},
+    eti ? [e("span", {class: "rail-fig-eti", testo: eti})] : []);
+  if(!p.foto) return vuoto();
   const img = e("img", {class: "rail-fig", src: p.foto, alt: "", loading: "lazy", decoding: "async"});
-  img.addEventListener("error", () => { img.replaceWith(redattoRail(p, r)); }, {once: true});
+  img.addEventListener("error", () => { img.replaceWith(vuoto()); }, {once: true});
   return img;
 }
 
+/* ── IL CUORE DELLA CELLA DEL RAIL (E10-B, verdetto di Massimo) ─────
+   Comando FRATELLO della cella, come in Vetrina (`viste/vetrina-corpo.js`,
+   `tastoCuore`): un cuore dentro il tasto che apre la scheda non
+   esiste. Stesso evento `preferito/alterna`, stesso ramo `s.preferiti`
+   — non una seconda lista di preferiti, la STESSA, letta da qui. Solo
+   sulle celle fotografate: la texture di E11 non lo porta. */
+function ePreferitoRail(id, leggi){ return ((leggi().preferiti) || []).includes(id); }
+function vestiCuoreRail(b, p, leggi){
+  const si = ePreferitoRail(p.id, leggi);
+  b.setAttribute("aria-pressed", String(si));
+  b.setAttribute("aria-label", (si ? "Togli dai preferiti: " : "Aggiungi ai preferiti: ") + p.nome);
+  const s = b.querySelector(".segno-filo");
+  if(s) s.classList.toggle("rail-cuore-pieno", si);
+}
+function cuoreRail(p, leggi, invia){
+  /* stessa anatomia del cuore di Vetrina (`vetrina-corpo.js`,
+     `tastoCuore`): un disco separato dentro il tasto, non la misura
+     dell'icona forzata — `.segno-filo` porta già le sue quattro
+     classi di misura (sistema.css) e qui non se ne inventa una nuova. */
+  const b = e("button", {type: "button", class: "card-rail-cuore",
+    suClick: (ev) => {
+      ev.stopPropagation();
+      invia("preferito/alterna", {id: p.id});
+      vestiCuoreRail(b, p, leggi);
+      annuncia(p.nome + (ePreferitoRail(p.id, leggi) ? ", nei preferiti." : ", tolto dai preferiti."));
+    }
+  }, [e("span", {class: "card-rail-cuore-disco"}, [segno("cuore", {misura: 20})])]);
+  b.dataset.cuorePerte = p.id;
+  vestiCuoreRail(b, p, leggi);
+  return b;
+}
+
 /* ── IL RAIL — card 160 × 200, passo 172 ──────────────────────────── */
-function railDom(r, suPezzo, soldi){
-  const carte = r.pezzi.map((p) => e("button", {
-    type: "button", class: "card-rail", "data-pezzo": p.id,
-    "aria-label": p.nome + ", " + soldi(p.prezzo),
-    suClick: () => suPezzo(p.id)
-  }, [
-    e("span", {class: "card-rail-foto"}, [figuraRail(p, r)]),
-    e("b", {class: "t-foot card-rail-nome", testo: p.nome}),
-    e("span", {class: "t-foot tenue cifra", testo: soldi(p.prezzo)})
-  ]));
+function railDom(r, suPezzo, soldi, leggi, invia){
+  /* CORREZIONE (coordinatore, 21/09): i pezzi CON foto vengono prima —
+     ordinamento stabile, non tocca quale regola ha scelto quali pezzi,
+     solo l'ordine di presentazione. Con ≥ 2 fotografati nelle prime
+     tre visibili non cade mai più di UNA cella a texture: è una
+     conseguenza dell'ordine, non una regola a parte da mantenere. */
+  const pezzi = r.pezzi.map((p, i) => ({p, i}))
+    .sort((a, b) => (b.p.foto ? 1 : 0) - (a.p.foto ? 1 : 0) || a.i - b.i)
+    .map((x) => x.p);
+  const conFotoN = pezzi.filter((p) => p.foto).length;
+
+  const testa = [
+    /* E09-B (verdetto di Massimo): sans semibold, come Apple Music —
+       non più Bodoni 22: il rail è uno SCAFFALE dentro la pagina, non
+       un titolo di sezione a sé. */
+    e("h2", {class: "t-head rail-testa", testo: r.titolo}),
+    r.sotto ? e("p", {class: "t-foot tenue rail-sotto", testo: r.sotto}) : null
+  ].filter(Boolean);
+
+  /* MENO DI DUE PEZZI FOTOGRAFATI: uno scaffale orizzontale non ha il
+     peso visivo per reggersi — diventa una lista compatta di righe
+     (nome · materia · prezzo, 44-60 pt, senza riquadro), lo stesso
+     componente della lista raggruppata (`app/ui/cella.js`). */
+  if(conFotoN < 2){
+    const righe = pezzi.map((p) => {
+      const eti = testoRail(p, r);
+      return cella({
+        titolo: p.nome, sotto: eti || null, coda: soldi(p.prezzo),
+        etichetta: p.nome + (eti ? ", " + eti : "") + ", " + soldi(p.prezzo),
+        suClick: () => suPezzo(p.id)
+      });
+    });
+    return e("section", {class: "rail-blocco", "data-rail": r.regola}, [
+      ...testa,
+      e("div", {class: "lista rail-compatta", role: "list"},
+        righe.map((n) => { n.setAttribute("role", "listitem"); return n; }))
+    ]);
+  }
+
+  const carte = pezzi.map((p) => {
+    const conFoto = !!p.foto;
+    const eti = testoRail(p, r);
+    const apri = e("button", {
+      type: "button", class: "card-rail-apri", "data-pezzo": p.id,
+      "aria-label": p.nome + (!conFoto && eti ? ", " + eti : "") + ", " + soldi(p.prezzo),
+      suClick: () => suPezzo(p.id)
+    }, [
+      e("span", {class: "card-rail-foto"}, [figuraRail(p, r)]),
+      e("b", {class: "t-foot card-rail-nome", testo: p.nome}),
+      e("span", {class: "t-foot tenue cifra", testo: soldi(p.prezzo)})
+    ]);
+    return e("div", {class: "card-rail", role: "listitem"},
+      conFoto ? [apri, cuoreRail(p, leggi, invia)] : [apri]);
+  });
   /* NIENTE SCORRIMENTO INFINITO (NN/g): l'elenco è finito e lo dice.
      L'ultima card è una frase, non un'esca. */
-  if(r.altri > 0) carte.push(e("div", {class: "card-rail coda-rail"},
+  if(r.altri > 0) carte.push(e("div", {class: "card-rail coda-rail", role: "listitem"},
     [e("span", {class: "t-foot tenue", testo:
       "In negozio ce ne sono altri " + r.altri + "."})]));
   return e("section", {class: "rail-blocco", "data-rail": r.regola}, [
-    e("h2", {class: "t-2 rail-testa", testo: r.titolo}),
-    r.sotto ? e("p", {class: "t-foot tenue rail-sotto", testo: r.sotto}) : null,
-    e("div", {class: "rail", role: "list", "aria-label": r.titolo},
-      carte.map((c) => { c.setAttribute("role", "listitem"); return c; }))
-  ].filter(Boolean));
+    ...testa,
+    e("div", {class: "rail", role: "list", "aria-label": r.titolo}, carte)
+  ]);
 }
 
 /* ── LO SCHELETRO DEL BLOCCO, MENTRE IL MOTORE ARRIVA ──────────────
@@ -790,7 +913,11 @@ function scheletroBlocco(){
    Lo stesso modulo per tre contenuti: maiuscoletto con le DATE SCRITTE,
    Bodoni 22 col fatto, Inter 15 col dove/come, Inter 13 col perché o
    l'azione. Nessun timer, nessun bottone pieno, nessun «solo per te». */
-function cardP4(d, azione){
+/* esportata: la riusano `perte-collezioni.js` (P5 «Per te questo mese» —
+   le stesse due card, compleanno e promo, che prima vivevano solo in
+   radice) e questo file più giù non la chiama più direttamente (F6
+   21/09: le card P4 non stanno più sotto il titolo, vive chi le apre). */
+export function cardP4(d, azione){
   return e("section", {class: "p4", "data-p4": d.tipo}, [
     e("span", {class: "occhiello foot p4-occhiello", testo: d.occhiello}),
     e("b", {class: "t-2 p4-titolo", testo: d.titolo}),
@@ -800,9 +927,62 @@ function cardP4(d, azione){
   ].filter(Boolean));
 }
 
+/* ── LA CARD DELL'ARRIVO, con «Ricordamelo» ────────────────────────
+   F6 (21/09): non vive più dentro `monta()` — la radice non disegna
+   più le card degli arrivi, solo la riga che apre il loro elenco (P5
+   «Arrivi», `perte-collezioni.js`). Portata a livello di modulo ed
+   esportata perché quella pagina è caricata a richiesta e la chiama da
+   fuori: `ctx = {store, oggi, vaiAlPezzo}` sostituisce le variabili di
+   chiusura (`store`, `OGGI`, `vaiAlPezzo`) che prima erano libere nello
+   scope di `monta()`. */
+export function cardArrivo(a, ctx){
+  const {store, oggi, vaiAlPezzo} = ctx;
+  const fatto = () => leggiPromemoria(store.leggi()).some((x) => x.id === a.id);
+  const eti = () => fatto()
+    ? "Te lo ricordiamo " + soloGiorno(a.avviso) + " alle 9"
+    : "Ricordamelo";
+  const t = tasto(eti(), {tipo: "terziario", etichetta: eti(), suClick: () => {
+    if(fatto()) return;
+    segnaPromemoria(store, {id: a.id, articolo: a.articolo,
+      quando: a.avviso, creato: oggi});
+    vestiTasto(t, eti());
+    t.setAttribute("aria-label", eti());
+    t.setAttribute("aria-pressed", "true");
+    t.dataset.segnato = "1";
+    toast("Te lo ricordiamo " + soloGiorno(a.avviso) + " alle 9.");
+    annuncia(a.nome + ". Te lo ricordiamo " + soloGiorno(a.avviso) + " alle 9.");
+  }});
+  if(fatto()){ t.setAttribute("aria-pressed", "true"); t.dataset.segnato = "1"; }
+
+  /* CORREZIONE (coordinatore, 21/09): senza fotografia niente
+     riquadro — E03-B, la stessa forma di solo testo della scheda
+     della proposta. Un contenitore immagine vuoto (la «pozza di
+     luce» su un fondo già chiaro leggeva come un vano bianco) non è
+     più un'opzione qui: o la foto c'è, o il riquadro non esiste. */
+  return e("article", {class: "p4 p4-arrivo" + (a.foto ? "" : " senza-foto"),
+    "data-p4": "arrivo", "data-arrivo": a.id}, [
+    a.foto ? e("button", {type: "button", class: "arrivo-foto",
+      "aria-label": a.nome + ", guarda il pezzo",
+      suClick: () => vaiAlPezzo(a.articolo)}, [figura(a, "arrivo-fig", {muto: true})]) : null,
+    e("span", {class: "occhiello foot p4-occhiello", testo: a.occhiello}),
+    e("b", {class: "t-2 p4-titolo", testo: a.nome}),
+    a.riga ? e("p", {class: "t-sub p4-riga", testo: a.riga}) : null,
+    t
+  ].filter(Boolean));
+}
+
 /* ═══ IL MONTAGGIO ═════════════════════════════════════════════════ */
 export function monta(el, store){
   vestiti();
+  /* F6 — IL TEMA CHIARO (verdetto di Massimo, 21/09: tavole «Per te»,
+     ASSIEME_A, coerente con la Vetrina A approvata lo stesso giorno).
+     Stessa leva di `viste/vetrina.js`, non un secondo set di token: si
+     scrive `data-tema="chiaro"` sulla sezione, e il telaio
+     (`index.html`, `fondoScocca`) legge da lì il fondo del documento;
+     `sistema.css` (blocco «LA BARRA DI VETRO SULLA CARTA») dà la
+     stessa tinta di vetro alla barra quando `data-sez="perte"`. */
+  const sezionePerte = el.closest(".vista");
+  if(sezionePerte) sezionePerte.dataset.tema = "chiaro";
   const {leggi, iscrivi, soldi, invia} = store;
 
   /* F5b — LA SESSIONE. Un id per apertura dell'app, non per rendering:
@@ -934,10 +1114,48 @@ export function monta(el, store){
      globale e l'ultima registrazione vince, quindi da qui in avanti
      quel tocco apre la collezione VERA invece delle due righe
      dichiarate «in arrivo nella fase F5». */
-  registraSchermo("collezioni", (id, dove) =>
-    id === "tutte" ? schermoHub(dove) : schermoCollezione(id, dove));
-  registraSchermo("collezione", (id, dove) => schermoCollezione(id, dove));
-  registraSchermo("chiusura", (id, dove) => schermoChiusura(id, dove));
+  /* CARICATE A RICHIESTA (bilancio JS, coordinatore 21/09: 607.679 B
+     contro il tetto di 600.000 — la stessa via del motore, misura 1 di
+     `viste/vetrina.js`/`vetrina-corpo.js`). Hub, collezione e chiusura
+     sono sotto-pagine: nessuna delle tre disegna la radice, quindi
+     nessuna delle tre deve pesare sull'avvio. `ctxCollezioni` porta
+     solo i due ganci che quelle tre schermate leggono davvero — `dati`
+     (la stessa funzione pura di sempre, mai una seconda) e `store`
+     (per `leggi`/`invia`, es. «Ricordamelo per giovedì»). */
+  let corpoCollezioniPromessa = null;
+  function caricaCorpoCollezioni(){
+    if(!corpoCollezioniPromessa) corpoCollezioniPromessa = import("app/viste/perte-collezioni.js");
+    return corpoCollezioniPromessa;
+  }
+  const ctxCollezioni = {store, dati};
+  const nonCaricato = (dove) => dove.append(e("p", {class: "t-body tenue",
+    testo: "Non si è caricato. Controlla la connessione e riprova."}));
+  registraSchermo("collezioni", (id, dove) => {
+    caricaCorpoCollezioni()
+      .then((m) => id === "tutte" ? m.schermoHub(dove, ctxCollezioni)
+                                   : m.schermoCollezione(id, dove, ctxCollezioni))
+      .catch((err) => { console.error(err); nonCaricato(dove); });
+  });
+  registraSchermo("collezione", (id, dove) => {
+    caricaCorpoCollezioni().then((m) => m.schermoCollezione(id, dove, ctxCollezioni))
+      .catch((err) => { console.error(err); nonCaricato(dove); });
+  });
+  registraSchermo("chiusura", (id, dove) => {
+    caricaCorpoCollezioni().then((m) => m.schermoChiusura(id, dove, ctxCollezioni))
+      .catch((err) => { console.error(err); nonCaricato(dove); });
+  });
+  /* LE DUE NUOVE PORTE (F6, 21/09) — dietro le righe «Arrivi» e «Per te
+     questo mese» del gruppo di lista: `arrivi/tutti` e `mese/questo`,
+     la stessa via delle collezioni (a coppie, caricate a richiesta,
+     nessun peso sull'avvio). */
+  registraSchermo("arrivi", (id, dove) => {
+    caricaCorpoCollezioni().then((m) => m.schermoArrivi(dove, ctxCollezioni))
+      .catch((err) => { console.error(err); nonCaricato(dove); });
+  });
+  registraSchermo("mese", (id, dove) => {
+    caricaCorpoCollezioni().then((m) => m.schermoMese(dove, ctxCollezioni))
+      .catch((err) => { console.error(err); nonCaricato(dove); });
+  });
 
   const vaiAlPezzo = (id) => spingi("pezzo/" + id);
 
@@ -946,11 +1164,30 @@ export function monta(el, store){
     /* si cattura QUI, prima che `schermo()` svuoti il contenitore (vedi
        la nota sopra `animaBloccoAlProssimoDisegno`). */
     const vecchioPerAnimazione = animaBloccoAlProssimoDisegno
-      ? el.querySelector(".blocco, .blocco-compatta") : null;
+      ? el.querySelector(".blocco") : null;
     animaBloccoAlProssimoDisegno = false;
 
     const d = dati();
     const pagina = schermo(el, {titolo: "Per te"});
+
+    /* 1 · IL TITOLO CON LE INIZIALI (E01-B, verdetto di Massimo 21/09):
+       niente occhiello sopra («Aggiornato oggi» — 18 pt di altezza in
+       più, per un fatto che la pagina già dimostra da sola), un cerchio
+       «LS» sulla riga del titolo — conferma chi è loggata senza foto né
+       generazioni, tocca e apre il Profilo (ANCORA Apple, App Store
+       «Per te»: l'avatar vive sulla riga del Large Title). */
+    const testaPagina = pagina.querySelector(".testa-pagina");
+    if(testaPagina){
+      testaPagina.classList.add("f5-testa");
+      const iniziali = (String(d.cliente.nome || "").charAt(0) +
+        String(d.cliente.cognome || "").charAt(0)).toUpperCase();
+      if(iniziali) testaPagina.append(e("button", {
+        type: "button", class: "f5-iniziali",
+        "aria-label": "Apri il profilo di " +
+          [d.cliente.nome, d.cliente.cognome].filter(Boolean).join(" "),
+        suClick: () => vaiA("profilo")
+      }, [e("span", {"aria-hidden": "true", testo: iniziali})]));
+    }
 
     /* 2 · la riga del ritorno — solo se c'è un fatto. In --testo, non
        --accento (critic 20/09): il turchese di questa schermata è già
@@ -980,11 +1217,16 @@ export function monta(el, store){
          qui non c'è nessun errore, solo silenzio. */
       if(!motoreFallito){ nuovoBloccoNodo = scheletroBlocco(); pagina.append(nuovoBloccoNodo); }
     } else if(m.sessione_chiusa){
-      /* il secondo «Non fa per me» della sessione: il motore chiude da
-         solo, e qui non si inventa nessun terzo candidato. Allineata a
-         sinistra (critic 20/09): oggi era l'unico testo centrato della
-         pagina. */
-      nuovoBloccoNodo = e("p", {class: "t-sub tenue blocco-fine", testo: m.fine});
+      /* E08-C (verdetto di Massimo, 21/09): la data VERA, non «lunedì»
+         da solo — un testo che non invecchia male se l'app si riapre
+         un altro giorno. `m.chiusa_fino` è il lunedì vero che il motore
+         ha già calcolato (`prossimoLunedi`, non toccato: qui si legge).
+         Allineata a sinistra (critic 20/09): oggi era l'unico testo
+         centrato della pagina. */
+      const testoChiuso = m.chiusa_fino
+        ? "Va bene: torno a proporti qualcosa " + giornoBreve(m.chiusa_fino) + "."
+        : m.fine;
+      nuovoBloccoNodo = e("p", {class: "t-sub tenue blocco-fine", testo: testoChiuso});
       pagina.append(nuovoBloccoNodo);
     } else if(m.grande){
       const g = m.grande;
@@ -994,18 +1236,25 @@ export function monta(el, store){
         });
         vaiAlPezzo(g.id);
       };
-      const occhiello = occhielloArticolo(g.articolo), prezzo = soldi(g.articolo.prezzo);
-      /* CON FOTO: la card di sempre, ma con PARITÀ (occhiello e
-         prezzo). SENZA: mai un riquadro vuoto — niente area immagine
-         (misura 5), stessa forma della card con foto. */
-      const card = g.articolo.foto
-        ? vestiFotoMotore(cardGrande({
-            nome: g.articolo.nome, foto: g.articolo.foto, riga: g.frase,
-            occhiello, prezzo, perche: null
-          }, suClick))
-        : cardGrandeCompatta(g, suClick, soldi);
+      /* E02-B/E03-B/E07-C (verdetto di Massimo, 21/09): un'ossatura
+         sola con o senza foto — `cardProposta` decide da sé, mai un
+         riquadro vuoto quando la foto manca. L'etichetta-motivo prende
+         il posto dell'occhiello famiglia·materia: `etichettaMotivo`
+         traduce la regola vinta dal motore, e la riga sotto resta un
+         dato vero (`g.frase`, quando la tabella non ne ha uno più
+         specifico). */
+      const mot = etichettaMotivo(g, leggi());
+      const card = cardProposta({
+        nome: g.articolo.nome, foto: g.articolo.foto,
+        prezzo: soldi(g.articolo.prezzo),
+        etichetta: mot.etichetta, sotto: mot.sotto, chiave: g.chiave
+      }, suClick, {contain: true});
       nuovoBloccoNodo = e("section", {class: "blocco", "data-regola": g.regola}, [
         card,
+        /* E06-C (verdetto di Massimo): due capsule — «Metti da parte»
+           piena, «Non fa per me» in tono. Non due primari: il colore è
+           nella FORMA (piena vs in tono), non nel turchese — che resta
+           di «Ricordamelo» (ACCENTI, critic 20/09). */
         e("div", {class: "blocco-azioni"}, [
           vestiPrincipale(tasto("Metti da parte", {tipo: "terziario", suClick: () => metterlaDaParte(g)})),
           vestiSecondaria(tasto("Non fa per me", {tipo: "terziario", suClick: () => nonFaPerMe(g)}))
@@ -1019,9 +1268,89 @@ export function monta(el, store){
       nuovoBloccoNodo = e("p", {class: "t-sub tenue blocco-fine", testo: m.fine});
       pagina.append(nuovoBloccoNodo);
     }
-    /* persona senza dati (nessun candidato e non "tutto suo"): niente si
-       disegna qui — nessun regalo inventato — e la sezione resta muta
-       finché il motore non ha un fatto vero da dire. */
+    /* 4 · UNO SCAFFALE SOLO — F6 (21/09, verdetto di Massimo: «la radice
+       è tornata piena»). Fino a ieri qui finivano fino a tre rail, uno
+       sotto l'altro; oggi ne resta UNO, il più pertinente alla proposta
+       appena mostrata — quello col punteggio più alto fra i rail che il
+       motore ha preparato. Gli altri due non spariscono: restano nel
+       motore (`m.rail`), pronti a diventare loro il rail scelto la
+       prossima volta che la regola grande cambia. Il punteggio di un
+       rail è il più alto fra i suoi pezzi (`p.punteggio`, scritto dal
+       motore): un rail con un solo pezzo fortissimo vince su uno con
+       tre pezzi mediocri, ed è la stessa logica che sceglie il blocco
+       grande. */
+    let railScelto = null;
+    if(m) for(const r of m.rail){
+      const punti = r.pezzi.reduce((mx, p) => Math.max(mx, p.punteggio || 0), 0);
+      if(!railScelto || punti > railScelto.punti) railScelto = {r, punti};
+    }
+
+    /* 5 · UN GRUPPO DI LISTA, AL MASSIMO TRE RIGHE DI RIMANDO — la
+       stessa riga di tutta l'app (E07 variante B, `riferimenti/
+       APPLE-NATIVO.md` §3: valore in tenue prima del chevron). Tutto
+       ciò che fino a ieri riempiva la radice — l'elenco delle
+       collezioni, le card degli arrivi, le card di compleanno/promo —
+       non è sparito: vive nelle SUE pagine, e questa riga è la porta.
+       Una riga che non ha contenuto non compare: mai un rimando a
+       vuoto. */
+    const righe = [];
+    if(d.mie.length){
+      /* la collezione più vicina alla chiusura, non la prima della
+         lista: è il fatto che vale la pena scrivere sotto il numero. */
+      const primaAChiudere = d.mie.filter((c) => c.manca > 0)
+        .sort((a, b) => a.manca - b.manca)[0];
+      const sottoColl = primaAChiudere
+        ? primaAChiudere.nome + ": " + (primaAChiudere.manca === 1
+            ? "ti manca 1 pezzo" : "te ne mancano " + primaAChiudere.manca)
+        : null;
+      righe.push(cella({
+        titolo: "Le tue collezioni", coda: String(d.mie.length), sotto: sottoColl,
+        etichetta: "Le tue collezioni, " + d.mie.length + (sottoColl ? ", " + sottoColl : ""),
+        suClick: () => spingi("collezioni/tutte")
+      }));
+    }
+    if(d.arriviTutti.length){
+      /* il primo di `arriviTutti` è già il più recente (la stessa
+         regola che sceglieva le due card di prima, F5b): qui diventa
+         il fatto della riga, non solo il primo di un elenco troncato. */
+      const primo = d.arriviTutti[0];
+      const sottoArrivi = primo.nome + ", da " + giornoBreve(primo.data);
+      righe.push(cella({
+        titolo: "Arrivi", coda: String(d.arriviTutti.length), sotto: sottoArrivi,
+        etichetta: "Arrivi, " + d.arriviTutti.length + ", " + sottoArrivi,
+        suClick: () => spingi("arrivi/tutti")
+      }));
+    }
+    /* compleanno e promo sono le due sole forme di «promozione attiva
+       questo mese» che il motore conosce: quella più vicina a scadere
+       (`al`, ISO) vince la riga — non la prima trovata. */
+    const mese = [d.compleanno, d.promo].filter(Boolean)
+      .sort((a, b) => giorniFra(OGGI, a.al) - giorniFra(OGGI, b.al))[0];
+    if(mese){
+      const sottoMese = mese.titolo + ", fino al " + giornoEMese(mese.al);
+      righe.push(cella({
+        titolo: "Per te questo mese", sotto: sottoMese,
+        etichetta: "Per te questo mese, " + sottoMese,
+        suClick: () => spingi("mese/questo")
+      }));
+    }
+
+    /* E15-A (verdetto di Massimo, 21/09): persona senza dati (nessun
+       candidato e non "tutto suo") — se la pagina non ha PROPRIO
+       NIENTE d'altro da dire (nessuno scaffale, nessuna riga di
+       rimando, nessun ritorno), lo stato vuoto del sistema prende il
+       posto del blocco: segno + Title2 + Body + un'azione, mai una
+       sezione muta. */
+    const emptyTotale = !!m && !m.grande && !m.sessione_chiusa && !m.tutto_suo &&
+      !railScelto && !righe.length && !d.ritorno;
+    if(emptyTotale){
+      nuovoBloccoNodo = vuoto({
+        segno: "collezione", titolo: "Non c’è ancora nulla qui",
+        testo: "Le tue proposte nascono dai pezzi che porti: comincia in negozio.",
+        azione: "Scopri la vetrina", suAzione: () => vaiA("vetrina")
+      });
+      pagina.append(nuovoBloccoNodo);
+    }
 
     /* RISPOSTA AL TOCCO (critic 20/09): un rifiuto non sostituisce la
        card a scatto. `vecchioPerAnimazione` è stato catturato in cima a
@@ -1031,366 +1360,32 @@ export function monta(el, store){
       animaCambioBlocco(vecchioPerAnimazione, nuovoBloccoNodo);
     if(motoreProposte && tBloccoDisegnato == null) tBloccoDisegnato = performance.now();
 
-    /* 4-6 · i rail, al massimo tre — anche loro dal motore, solo se è
-       arrivato (misura 1 del banco prestazioni: niente rail mentre si
-       aspetta). Le proposte del rail portano il pezzo dentro
-       `.articolo`: la card del rail (invariata) vuole `nome/foto/
-       prezzo/materia` alla radice, quindi si appiattisce qui, nell'unico
-       posto che deve saperlo. */
-    if(m) for(const r of m.rail) pagina.append(railDom({
-      regola: r.regola, titolo: r.titolo, sotto: null, altri: r.altri,
-      pezzi: r.pezzi.map((p) => ({
+    /* CORREZIONE (coordinatore, 21/09, ereditata): il titolo dello
+       scaffale «Si abbinano ai tuoi» non nomina più la materia fra
+       parentesi — il nome vero (un dato del cliente) scende nella riga
+       sotto, dove `rail-sotto` lo scrive già. Solo per la regola
+       «materia»: le altre hanno la frase già completa nel titolo. */
+    if(railScelto) pagina.append(railDom({
+      regola: railScelto.r.regola, titolo: railScelto.r.titolo,
+      sotto: (railScelto.r.regola === "materia" && railScelto.r.gruppo)
+        ? railScelto.r.gruppo.charAt(0).toUpperCase() + railScelto.r.gruppo.slice(1) : null,
+      altri: railScelto.r.altri,
+      pezzi: railScelto.r.pezzi.map((p) => ({
         id: p.id, nome: p.articolo.nome, foto: p.articolo.foto, prezzo: p.articolo.prezzo,
-        materia: p.articolo.attributi && p.articolo.attributi.metallo
+        materia: p.articolo.attributi && p.articolo.attributi.metallo,
+        tipo: p.articolo.tipo, famiglia_nome: p.articolo.famiglia_nome
       }))
-    }, vaiAlPezzo, soldi));
+    }, vaiAlPezzo, soldi, leggi, invia));
 
-    /* le card P4 — ORA SOTTO I RAIL (misura 6): compleanno e promo
-       restano vere e restano in pagina, ma la proposta del motore
-       risponde per prima alla domanda della schermata. */
-    if(d.compleanno) pagina.append(cardP4(d.compleanno));
-    if(d.promo) pagina.append(cardP4(d.promo));
-
-    /* 7 · le tue collezioni. In coda al gruppo, l'unica porta per l'hub:
-       una sezione raggiungibile solo da un indirizzo scritto a mano è
-       una sezione che non esiste. */
-    if(d.mie.length) pagina.append(e("section", {class: "lista-blocco"}, [
-      e("h2", {class: "occhiello foot lista-testa", testo: "Le tue collezioni"}),
-      e("div", {class: "lista", role: "list"}, [...d.mie.map((c) => e("button", {
-        type: "button", role: "listitem", class: "cella due coll-riga", "data-coll": c.id,
-        "aria-label": c.nome + ", " + c.ha + " di " + c.totale +
-          (c.manca === 1 ? ", ti manca " + c.mancanti[0].nome : ""),
-        suClick: () => spingi("collezioni/" + c.id)
-      }, [
-        e("div", {class: "testo"}, [
-          e("b", {testo: c.nome}),
-          e("span", {class: "cifra", testo: c.ha + " di " + c.totale +
-            (c.manca === 1 ? " · ti manca " + c.mancanti[0].nome
-             : c.manca ? " · te ne mancano " + c.manca : " · completa")})]),
-        pallini(c),
-        segno("chevron", {misura: 14, classe: "frec"})
-      ])),
-      cella({titolo: "Tutte le collezioni",
-        sotto: numero(d.collezioni.length) + " in negozio, " +
-               numero(d.mie.length) + (d.mie.length === 1 ? " tua" : " tue"),
-        etichetta: "Tutte le collezioni del negozio",
-        suClick: () => spingi("collezioni/tutte")})]
-        .map((n) => { n.setAttribute("role", "listitem"); return n; }))
-    ]));
-
-    /* 8 · in negozio da… (al massimo due card evento) */
-    if(d.arrivi.length){
-      const sez = e("section", {class: "arrivi-blocco"},
-        /* «ARRIVI», non «IN NEGOZIO DA…». La testata di un gruppo dice
-           COSA c'è dentro; i puntini di sospensione promettevano una
-           data che la testata non poteva portare, e la data — quella
-           vera, col giorno della settimana — sta già DENTRO ogni card
-           («In vetrina da giovedì 17 settembre»). Una parola, e il
-           quando lo dice il pezzo di cui si parla. */
-        [e("h2", {class: "occhiello foot lista-testa", testo: "Arrivi"})]);
-      for(const a of d.arrivi) sez.append(cardArrivo(a));
-      pagina.append(sez);
+    /* il gruppo di lista, in coda: massimo tre righe, mai «Non c'è
+       altro, per ora» sotto — la lista stessa chiude la pagina. */
+    if(righe.length){
+      /* critic 22/09: fra lo scaffale e il gruppo c'erano 7 pt, e i due
+         blocchi si leggevano incollati. 24, come fra i gruppi di Impostazioni. */
+      const gruppo = lista(null, righe);
+      gruppo.classList.add("pt-rimandi");
+      pagina.append(gruppo);
     }
-
-    /* 9 · LA FINE, DICHIARATA. Non «carica altro»: l'elenco è finito e
-       si dice che è finito (NN/g, alternative allo scorrimento
-       infinito). */
-    pagina.append(e("p", {class: "t-foot tenue la-fine", testo: d.fine}));
-  }
-
-  /* ── P4 · LA CARD DELL'ARRIVO, con «Ricordamelo» ──────────────── */
-  function cardArrivo(a){
-    const fatto = () => leggiPromemoria(leggi()).some((x) => x.id === a.id);
-    const eti = () => fatto()
-      ? "Te lo ricordiamo " + soloGiorno(a.avviso) + " alle 9"
-      : "Ricordamelo";
-    const t = tasto(eti(), {tipo: "terziario", etichetta: eti(), suClick: () => {
-      if(fatto()) return;
-      segnaPromemoria(store, {id: a.id, articolo: a.articolo,
-        quando: a.avviso, creato: OGGI});
-      vestiTasto(t, eti());
-      t.setAttribute("aria-label", eti());
-      t.setAttribute("aria-pressed", "true");
-      t.dataset.segnato = "1";
-      toast("Te lo ricordiamo " + soloGiorno(a.avviso) + " alle 9.");
-      annuncia(a.nome + ". Te lo ricordiamo " + soloGiorno(a.avviso) + " alle 9.");
-    }});
-    if(fatto()){ t.setAttribute("aria-pressed", "true"); t.dataset.segnato = "1"; }
-
-    return e("article", {class: "p4 p4-arrivo", "data-p4": "arrivo", "data-arrivo": a.id}, [
-      e("button", {type: "button", class: "arrivo-foto",
-        "aria-label": a.nome + ", guarda il pezzo",
-        suClick: () => vaiAlPezzo(a.articolo)}, [figura(a, "arrivo-fig", {muto: true})]),
-      e("span", {class: "occhiello foot p4-occhiello", testo: a.occhiello}),
-      e("b", {class: "t-2 p4-titolo", testo: a.nome}),
-      a.riga ? e("p", {class: "t-sub p4-riga", testo: a.riga}) : null,
-      t
-    ].filter(Boolean));
-  }
-
-  /* ══ P1 · L'HUB DELLE COLLEZIONI ═══════════════════════════════ */
-  function schermoHub(dove){
-    const d = dati();
-    const pagina = schermo(dove, {titolo: "Collezioni", indietro: torna,
-      etichettaIndietro: "Torna a Per te"});
-    for(const c of d.mie) pagina.append(sezioneCollezione(c));
-    /* LE ALTRE non prendono una fila: «mai una barra a zero». Si dicono
-       per nome, perché esistono, e ci si entra comprandone uno. */
-    if(d.altre.length) pagina.append(lista("Le altre, in negozio", d.altre.map((c) => cella({
-      titolo: c.nome, sotto: numero(c.totale) + " pezzi · " + (c.stagione || "in negozio"),
-      etichetta: c.nome + ", " + c.totale + " pezzi",
-      suClick: () => spingi("collezioni/" + c.id)
-    }))));
-    annuncia("Collezioni · " + d.mie.length + (d.mie.length === 1 ? " tua" : " tue"));
-  }
-
-  /* UNA RIGA DI STATO E UNA AZIONE, per collezione. Sull'hub non
-     entrano né la frase della promo né «Dove: in vetrina da …»: sono
-     il DETTAGLIO della collezione e vivono nella sua pagina, dove c'è
-     spazio per leggerli. L'hub è un indice — nome, fila, dove sei, la
-     porta — e un indice che spiega non è più un indice. */
-  function sezioneCollezione(c){
-    const parti = [
-      e("h2", {class: "t-2 coll-titolo", testo: c.nome}),
-      c.racconto ? e("p", {class: "t-sub tenue coll-racconto", testo: c.racconto}) : null,
-      fila(c),
-      e("p", {class: "t-foot coll-conto", testo: c.chiusa && c.a
-        ? rigaStato(c) + " · dal " + dataCorta(c.a)
-        : rigaStato(c)})
-    ].filter(Boolean);
-    parti.push(e("button", {type: "button", class: "coll-apri",
-      "aria-label": "Apri la collezione " + c.nome,
-      suClick: () => spingi("collezioni/" + c.id)},
-      [e("span", {class: "t-foot", testo: "Apri " + c.nome}),
-       segno("chevron", {misura: 14})]));
-    return e("section", {class: "coll-sez", "data-coll": c.id}, parti);
-  }
-
-  /* ══ P2 · UNA COLLEZIONE ═══════════════════════════════════════ */
-  function schermoCollezione(id, dove){
-    const d = dati();
-    const c = d.collezioni.find((x) => x.id === id);
-    /* L'OCCHIELLO «COLLEZIONE» È VIA. `schermo()` lo mette in fondo a
-       una `.testa-pagina` allineata al piede dei riquadri, non alle
-       BASELINE: accanto a un Bodoni 34 il maiuscoletto da 13 galleggiava
-       15 px sopra la riga del titolo, e una parola appesa in aria a
-       destra di un nome proprio non è un occhiello, è un refuso.
-       Allinearlo avrebbe voluto dire misurare l'ascendente di due
-       caratteri diversi dentro `app/ui/barra-nav.js`, che è di un altro
-       esecutore. E non manca a nessuno: il titolo È il nome di una
-       collezione, ci si arriva da una schermata che si chiama
-       «Collezioni», e la parola era l'etichetta di una cosa già detta. */
-    const pagina = schermo(dove, {titolo: c ? c.nome : "Collezione",
-      indietro: torna, etichettaIndietro: "Torna indietro"});
-    if(!c){
-      pagina.append(e("p", {class: "t-body tenue", testo: "Questa collezione non c’è più."}));
-      return;
-    }
-    if(c.racconto) pagina.append(e("p", {class: "t-sub tenue coll-racconto", testo: c.racconto}));
-    pagina.append(fila(c, {classe: "fila-grande"}));
-    /* UNA riga di stato, come sull'hub. Qui sotto può stare la frase
-       della promo, che a uno dalla chiusura è un fatto commerciale
-       vero («quello che resta è tuo al 20% fino al 30 settembre») e non
-       una promessa a chi è lontano: da due mancanti in su `frasePromo`
-       non la restituisce più. */
-    pagina.append(e("p", {class: "t-foot coll-conto", testo: rigaStato(c)}));
-    if(c.frase) pagina.append(e("p", {class: "t-foot tenue coll-frase", testo: c.frase}));
-
-    /* IL PEZZO CHE CHIUDE — la stessa card grande di P0, perché è la
-       stessa cosa detta nello stesso posto della pagina. */
-    const m = c.mancanti[0];
-    if(m){
-      pagina.append(e("h2", {class: "t-2 sotto-testa", testo: "Il pezzo che chiude"}));
-      pagina.append(cardGrande({
-        nome: m.nome, foto: m.foto,
-        riga: c.chiude ? "Con questo ricevi " + c.chiude.nome : "Con questo la chiudi",
-        perche: c.chiude ? c.chiude.nota : null
-      }, () => vaiAlPezzo(m.articolo)));
-      if(c.arrivo) pagina.append(e("p", {class: "t-foot coll-dove", testo: c.arrivo.testo}));
-    }
-
-    /* I TUOI PEZZI DI … — righe con la data in cui sono diventati suoi */
-    const s = leggi();
-    const quando = new Map((s.esemplari || []).filter((x) => !x.rimosso && x.data_vendita)
-      .map((x) => [x.articolo, x.data_vendita]));
-    const suoi = c.posti.filter((p) => p.ha);
-    if(suoi.length) pagina.append(lista("I tuoi pezzi di " + c.nome, suoi.map((p) => cella({
-      id: p.articolo, foto: p.foto, titolo: p.nome,
-      sotto: quando.has(p.articolo) ? "Tuo dal " + dataCorta(quando.get(p.articolo)) : "Tuo",
-      etichetta: p.nome + ", tuo",
-      suClick: () => vaiAlPezzo(p.articolo)
-    }))));
-
-    /* «RICORDAMELO PER GIOVEDÌ» — azione testuale, una notifica sola.
-       Niente permesso push qui: si chiede DOPO il primo momento di
-       valore, mai dentro una schermata di contenuto. */
-    if(c.arrivo){
-      const idPr = "coll-" + c.id;
-      const avviso = giorniFra(d.oggi, c.arrivo.data) >= 1
-        ? isoMeno(c.arrivo.data, 1) : isoPiu(d.oggi, 1);
-      const fatto = () => leggiPromemoria(leggi()).some((x) => x.id === idPr);
-      const eti = () => fatto()
-        ? "Te lo ricordiamo " + soloGiorno(avviso) + " alle 9"
-        : "Ricordamelo per " + soloGiorno(c.arrivo.data);
-      const t = tasto(eti(), {tipo: "terziario", etichetta: eti(), suClick: () => {
-        if(fatto()) return;
-        segnaPromemoria(store, {id: idPr, articolo: c.arrivo.articolo,
-          quando: avviso, creato: d.oggi});
-        vestiTasto(t, eti());
-        t.setAttribute("aria-label", eti());
-        t.setAttribute("aria-pressed", "true");
-        t.dataset.segnato = "1";
-        toast("Te lo ricordiamo " + soloGiorno(avviso) + " alle 9.");
-      }});
-      if(fatto()){ t.setAttribute("aria-pressed", "true"); t.dataset.segnato = "1"; }
-      pagina.append(e("div", {class: "riga-azione"}, [t]));
-    }
-    annuncia(c.nome + ", " + c.ha + " di " + c.totale);
-  }
-
-  /* ══ P3 · LA CHIUSURA ══════════════════════════════════════════
-     Schermata piena, grado GRANDE. La scena È la pagina: non finisce
-     in un modale, non si condivide, non suona. Un oggetto al centro su
-     fondo pieno (Apple Fitness), e sotto — già visibile — la
-     collezione successiva col suo primo timbro, che è la sola difesa
-     contro il vuoto post-premio misurato da Kivetz 2006.
-     I tempi sono quelli scritti: stagger 120, molla 400 con smorzamento
-     0,8, premio a +1,0 s, fine a 1,5 s. Movimento ridotto: una
-     dissolvenza di 200 e basta (il tetto del ridotto e' 150-200). */
-  function schermoChiusura(id, dove){
-    const d = dati();
-    const c = d.collezioni.find((x) => x.id === id) || d.mie[0];
-    if(!c){ schermo(dove, {titolo: "Chiusura", indietro: torna}); return; }
-
-    document.body.dataset.pieno = "1";
-    dove.classList.add("schermo-pieno");
-    const pagina = e("div", {class: "chiusura"});
-    dove.append(pagina);
-
-    /* nella scena la collezione È chiusa: l'ultimo posto si è appena
-       riempito, ed è il posto che si posa per ultimo. */
-    const finta = {...c, posti: c.posti.map((p) => ({...p, ha: true})),
-      ha: c.totale, manca: 0, mancanti: []};
-    const laFila = fila(finta, {classe: "fila-chiusura"});
-    pagina.append(laFila);
-
-    const titolo = e("h1", {class: "t-large chiusura-titolo", tabindex: "-1",
-      testo: c.nome + ", completa."});
-    const sotto = e("p", {class: "t-sub tenue chiusura-sotto", testo:
-      numero(c.totale) + " pezzi" +
-      (c.da && c.a ? ", dal " + giornoEMese(c.da) + " al " + dataCorta(c.a) : "")});
-    pagina.append(titolo, sotto);
-
-    /* IL PREMIO ENTRA, e porta la firma: la reciprocita' funziona
-       quando ha un mittente (Strohmetz 2002). «da Regina», non «hai
-       guadagnato». */
-    /* «IL FILO» È IL NOME DI UN PEZZO, e i nomi dei pezzi in questa app
-       si scrivono in Bodoni: 22, come il nome sotto la card grande e
-       come il titolo di una collezione. In Inter 17 — il corpo di una
-       riga di lista — il premio della chiusura si leggeva come
-       un'etichetta di stato, e la scena di grado GRANDE finiva con la
-       tipografia di una ricevuta. */
-    const premio = e("div", {class: "lista premio", "data-f5-premio": "1"}, [
-      e("div", {class: "cella due piatta"}, [
-        e("div", {class: "testo"}, [
-          e("b", {class: "t-2 premio-nome",
-            testo: c.chiude ? c.chiude.nome : "Il pezzo che chiude"}),
-          e("span", {testo: c.chiude && c.chiude.nota
-            ? c.chiude.nota : "Ti aspetta in negozio."})]),
-        e("span", {class: "t-2 firma", testo: "Regina"})])]);
-    pagina.append(premio);
-
-    /* LA PROSSIMA, già col primo timbro. Se non esiste una collezione
-       successiva in cui la cliente ha già un pezzo, la riga NON si
-       inventa: una prossima a zero è esattamente la barra vuota che la
-       carta psicologica vieta. */
-    const prossima = d.mie.find((x) => x.id !== c.id && x.ha > 0 && !x.chiusa) || null;
-    const coda = e("div", {class: "chiusura-coda", "data-f5-coda": "1"}, [
-      prossima ? e("button", {type: "button", class: "cella due prossima",
-        "aria-label": "Prossima collezione: " + prossima.nome + ", " + prossima.ha +
-          " di " + prossima.totale,
-        suClick: () => { torna(); setTimeout(() => spingi("collezioni/" + prossima.id), 380); }
-      }, [
-        e("div", {class: "testo"}, [
-          e("b", {testo: "Prossima: " + prossima.nome}),
-          e("span", {class: "cifra", testo: prossima.ha + " di " + prossima.totale})]),
-        pallini(prossima)]) : null,
-      tasto("Torna al cofanetto", {tipo: "primario", largo: true, suClick: () => {
-        torna();
-        setTimeout(() => { if(tabCorrente() !== "cofanetto") vaiA("cofanetto"); }, 380);
-      }})
-    ].filter(Boolean));
-    pagina.append(coda);
-
-    /* ── LA REGIA ─────────────────────────────────────────────────
-       Le animazioni partono quando lo strato È ATTACCATO e la spinta
-       si è posata: un elemento staccato dal documento non anima, e una
-       scena che parte sotto il velo della spinta è una scena che
-       nessuno vede. `tempi` è MISURATO a ogni fotogramma — non
-       dichiarato — e resta leggibile da fuori per la sonda. */
-    const tempi = {t0: 0, posti: [], premio: null, coda: null, fine: null,
-      ridotto: RIDOTTO.matches};
-    window.__perte = window.__perte || {};
-    window.__perte.tempi = tempi;
-
-    const molla = lineare({zeta: 0.8});
-    const nodi = [...laFila.querySelectorAll("[data-f5-posto]")];
-
-    function avvia(){
-      const anim = [];
-      const t0 = performance.now();
-      tempi.t0 = t0;
-
-      if(RIDOTTO.matches){
-        /* 200, non 250: il tetto del ridotto (SISTEMA-DESIGN regola 4). */
-        anim.push(pagina.animate([{opacity: 0}, {opacity: 1}],
-          {duration: 200, easing: "linear", fill: "backwards"}));
-      } else {
-        nodi.forEach((n, i) => anim.push(n.animate(
-          [{opacity: 0, transform: "translateY(10px) scale(.92)"},
-           {opacity: 1, transform: "none"}],
-          {duration: 400, delay: i * 120, easing: molla.curva, fill: "backwards"})));
-        for(const n of [titolo, sotto]) anim.push(n.animate(
-          [{opacity: 0}, {opacity: 1}],
-          {duration: 250, delay: 520, easing: "linear", fill: "backwards"}));
-        anim.push(premio.animate(
-          [{opacity: 0, transform: "translateY(8px)"}, {opacity: 1, transform: "none"}],
-          {duration: 250, delay: 1000, easing: "linear", fill: "backwards"}));
-        /* la coda entra per ultima e la scena CHIUDE a 1.480: il tetto
-           dichiarato è 1,5 s, e un tetto raggiunto al millesimo è un
-           tetto sfondato al primo fotogramma perso. */
-        anim.push(coda.animate([{opacity: 0}, {opacity: 1}],
-          {duration: 250, delay: 1230, easing: "linear", fill: "backwards"}));
-      }
-
-      /* IL CAMPIONAMENTO, a ogni fotogramma. Si guarda l'opacita' VERA
-         calcolata dal browser, non il piano: è l'unico modo di sapere
-         se la scena è andata come è scritta. */
-      const guarda = [...nodi.map((n, i) => ["posto" + i, n]),
-                      ["premio", premio], ["coda", coda]];
-      (function giro(){
-        const t = performance.now() - t0;
-        let restano = false;
-        for(const [k, n] of guarda){
-          if(tempi[k] != null) continue;
-          const o = parseFloat(getComputedStyle(n).opacity);
-          if(o > 0.02) tempi[k] = Math.round(t); else restano = true;
-        }
-        tempi.posti = nodi.map((_, i) => (tempi["posto" + i] == null ? null : tempi["posto" + i]));
-        if(restano && t < 4000) requestAnimationFrame(giro);
-      })();
-
-      Promise.all(anim.map((a) => a.finished.catch(() => {}))).then(() => {
-        tempi.fine = Math.round(performance.now() - t0);
-        try{ titolo.focus({preventScroll: true}); }catch(_){ /* niente */ }
-      });
-      annuncia(c.nome + ", completa.");
-    }
-
-    (function attendi(){
-      if(dove.isConnected){ setTimeout(avvia, RIDOTTO.matches ? 20 : 380); return; }
-      requestAnimationFrame(attendi);
-    })();
   }
 
   /* ── LA SCHERMATA PIENA E LA BARRA ─────────────────────────────
@@ -1431,6 +1426,10 @@ export function monta(el, store){
           questi tre rami «Non fa per me» non ridisegnerebbe niente. */
        s.proposte !== prima.proposte || s.daparte !== prima.daparte ||
        s.wishlist !== prima.wishlist ||
+       /* E10-B — il cuore del rail (F6, 21/09): stesso ramo della
+          Vetrina, e questa vista deve ridisegnarsi quando cambia anche
+          se il tocco è arrivato da qui. */
+       s.preferiti !== prima.preferiti ||
        ev.tipo === "demo/reset") conTransizione(disegna);
   });
 

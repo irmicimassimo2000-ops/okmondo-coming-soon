@@ -36,18 +36,36 @@
 .accento{color:var(--accento)}
 .riga-ritorno{margin:8px 0 0}
 
+/* ══ F6 (21/09) · IL TITOLO CON LE INIZIALI — E01-B ═══════════════════
+   L'avatar vive SULLA RIGA del titolo grande (ancora Apple: App Store
+   «Per te», Large Title + avatar a destra), non nella barra compatta —
+   `barra-nav.js` non lo sa fare da sé, quindi si aggancia qui, una
+   volta, dopo `schermo()`. 40 pt: sotto il bersaglio minimo (44) ma
+   dentro la riga del titolo, che ha già un bersaglio proprio (il tocco
+   sull'intera `.testa-pagina` non esiste — l'avatar È il bersaglio, e
+   40 col padding implicito della riga regge comunque il tocco). */
+.f5-testa{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-4)}
+.f5-iniziali{flex:none;width:40px;height:40px;margin-top:2px;padding:0;border:0;
+  border-radius:var(--r-capsula);display:grid;place-items:center;cursor:pointer;
+  background:var(--accento);color:var(--accento-testo);
+  font:600 15px/1 var(--f-testo);letter-spacing:.01em;
+  transition:transform var(--d-tocco) var(--molla)}
+.f5-iniziali:active{transform:scale(.94)}
+.f5-iniziali:focus-visible{outline:2px solid var(--accento);outline-offset:3px}
+
 /* ══ LA POZZA DI LUCE ══════════════════════════════════════════════
    Il documento dice «silhouette con luce se il pezzo non è ancora
-   fotografato», e ha ragione per un motivo misurabile: in Regina la
-   fotografia manca per la maggior parte degli articoli (cinque scatti
-   su trentaquattro), quindi il caso «senza foto» NON è l'eccezione —
-   è la faccia normale della schermata. Un pannello piatto da 452
-   punti è la card grigia col punto interrogativo che la carta
-   psicologica vieta; una pozza di luce su un vano scuro è un vano
-   ILLUMINATO, cioè un posto in cui il pezzo andra'.
+   fotografato», e vale per i riquadri GRANDI (il blocco, la card
+   dell'arrivo): 452 o 3:2 punti, dove un pannello piatto è la card
+   grigia col punto interrogativo che la carta psicologica vieta.
    Tutto da `--quieto` e `--incavo`: nessun hex, e funziona anche nel
-   tema chiaro, dove la stessa luce si legge come un velo. */
-div.grande-fig, div.arrivo-fig, .posto.manca .posto-vuoto{
+   tema chiaro, dove la stessa luce si legge come un velo.
+   I POSTI DELLA FILA (61×61) NON la portano più — verdetto di Massimo,
+   21/09: «stesso componente, stessa resa, ovunque». Vedi «LA CELLA
+   SENZA FOTO», più giù: quella piccola usa la STESSA texture tono su
+   tono del rail, non questa pozza — la pozza resta solo ai due
+   riquadri grandi. */
+div.grande-fig, div.arrivo-fig{
   background:
     radial-gradient(118% 76% at 50% 36%,
       color-mix(in srgb, var(--quieto) 17%, transparent) 0%,
@@ -56,13 +74,13 @@ div.grande-fig, div.arrivo-fig, .posto.manca .posto-vuoto{
     var(--incavo);
   box-shadow:inset 0 0 0 1px var(--linea)}
 
-/* ══ IL BLOCCO GRANDE ══════════════════════════════════════════════
-   Titolo in maiuscoletto turchese (la REGOLA), poi la card, poi il nome
-   in Bodoni 22 e la riga in Inter 15. Le due righe stanno SOTTO la
-   card, non dentro: un testo sopra una fotografia è un testo che
-   dipende dalla fotografia, e metà dei pezzi di Regina una fotografia
-   non ce l'ha ancora. */
-.blocco{margin:24px 0 22px}
+/* ══ IL BLOCCO GRANDE — E02-B/E03-B/E07-C (verdetto di Massimo, 21/09) ══
+   L'etichetta-motivo (✦ + maiuscoletto) sopra tutto — foto compresa;
+   poi la foto, SE C'È (mai un riquadro quando manca: `cardProposta` non
+   la scrive); poi nome e prezzo sulla STESSA riga, sempre a 22 px, con
+   o senza foto — la doppia misura (28 senza, 22 con) era il difetto che
+   E07 chiude alla radice; poi la riga del motivo. */
+.blocco{margin:24px 0}
 .blocco-testa{display:block;margin:0 0 8px}
 .card-grande{display:block;width:100%;padding:0;border:0;background:none;
   text-align:left;color:inherit;cursor:pointer;
@@ -70,13 +88,27 @@ div.grande-fig, div.arrivo-fig, .posto.manca .posto-vuoto{
 .card-grande:active{transform:scale(.985)}
 .card-grande:focus-visible{outline:2px solid var(--accento);outline-offset:4px;
   border-radius:var(--r-card)}
+/* L'ETICHETTA-MOTIVO: pillola `--piano`, il segno ✦ e il testo nello
+   stesso ruolo dell'occhiello — `.occhiello` (sistema.css) porta già
+   maiuscoletto e `--testo-2`, qui si aggiunge solo la capsula. */
+.motivo-pillola{display:inline-flex;align-items:center;gap:6px;
+  margin:0 0 12px;padding:8px 16px;border-radius:var(--r-capsula);
+  background:var(--piano);color:var(--testo-2)}
+.motivo-pillola .segno-filo{flex:none}
 .card-grande-foto{display:block;width:100%;
   aspect-ratio:var(--f5-card-l) / var(--f5-card-h);
-  border-radius:var(--r-card);overflow:hidden;background:var(--incavo)}
+  border-radius:var(--r-card);overflow:hidden;background:var(--incavo);
+  margin:0 0 12px}
 .grande-fig{display:block;width:100%;height:100%;object-fit:cover}
-.card-nome{display:block;margin:8px 0 0}
+/* NOME + PREZZO, LA STESSA RIGA (E02-B/E05-B): il prezzo un gradino
+   sopra («31,00 €» — Inter 15/400, colore PIENO, non tenue: è un fatto
+   letto, non un dettaglio in coda). */
+.riga-nome-prezzo{display:flex;align-items:baseline;justify-content:space-between;
+  gap:var(--s-3)}
+.card-nome{flex:1 1 auto;min-width:0}
+.card-prezzo{flex:none;white-space:nowrap}
 .card-riga{display:block;margin:2px 0 0}
-.card-perche{display:block;margin:4px 0 0}
+.card-nota{display:block;margin:4px 0 0}
 
 /* ══ I RAIL ════════════════════════════════════════════════════════
    Scorrimento orizzontale con l'aggancio, e la prima card a filo del
@@ -85,31 +117,87 @@ div.grande-fig, div.arrivo-fig, .posto.manca .posto-vuoto{
 .rail-blocco{margin:24px 0 0}
 .rail-testa{margin:0}
 .rail-sotto{margin:2px 0 0}
-.rail{display:flex;gap:var(--f5-rail-passo);margin:10px 0 0;
+.rail{display:flex;gap:var(--f5-rail-passo);margin:8px 0 0;
   padding:0 max(var(--margine),var(--safe-dx)) 2px max(var(--margine),var(--safe-sx));
   margin-left:calc(-1 * max(var(--margine),var(--safe-sx)));
   margin-right:calc(-1 * max(var(--margine),var(--safe-dx)));
+  /* CORREZIONE (coordinatore, 21/09): senza `scroll-padding` lo scroll
+     snap (`scroll-snap-align:start` sulle card) tratta il padding
+     iniziale come fuori dall'area di aggancio e sposta da SOLO
+     `scrollLeft` al primo punto utile — misurato: 16px, esattamente il
+     margine, che così spariva sotto il bordo. Dichiarando il padding
+     anche come `scroll-padding` il primo aggancio resta a scrollLeft
+     0, con la prima card a filo del margine come il titolo. */
+  scroll-padding-left:max(var(--margine),var(--safe-sx));
+  scroll-padding-right:max(var(--margine),var(--safe-dx));
   overflow-x:auto;overflow-y:hidden;
   scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
   scrollbar-width:none}
 .rail::-webkit-scrollbar{display:none}
-.card-rail{flex:0 0 auto;width:var(--f5-rail-l);padding:0;border:0;background:none;
-  text-align:left;color:inherit;cursor:pointer;scroll-snap-align:start;
+/* E10-B/E11-C (verdetto di Massimo, 21/09): `.card-rail` è ora un
+   CONTENITORE (posizione per il cuore in overlay, come `.va-cella` di
+   Vetrina), non più il bersaglio — il bersaglio è `.card-rail-apri`,
+   il cuore è il suo fratello. Un tasto dentro un tasto non esiste. */
+.card-rail{position:relative;flex:0 0 auto;width:var(--f5-rail-l);
+  scroll-snap-align:start;min-width:0}
+.card-rail-apri{display:block;width:100%;padding:0;border:0;background:none;
+  text-align:left;color:inherit;cursor:pointer;
   transition:transform var(--d-tocco) var(--molla)}
-.card-rail:active{transform:scale(.97)}
-.card-rail:focus-visible{outline:2px solid var(--accento);outline-offset:3px;
+.card-rail-apri:active{transform:scale(.97)}
+.card-rail-apri:focus-visible{outline:2px solid var(--accento);outline-offset:3px;
   border-radius:var(--r-card)}
 .card-rail-foto{display:block;width:var(--f5-rail-l);height:var(--f5-rail-h);
   border-radius:var(--r-card);overflow:hidden;background:var(--incavo)}
 .rail-fig{display:block;width:100%;height:100%;object-fit:cover}
-div.rail-fig{display:grid;place-items:center;text-align:center;padding:0 12px;
-  color:var(--testo-2);border-radius:0}
-.card-rail-nome{display:block;margin:6px 0 0}
-.card-rail .cifra{display:block;color:var(--testo-2)}
+/* LA TEXTURE TONO-SU-TONO (E11-C): dichiara una superficie vera —
+   niente testo dentro, mai più un vano che legge vuoto anche col
+   testo. Fondo `--piano` (critic 20/09: era `--incavo`, il ruolo del
+   VUOTO della fila dei posti, sbagliato qui — `.redatto` di sistema.css
+   lo scriverebbe da sé, si corregge in coda), diagonale sottile dal
+   ruolo `--tenue` sopra. Nessun hex. */
+/* CORREZIONE (coordinatore, 21/09): la materia/famiglia vive DENTRO la
+   texture, in piccolo — non più una terza riga sotto il nome, che
+   sfalsava la griglia (le altre celle ne hanno due: nome, prezzo).
+   `div.rail-fig` diventa un contenitore che ANCORA l'etichetta in
+   basso a sinistra, come una didascalia posata sulla superficie. */
+div.rail-fig{position:relative;display:block;border-radius:var(--r-card);
+  background-color:var(--piano);
+  background-image:repeating-linear-gradient(135deg,
+    color-mix(in srgb, var(--tenue) 12%, transparent) 0 2px,
+    transparent 2px 9px)}
+.rail-fig-eti{position:absolute;left:10px;right:10px;bottom:9px;
+  font:var(--t-cap1);color:var(--testo-2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-rail-nome{display:block;margin:4px 0 0}
+.card-rail .cifra{display:block;margin-top:2px;color:var(--testo-2)}
 /* l'ultima card non è un'esca: è una frase che dichiara la fine */
 .coda-rail{display:flex;align-items:center;height:var(--f5-rail-h);
-  padding:0 14px;border-radius:var(--r-card);background:var(--piano);
+  padding:0 16px;border-radius:var(--r-card);background:var(--piano);
   cursor:default}
+
+/* ══ CORREZIONE (coordinatore, 21/09) · LA LISTA COMPATTA ═══════════
+   Uno scaffale con meno di due pezzi fotografati non porta abbastanza
+   peso per uno scorrimento orizzontale (E11: mai un vano texture
+   grande quanto una foto, ripetuto tre volte). Diventa una lista
+   verticale di righe — `app/ui/cella.js`, lo stesso componente della
+   lista raggruppata, 52 pt con due righe, senza riquadro. */
+.rail-compatta{margin:8px 0 0}
+
+/* IL CUORE DELLA CELLA DEL RAIL (E10-B): stessa anatomia del cuore di
+   Vetrina (`viste/vetrina.css`, `.va-cuore`) — 44 di bersaglio, un
+   disco da 32 a vedersi, carta all'82% sopra la foto. Nomi locali
+   apposta: questo file non importa `vetrina.css`. */
+.card-rail-cuore{position:absolute;top:0;right:0;display:grid;place-items:center;
+  width:var(--tocco-min);height:var(--tocco-min);padding:0;border:0;background:none;
+  cursor:pointer;color:var(--testo);-webkit-tap-highlight-color:transparent}
+.card-rail-cuore-disco{display:grid;place-items:center;
+  width:32px;height:32px;border-radius:var(--r-capsula);
+  background:color-mix(in srgb,var(--fondo) 82%,transparent);
+  transition:transform var(--d-tocco) var(--molla)}
+.card-rail-cuore:active .card-rail-cuore-disco{transform:scale(.9)}
+.card-rail-cuore:focus-visible{outline:none}
+.card-rail-cuore:focus-visible .card-rail-cuore-disco{outline:2px solid var(--accento);outline-offset:2px}
+.rail-cuore-pieno path{fill:currentColor}
 
 /* ══ LA FILA DEI POSTI ═════════════════════════════════════════════
    Cinque posti da 61 con passo 14: 5 × 61 + 4 × 14 = 361. `space-
@@ -121,20 +209,28 @@ div.rail-fig{display:grid;place-items:center;text-align:center;padding:0 12px;
 .posto-foto,.posto-vuoto,.posto .redatto{display:block;
   width:var(--f5-posto);height:var(--f5-posto);
   border-radius:var(--u);object-fit:cover}
-/* IL POSTO CHE MANCA — una silhouette a tono `--incavo` con la sua
-   pozza di luce (vedi sopra), non un buco e non una card grigia col
-   punto interrogativo. Il filo interno dice «qui ci va qualcosa», e il
-   nome sotto dice cosa.
-   IL POSTO CHE C'E' MA NON HA UNA FOTO è un caso diverso, e la prima
-   passata li confondeva: sullo schermo «Anello Filo», che Lucia
-   possiede, si vedeva identico a «Perno Turchese», che le manca — e
-   allora la fila mentiva sul conteggio che le stava accanto. Si riempie
-   di materia, senza filo: pieno contro vuoto, come i pallini. */
+/* LA CELLA SENZA FOTO — E11-C, STESSA TEXTURE OVUNQUE (verdetto di
+   Massimo, 21/09: «stesso componente, stessa resa, anche nella fila di
+   5 e nell'hub»). Prima portava una «pozza di luce» piatta (sopra), e
+   accanto a uno scaffale col disegno vero si leggeva come il difetto
+   che non era: il quinto riquadro di «Filo di Luce» (Pendente Filo)
+   piatto mentre i rail erano a texture. Da qui in poi è la STESSA
+   texture tono su tono del rail (`.rail-fig`, più giù) — non una
+   seconda ricetta.
+   Resta la distinzione fra i due significati (non nella resa, che ora è
+   identica): IL POSTO CHE MANCA porta in più il filo interno («qui ci
+   va qualcosa» — `box-shadow`); IL POSTO CHE C'E' MA NON HA FOTO resta
+   pieno, senza filo — pieno contro vuoto, come i pallini. */
+.posto-vuoto,.posto .redatto{
+  background-color:var(--piano);
+  background-image:repeating-linear-gradient(135deg,
+    color-mix(in srgb, var(--tenue) 12%, transparent) 0 2px,
+    transparent 2px 9px)}
+.posto.manca .posto-vuoto{box-shadow:inset 0 0 0 1px var(--linea)}
 .posto .redatto{display:grid;place-items:center;overflow:hidden;
   font-size:0;color:var(--testo-2)}
 .posto .redatto span{display:none}
-.posto.ha .redatto{box-shadow:none;
-  background:color-mix(in srgb, var(--quieto) 18%, var(--piano))}
+.posto.ha .redatto{box-shadow:none}
 /* L'ETICHETTA DEL POSTO — DUE RIGHE, MAI TRE PUNTINI.
    Su una riga sola, a 61 di larghezza, USCIVANO TUTTE: «Collana M…»,
    «Anello Ca…», «Bracciale …», «Pendente…». Cinque etichette tagliate
@@ -154,11 +250,11 @@ div.rail-fig{display:grid;place-items:center;text-align:center;padding:0 12px;
    sta su una riga sola. */
 .posto-nome{display:-webkit-box;-webkit-box-orient:vertical;
   -webkit-line-clamp:2;line-clamp:2;overflow:hidden;
-  margin:5px 0 0;width:var(--f5-posto);height:26px;   /* 2 × 13 di --t-cap2 */
+  margin:4px 0 0;width:var(--f5-posto);height:26px;   /* 2 × 13 di --t-cap2 */
   text-align:center;color:var(--testo-2);
   overflow-wrap:anywhere}
 .posto.ha .posto-nome{color:var(--testo)}
-.fila-grande{margin-top:18px}
+.fila-grande{margin-top:16px}
 
 /* i pallini della riga di elenco: 8 pt, pieni o a contorno */
 .pallini{flex:none;display:inline-flex;gap:5px;align-items:center;margin-left:auto;
@@ -169,7 +265,7 @@ div.rail-fig{display:grid;place-items:center;text-align:center;padding:0 12px;
 .coll-riga .frec{margin-left:8px}
 
 /* ══ L'HUB E LA COLLEZIONE ═════════════════════════════════════════ */
-.coll-sez{margin:0 0 40px}
+.coll-sez{margin:0 0 32px}
 .coll-sez + .coll-sez{padding-top:0}
 .coll-titolo{margin:0}
 .coll-racconto{margin:4px 0 0}
@@ -177,10 +273,16 @@ div.rail-fig{display:grid;place-items:center;text-align:center;padding:0 12px;
    collezione è a UNO dalla chiusura: è il testo più importante della
    sezione, e sta in `--testo` pieno — non in turchese. Il turchese di
    questa schermata è l'AZIONE («Apri Filo di Luce»), una sola. */
-.coll-conto{margin:14px 0 0;color:var(--testo)}
+.coll-conto{margin:12px 0 0;color:var(--testo)}
 .coll-frase{margin:4px 0 0}
-.coll-dove{margin:6px 0 0;color:var(--testo)}
-.sotto-testa{margin:26px 0 10px}
+.coll-dove{margin:4px 0 0;color:var(--testo)}
+.sotto-testa{margin:24px 0 8px}
+/* CORREZIONE (coordinatore, 21/09): «I tuoi pezzi di …» è un SECONDO
+   gruppo di lista sulla pagina, non il primo — la misura è quella con
+   cui l'app separa due gruppi ovunque (`.f6-occhiello-livello`,
+   profilo.css: 30 pt sopra, non lo 0 di `.lista-testa` pensato per un
+   gruppo che apre la pagina). */
+.coll-lista-pezzi .lista-testa{margin-top:32px}
 /* il ritorno dentro la sezione: bersaglio pieno da 44, testo Inter 13 */
 .coll-apri{display:inline-flex;align-items:center;gap:4px;
   min-height:var(--tocco-min);margin-top:8px;padding:0 2px;
@@ -194,20 +296,24 @@ div.rail-fig{display:grid;place-items:center;text-align:center;padding:0 12px;
 /* ══ P4 · LA CARD A RIGHE FISSE ════════════════════════════════════
    Angoli 10, fondo `--piano` (nel velluto è `--vano`), quattro righe e
    nessun bottone pieno: l'azione, quando c'è, è testo. */
-.p4{display:block;margin:22px 0 0;padding:15px 16px 16px;
+.p4{display:block;margin:24px 0 0;padding:16px;
   border-radius:var(--r-lista);background:var(--piano)}
-.p4-occhiello{display:block;margin:0 0 6px}
+.p4-occhiello{display:block;margin:0 0 4px}
 .p4-titolo{display:block}
 .p4-riga{margin:4px 0 0}
-.p4-nota{margin:6px 0 0}
+.p4-nota{margin:4px 0 0}
 .p4 .tasto.terziario{margin:6px 0 -6px;padding-left:0;justify-content:flex-start}
 
 .arrivi-blocco{margin:24px 0 0}
-.arrivi-blocco .lista-testa{display:block;margin:0 0 7px 4px}
+.arrivi-blocco .lista-testa{display:block;margin:0 0 8px 4px}
 .arrivi-blocco .p4:first-of-type{margin-top:0}
-/* la foto dell'arrivo è 3:2 e sta IN ALTO, a filo della card */
+/* la foto dell'arrivo è 3:2 e sta IN ALTO, a filo della card — SOLO
+   quando c'è (correzione coordinatore, 21/09): `.senza-foto` torna al
+   padding normale del `.p4`, come E03-B, e non c'è più nessun
+   `overflow:hidden` a nascondere un riquadro che non esiste. */
 .p4-arrivo{padding-top:0;overflow:hidden}
-.arrivo-foto{display:block;width:calc(100% + 32px);margin:0 -16px 14px;
+.p4-arrivo.senza-foto{padding-top:16px;overflow:visible}
+.arrivo-foto{display:block;width:calc(100% + 32px);margin:0 -16px 12px;
   padding:0;border:0;background:none;cursor:pointer}
 .arrivo-fig{display:block;width:100%;aspect-ratio:3 / 2;object-fit:cover;
   background:var(--incavo)}
@@ -237,15 +343,15 @@ body[data-pieno="1"] #toast-zona{bottom:calc(24px + var(--safe-b))}
    di questa schermata che vale la pena scrivere a mano, perché è
    quello che decide se la scena si legge in una volta sola. */
 .fila-chiusura{margin:194px 0 0}
-.chiusura-titolo{margin:40px 0 0;min-height:0;display:block}
+.chiusura-titolo{margin:32px 0 0;min-height:0;display:block}
 /* IL TITOLO PRENDE IL FUOCO (chi ascolta deve sapere che la scena è
    cambiata) MA NON L'ANELLO: non è un comando, non c'è niente da
    fargli, e un rettangolo turchese intorno a «Filo di Luce, completa.»
    è l'unica cosa fuori posto in una schermata di festa. L'anello resta
    dove serve — sul tasto. */
 .chiusura-titolo:focus,.chiusura-titolo:focus-visible{outline:none}
-.chiusura-sotto{margin:6px 0 0}
-.premio{margin:26px 0 0}
+.chiusura-sotto{margin:4px 0 0}
+.premio{margin:24px 0 0}
 .premio .cella{align-items:center}
 /* il nome del premio è il nome di un PEZZO: Bodoni 22, come tutti i
    nomi di pezzo dell'app. La specificita' va dichiarata: `.cella .testo
@@ -253,15 +359,18 @@ body[data-pieno="1"] #toast-zona{bottom:calc(24px + var(--safe-b))}
 .premio .cella .testo b.premio-nome{font:var(--t-2);
   letter-spacing:var(--ls-display);font-optical-sizing:auto;
   color:var(--testo)}
-/* LA FIRMA — «Regina» in Bodoni corsivo. Il documento chiede una firma
-   SVG: in cartella non ce n'e' una, e una firma disegnata a mano dal
-   codice sarebbe una calligrafia finta. Si scrive col carattere del
-   marchio, che è vero. */
-.firma{flex:none;margin-left:auto;padding-left:12px;font-style:italic;
-  color:var(--accento)}
-.chiusura-coda{margin-top:auto;padding-top:28px}
+/* IL MARCHIO DEL MITTENTE — verdetto di Massimo (21/09): non più
+   «Regina» ricomposta a testo in corsivo turchese (il marchio ridotto,
+   vietato dal canone Tier-0 §1). `marchio.png` vero, a dimensione
+   sobria: 28 di altezza — lo stesso ordine di grandezza di
+   `.f1-pass-marchio` (34, sistema.css) ma un gradino sotto, perché qui
+   sta accanto al nome di un pezzo in Bodoni 22, non da solo in testa a
+   un pass. */
+.premio-marchio{flex:none;margin-left:auto;padding-left:12px;
+  height:40px;width:auto;object-fit:contain}
+.chiusura-coda{margin-top:auto;padding-top:24px}
 .prossima{width:100%;border-radius:var(--r-lista);background:var(--piano);
-  margin-bottom:14px;opacity:.82}
+  margin-bottom:12px;opacity:.82}
 .prossima:active{opacity:1}
 
 /* ══ MOVIMENTO RIDOTTO ═════════════════════════════════════════════
@@ -269,41 +378,25 @@ body[data-pieno="1"] #toast-zona{bottom:calc(24px + var(--safe-b))}
    lì `RIDOTTO` decide da solo; qui si spengono le pressioni, che sono
    l'unica cosa che il CSS anima. */
 @media (prefers-reduced-motion:reduce){
-  .card-grande,.card-rail{transition:none}
-  .card-grande:active,.card-rail:active{transform:none}
+  .card-grande,.card-rail-apri,.card-rail-cuore-disco,.f5-iniziali{transition:none}
+  .card-grande:active,.card-rail-apri:active{transform:none}
+  .card-rail-cuore:active .card-rail-cuore-disco,.f5-iniziali:active{transform:none}
   body[data-pieno="1"] #barra{transition:none}
 }
 
-/* ══ F5b · IL MOTORE NUOVO — LE AZIONI DEL BLOCCO GRANDE ═════════════
-   «Metti da parte» e «Non fa per me», sotto la card: il bersaglio 44 lo
-   dà già `.tasto.terziario` (sistema.css), qui si toglie solo il
-   turchese — il ruolo è già preso da «Ricordamelo» (ACCENTI: un solo
-   ruolo oltre al primario) — e si mette --testo-2, che nel tema di
-   velluto di questa vista tiene 8,0:1 di contrasto. Quando il motore
-   non ha un blocco (sessione chiusa, o la cliente ha già tutto) il
-   posto resta UNA riga, mai un vuoto muto. */
-.blocco-azioni{display:flex;gap:22px;margin:12px 0 0}
-.blocco-azioni .tasto{padding:0}
-.tasto.azione-tenue{color:var(--testo-2)}
-.blocco-fine{margin:24px 0 0;text-align:center}
-
-/* ══ F5b (20/09) · NIENTE VUOTO DISEGNATO ════════════════════════════
-   Pendente Filo — il primo candidato sul seme vero — non ha né scatto
-   né provino: senza questa card `.card-grande-foto` sarebbe un
-   riquadro 361×452 vuoto (il critic l'aveva già contato il 17/09: «35 %
-   di vuoto disegnato»). Quando manca la foto il blocco grande diventa
-   questa card COMPATTA, senza nessuna area immagine: stessa interazione
-   di `.card-grande` (bersaglio pieno, la stessa molla), zero pixel
-   sprecati a disegnare il niente. */
-.blocco-compatta{display:block;width:100%;padding:18px 18px 20px;border:0;
-  border-radius:var(--r-card);background:var(--piano);text-align:left;
-  color:inherit;cursor:pointer;transition:transform var(--d-tocco) var(--molla)}
-.blocco-compatta:active{transform:scale(.985)}
-.blocco-compatta:focus-visible{outline:2px solid var(--accento);outline-offset:2px}
-.blocco-compatta-occ{display:block}
-.blocco-compatta-nome{display:block;margin:6px 0 0}
-.blocco-compatta-frase{display:block;margin:6px 0 0}
-.blocco-compatta-prezzo{display:block;margin:8px 0 0}
+/* ══ E06-C · LE DUE CAPSULE (verdetto di Massimo, 21/09) ═════════════
+   «Metti da parte» piena, «Non fa per me» in tono — il colore vive
+   nella FORMA (piena vs `--piano`), non nel turchese: quel ruolo resta
+   di «Ricordamelo», uno solo oltre al primario (ACCENTI, critic 20/09).
+   Base `.tasto.terziario` (sistema.css, bersaglio 44 già dato); qui si
+   alza a capsula da `--tasto` e si riempie — non si inventa un quarto
+   tipo di tasto globale, resta un vestito locale di questa vista. */
+.blocco-azioni{display:flex;gap:10px;margin:12px 0 0}
+.blocco-azioni .tasto{min-height:var(--tasto);padding:0 20px;
+  border-radius:var(--r-capsula)}
+.blocco-azioni .azione-principale{background:var(--accento);color:var(--accento-testo)}
+.blocco-azioni .azione-secondaria{background:var(--piano);color:var(--testo);font-weight:400}
+.blocco-fine{margin:24px 0 0;text-align:left}
 
 /* Quando la foto C'È, resta la card di sempre — solo `object-fit`
    cambia: il packshot dei provini è già inquadrato sul suo fondo, e
@@ -313,44 +406,12 @@ body[data-pieno="1"] #toast-zona{bottom:calc(24px + var(--safe-b))}
    di «Il pezzo che chiude» (P2) resta `cover`, non era il difetto. */
 .grande-fig-contain{object-fit:contain}
 
-/* la cella del rail senza foto era un riquadro NERO (`--incavo`, il
-   ruolo del "vuoto" della fila dei posti, sbagliato qui): resta testo
-   solo centrato — la forma andava bene — ma su `--piano`, la stessa
-   superficie della card compatta qui sopra. */
-.card-rail .redatto{background:var(--piano)}
-
-/* ══ F5b (20/09) · IL VERDETTO DEL CRITIC — CORREZIONI ═══════════════
-   Regole d'ingaggio del file: NESSUN HEX, NESSUNA DURATA NUOVA — le
-   correzioni sotto rispettano le due, e vanno IN CODA: una selettore
-   più specifico o una dichiarazione successiva a parità di specificità
-   vince sulla riga sbagliata sopra, senza doverla toccare. */
-
-/* 1 · UN'AZIONE PRINCIPALE, UNA NO. `.tasto.azione-tenue` qui sopra
-   portava ENTRAMBI i comandi a --testo-2: a occhi strizzati si leggeva
-   un comando solo, o nessuno. «Metti da parte» tiene il pezzo — resta
-   in --testo pieno, peso 600 (`.tasto` lo eredita già da `--t-head`);
-   «Non fa per me» lo scarta — --testo-2, peso 400. Stesso corpo (nessun
-   `font-size` nuovo), stesso bersaglio 44, zero turchese su entrambi:
-   il ruolo resta di «Ricordamelo», uno solo (ACCENTI). */
-.blocco-azioni .azione-principale{color:var(--testo)}
-.blocco-azioni .azione-secondaria{color:var(--testo-2);font-weight:400}
-
-/* 2 · «LUNEDÌ» — `.blocco-fine` allineata a sinistra, sul margine del
-   titolo: era l'unico testo centrato della pagina, e un fatto scritto
-   nello stato (non più un contatore di sessione, vedi il motore) non ha
-   bisogno di un trattamento speciale a schermo. */
-.blocco-fine{text-align:left}
-
-/* 3 · PARITÀ fra le due varianti della card grande: l'occhiello (11,
-   maiuscoletto, --testo-2 — la classe `.occhiello` lo scrive già così)
-   e il prezzo, anche quando la foto c'è. */
-.card-occhiello{display:block;margin:8px 0 0}
-.card-occhiello + .card-nome{margin-top:4px}
-.card-prezzo{display:block;margin:4px 0 0}
-
-/* 4 · LO SCHELETRO DEL BLOCCO — stesso posto e lo stesso margine del
+/* LO SCHELETRO DEL BLOCCO — stesso posto e lo stesso margine del
    blocco vero (`.blocco`), così quando il motore arriva non salta
    niente. `osso()` (ui/scheletro.js) è già monocromo e fermo, e porta
    già il suo `margin-top` in linea (il parametro `su`): qui basta il
    margine del contenitore. */
-.blocco-scheletro{margin:24px 0 22px;display:block}
+.blocco-scheletro{margin:24px 0;display:block}
+
+/* il gruppo dei rimandi in radice respira come un gruppo di Impostazioni */
+.pt-rimandi{margin-top:24px}

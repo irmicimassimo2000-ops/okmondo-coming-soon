@@ -703,22 +703,22 @@ nav[data-nav="b"] button[aria-current] .nm{
    mangiando le altre — la riga ballava a ogni tocco.  */
 nav[data-nav="c"]{position:absolute;z-index:5;left:5%;width:90%;
   /* ── LA BARRA STA DENTRO LA SCOCCA, NON SOPRA LA FINESTRA ──────
-     Era `position:fixed` con `bottom`: cioe' appesa al viewport di
-     IMPAGINAZIONE, che su iOS in standalone non e' lo schermo. Il
-     16/09 quel numero si e' pagato due volte — prima con 110 punti di
+     Era `position:fixed` con `bottom`: cioè appesa al viewport di
+     IMPAGINAZIONE, che su iOS in standalone non è lo schermo. Il
+     16/09 quel numero si è pagato due volte — prima con 110 punti di
      carta sotto la barra, poi con 109 — e la toppa aritmetica
      (`--sborda`, la differenza fra i due token dell'altezza) valeva
-     ZERO proprio nel caso che doveva curare, perche' iOS dichiara lo
+     ZERO proprio nel caso che doveva curare, perché iOS dichiara lo
      stesso numero corto a `innerHeight` e a `visualViewport`.
-     Adesso la barra e' figlia di `#app`, che e' alto `--alt-vera` (la
+     Adesso la barra è figlia di `#app`, che è alto `--alt-vera` (la
      misura vera dello schermo, vedi il blocco ALTEZZA): `bottom` conta
-     dal fondo della SCOCCA, che e' l'unico fondo che ci interessa.
+     dal fondo della SCOCCA, che è l'unico fondo che ci interessa.
      Un solo numero da azzeccare invece di due da far tornare.
-     (`#app` e' `position:fixed`, quindi e' gia' il blocco contenitore
+     (`#app` è `position:fixed`, quindi è già il blocco contenitore
      di un figlio assoluto; e quando il foglio lo fa arretrare la barra
-     arretra con lui, che e' come si comportava gia' — una `fixed`
+     arretra con lui, che è come si comportava già — una `fixed`
      dentro un antenato trasformato si aggrappa all'antenato.)
-     16 di stacco piu' la safe area, come approvato. */
+     16 di stacco più la safe area, come approvato. */
   bottom:calc(16px + env(safe-area-inset-bottom));
   height:66px;padding:7px 6px;border-radius:999px;
   background:var(--vetro);
@@ -1209,25 +1209,25 @@ body[data-ingresso] .cap-elenco{visibility:hidden}
 
 /* ── S1 · L'ASTUCCIO IN TRE DIMENSIONI ────────────────────────────
    Il telaio riempie la schermata e sta SOTTO il testo: la carta della
-   scena (#FAF8F5) e' lo stesso colore del fondo dell'app, quindi non
-   c'e' nessun riquadro da far combaciare — la scatola e' posata sulla
+   scena (#FAF8F5) è lo stesso colore del fondo dell'app, quindi non
+   c'è nessun riquadro da far combaciare — la scatola è posata sulla
    pagina, non incollata su una fotografia dentro una cornice.
-   `opacity` 0 finche' il pezzo non e' in scena: un telaio che appare
-   vuoto e poi si riempie e' peggio di un telaio che arriva pieno. La
-   dissolvenza e' 200, il tetto del ridotto, e non di piu'. */
-/* LA SCENA SI FERMA SOPRA I TESTI, e non e' un margine a occhio: il
-   cofanetto aperto e' alto quasi due terzi dello schermo, e il nome del
+   `opacity` 0 finché il pezzo non è in scena: un telaio che appare
+   vuoto e poi si riempie è peggio di un telaio che arriva pieno. La
+   dissolvenza è 200, il tetto del ridotto, e non di più. */
+/* LA SCENA SI FERMA SOPRA I TESTI, e non è un margine a occhio: il
+   cofanetto aperto è alto quasi due terzi dello schermo, e il nome del
    pezzo — che prima stava a 512 punti, misura del cofanetto DISEGNATO,
    largo 260 — finiva stampato sul velluto. Misurato: «Collana Maglia»
    sopra la fodera, illeggibile. La scena si tiene i suoi 720 punti, il
-   nome sta sotto, e fra i due c'e' aria. */
+   nome sta sotto, e fra i due c'è aria. */
 .f1-scena3d{position:absolute;inset:0 0 132px;z-index:0;pointer-events:auto;
   opacity:0;transition:opacity .2s linear}
 .f1-scena3d[data-pronto]{opacity:1}
 .f1-astuccio{display:block;width:100%;height:100%;border:0;
   background:transparent}
 /* il titolo e l'occhiello restano sopra la scena: sono in flusso, la
-   scena e' assoluta e viene dopo nel documento — senza questa riga li
+   scena è assoluta e viene dopo nel documento — senza questa riga li
    coprirebbe */
 .f1-s1 .f1-occhiello,.f1-s1 .f1-titolo-s1{position:relative;z-index:1}
 
@@ -1559,53 +1559,53 @@ body[data-nav="c"][data-sez="cofanetto"]{
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   ALTEZZA — la scocca misura lo schermo, e il fondo non e' mai nudo
+   ALTEZZA — la scocca misura lo schermo, e il fondo non è mai nudo
    Scritto il 16/09/2026 su un difetto misurato da Massimo sull'iPhone
    grande (430x932) aperto DALL'ICONA IN HOME: sotto la tab bar 43 punti
    di crema vuota e poi 79 punti di NERO fino al fondo dello schermo.
 
    LE TRE CAUSE, in ordine di gravita'.
 
-   1 · IL NERO E' `html`. `html,body` portavano `background-color:
+   1 · IL NERO È `html`. `html,body` portavano `background-color:
    var(--notte)` fisso, e il fondo del documento non si dipinge dentro
-   il suo riquadro: si propaga al CANVAS, cioe' a TUTTA la finestra,
+   il suo riquadro: si propaga al CANVAS, cioè a TUTTA la finestra,
    compreso quello che sta oltre il viewport di impaginazione. Sul
-   cofanetto — che e' di CARTA — bastava un punto di finestra non
+   cofanetto — che è di CARTA — bastava un punto di finestra non
    coperto dalla scocca per vedere il nero della notte sotto un banco
    crema. Adesso il fondo del documento SEGUE LA SEZIONE
    (`:root[data-fondo]`, scritto da `avvio.js` insieme al
-   `theme-color`): qualunque cosa resti scoperta e' della materia
-   giusta. Questa e' la rete di sicurezza, ed e' quella che vale
-   sempre — anche quando iOS dichiara un'altezza che non e' quella
+   `theme-color`): qualunque cosa resti scoperta è della materia
+   giusta. Questa è la rete di sicurezza, ed è quella che vale
+   sempre — anche quando iOS dichiara un'altezza che non è quella
    dello schermo.
 
    2 · L'ALTEZZA. `html,body,#app` stavano a `position:fixed;inset:0`,
-   cioe' alti quanto il viewport di IMPAGINAZIONE. Su iOS quel numero
-   non e' sempre l'altezza visibile: in Safari il viewport grande
+   cioè alti quanto il viewport di IMPAGINAZIONE. Su iOS quel numero
+   non è sempre l'altezza visibile: in Safari il viewport grande
    comprende la striscia dietro la barra degli indirizzi, e in
-   standalone c'e' piu' di una versione che dichiara un'altezza corta.
-   L'unita' giusta e' `100dvh` — il viewport DINAMICO, cioe' quello
+   standalone c'è più di una versione che dichiara un'altezza corta.
+   L'unita' giusta è `100dvh` — il viewport DINAMICO, cioè quello
    che si vede adesso — col solo ripiego di `100vh` per chi non la
    conosce.
-   IL `-webkit-fill-available` NON C'E' PIU', e la ragione e' una
+   IL `-webkit-fill-available` NON C'E' PIÙ, e la ragione è una
    misura. Era il secondo di tre anelli, scritto per WebKit; ma i tre
    `:root` hanno la stessa specificita' e VINCE L'ULTIMO, quindi su
-   qualunque telefono che conosca `dvh` — iOS 15.4 in avanti, cioe'
+   qualunque telefono che conosca `dvh` — iOS 15.4 in avanti, cioè
    ogni iPhone da cui questa applicazione si apre — quell'anello non
    veniva mai letto: verificato in cornice standalone a 393x852,
-   `--alt-app` risolve `100dvh`. Un anello che non si legge e' un
+   `--alt-app` risolve `100dvh`. Un anello che non si legge è un
    anello che qualcuno leggera' male: sulla carta prometteva
-   «l'altezza disponibile», e in standalone quella e' lo schermo MENO
+   «l'altezza disponibile», e in standalone quella è lo schermo MENO
    l'inset di sopra. Tolto.
-   RESTA LA CINTURA, ed e' lei che cura davvero: `--alt-vera`, la
+   RESTA LA CINTURA, ed è lei che cura davvero: `--alt-vera`, la
    misura che il telaio prende da `innerHeight`/`visualViewport` e
    scrive NEI DUE VERSI (`misuraAltezza`, in index.html). Quando iOS
    impagina corto — dall'icona in Home dichiarava 792 su uno schermo
-   di 852, cioe' lo schermo meno i 59 della tacca — la cintura rialza;
+   di 852, cioè lo schermo meno i 59 della tacca — la cintura rialza;
    quando lo schermo si accorcia per davvero, riabbassa. Scriverla in
-   un verso solo non bastava: una scocca gia' alta quanto il visto non
-   si poteva piu' correggere quando il visto cambiava.
-   `bottom:auto` serve perche' con `top`, `bottom` e `height` tutti
+   un verso solo non bastava: una scocca già alta quanto il visto non
+   si poteva più correggere quando il visto cambiava.
+   `bottom:auto` serve perché con `top`, `bottom` e `height` tutti
    scritti il browser butterebbe via l'altezza.
 
    3 · LA FASCIA CONTAVA DUE VOLTE LA SAFE AREA. La fascia riservata
@@ -1614,7 +1614,7 @@ body[data-nav="c"][data-sez="cofanetto"]{
    `10 + env(safe-area-inset-bottom)` sotto la capsula dei reparti
    (env() arriva anche nelle cornici: misurato, 34). Fra la capsula dei
    reparti e la tab bar restavano 42 punti di niente. Adesso la fascia
-   e' `84 + env()` e il banco sta a 12 dal fondo della cornice: fra le
+   è `84 + env()` e il banco sta a 12 dal fondo della cornice: fra le
    due capsule ci sono 14 punti, dentro la forbice 12-20 che le tiene
    vicine senza che una tocchi l'altra.
    ══════════════════════════════════════════════════════════════════ */
@@ -1660,9 +1660,9 @@ html,body{bottom:auto;height:var(--alt-vera, var(--alt-app));
 :root{--sborda:calc(var(--alt-app) - var(--alt-vera, var(--alt-app)))}
 
 /* IL FONDO DEL DOCUMENTO SEGUE LA SEZIONE. Nessun hex nuovo: sono i due
-   ruoli che il sistema ha gia' — la notte delle viste di velluto e la
+   ruoli che il sistema ha già — la notte delle viste di velluto e la
    carta del cofanetto. `data-fondo` sta sulla RADICE e non sul body
-   perche' e' `html` a dipingere il canvas. */
+   perché è `html` a dipingere il canvas. */
 :root{--scocca:var(--notte)}
 :root[data-fondo="carta"]{--scocca:var(--carta)}
 html,body{background-color:var(--scocca);
@@ -1693,13 +1693,17 @@ body[data-nav="c"][data-sez="cofanetto"] #fascia{
   --scrim:rgb(20 17 14/.42);
 }
 
-/* 2 · LA BARRA DI VETRO SULLA CARTA DELLA VETRINA. La barra è approvata
-   e NON cambia: «la tinta del vetro segue la sezione» è scritto sopra
-   (blocco C), e fino a ieri la sola sezione di carta era il cofanetto.
-   Adesso sono due: stessi valori, stessa pastiglia (finitura 3), riga
-   per riga. Il fondo del documento lo scrive il telaio (`fondoScocca`
-   legge il `data-tema` della sezione). */
-body[data-nav="c"][data-sez="vetrina"]{--vetro:rgba(255,255,255,.74);
+/* 2 · LA BARRA DI VETRO SULLA CARTA. La barra è approvata e NON cambia:
+   «la tinta del vetro segue la sezione» è scritto sopra (blocco C), e
+   fino al 20/09 la sola sezione di carta era il cofanetto. Dal 21/09
+   sono tre — cofanetto, vetrina, «Per te» (F6, verdetto di Massimo:
+   «Per te» deve avere la stessa barra della Vetrina, byte per byte):
+   stessi valori, stessa pastiglia (finitura 3), riga per riga. Il
+   fondo del documento lo scrive il telaio (`fondoScocca` legge il
+   `data-tema` della sezione — `viste/perte.js` lo scrive come
+   `viste/vetrina.js`, non un secondo set di token). */
+body[data-nav="c"][data-sez="vetrina"],
+body[data-nav="c"][data-sez="perte"]{--vetro:rgba(255,255,255,.74);
   --riflesso:rgba(255,255,255,.90);
   --pastiglia:color-mix(in srgb,var(--carta) 98%,transparent);
   --pastiglia-orlo:rgba(26,22,20,.055);
@@ -1708,7 +1712,8 @@ body[data-nav="c"][data-sez="vetrina"]{--vetro:rgba(255,255,255,.74);
   --acceso:var(--firma);
   --spento:rgba(42,33,27,.70);
   --spento-su:rgba(42,33,27,1)}
-body[data-nav="c"][data-sez="vetrina"] #fascia{background:var(--carta)}
+body[data-nav="c"][data-sez="vetrina"] #fascia,
+body[data-nav="c"][data-sez="perte"] #fascia{background:var(--carta)}
 
 /* 3 · LO SCHELETRO DELL'ELENCO, mentre il corpo della vetrina arriva a
    richiesta (`viste/vetrina.js`): la forma vera, monocroma e ferma. */

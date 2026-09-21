@@ -760,11 +760,18 @@ export function proposte(stato = {}, opz = {}) {
       }
     }
 
-    /* 7 · MATERIA COERENTE (10) — stessa materia di ≥ 2 pezzi che ha. */
+    /* 7 · MATERIA COERENTE (10) — stessa materia di ≥ 2 pezzi che ha.
+       TESTO (coordinatore, 21/09): «Nella tua materia (X)» portava la
+       parentesi che Massimo ha bocciato nelle tavole «Per te» —
+       l'etichetta scelta è «Si abbinano ai tuoi» (SCELTE-MASSIMO.md,
+       riga «Stessa materia»); il nome della materia resta un dato vero
+       in `dati`, e la vista lo scrive come riga sotto il titolo, non
+       fra parentesi nello stesso rigo. Solo il testo cambia: peso,
+       soglia e componente restano quelli di sempre. */
     if (materia && metalloDi(a) === materia) {
       metti("materia", {
         s: 1,
-        frase: scegliFrase("Nella tua materia (" + materia + ")"),
+        frase: scegliFrase("Si abbinano ai tuoi"),
         gruppo: materia,
         dati: [{ campo: "materia", valore: materia }],
       });

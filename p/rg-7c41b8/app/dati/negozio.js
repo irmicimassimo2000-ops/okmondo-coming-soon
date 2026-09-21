@@ -27,6 +27,12 @@
 
 export const NEGOZIO = {
   nome: "Regina Jewels",
+  /* IL TITOLARE — vero (citato già in `viste/profilo.css`, riga della
+     firma: «una firma disegnata a mano da noi sarebbe una firma
+     inventata a nome di Stefano Regina»). «Per te» lo nomina nella riga
+     del pin del negozio («Stefano ha pensato a te», F6, 21/09): il nome
+     proprio vive QUI e non si scrive a mano una seconda volta. */
+  proprietario: "Stefano Regina",
   via: "Corso Garibaldi 112",
   citta: "San Severo (FG)",
   telefono: "+390882303150",
