@@ -16,10 +16,26 @@
    toccarsi. Vedi `.toast .annulla` in sistema.css.) */
 import { e } from "app/ui/dom.js";
 import { molla, proietta, RIDOTTO } from "app/moto.js";
+import { iscrivi } from "app/stato.js";
 
 const DURATA = 4000;
 let zona = null;
 let inScena = null;      /* la pillola viva: ce n'e' al massimo una */
+
+/* LA PILLOLA MUORE AL CAMBIO DI ROTTA (corretto 21/09, trovato su
+   Fodera: «Data tolta · Annulla», nata in «Le tue date», restava a
+   galleggiare sopra la pagina dopo). Una conferma con un'azione parla
+   di UNA schermata; se resta sopra quella dopo, offre di annullare un
+   gesto che non si vede più dove fare. `app/rotta.js` manda `nav/push`,
+   `nav/pop` e `nav/tab` a ogni suo movimento — il foglio (`ui/foglio.js`)
+   non ne manda nessuno, e giustamente: non ha un indirizzo, e una
+   pillola non deve sparire solo perché sopra si è aperto un foglio.
+   `via()` è già idempotente (`andato`): chiamarla due volte non fa
+   niente la seconda. */
+iscrivi((s, ev) => {
+  if(inScena && (ev.tipo === "nav/push" || ev.tipo === "nav/pop" || ev.tipo === "nav/tab"))
+    inScena();
+});
 
 export function toast(testo, opz = {}){
   zona = zona || document.getElementById("toast-zona");

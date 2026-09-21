@@ -40,11 +40,20 @@
   --f6-int-h: 31px;
 }
 
-/* ══ R0 · LA TESTA ══════════════════════════════════════════════════
-   Il titolo grande lo fa `schermo()`. Sotto, il nome inciso in Bodoni
-   28 e la riga di servizio in Inter 15: due righe, non un blocco. */
-.f6-inciso{display:block;margin:2px 0 0;color:var(--testo)}
-.f6-servizio{display:block;margin:4px 0 0;color:var(--testo-2)}
+/* ══ R0 · IL TEMA CHIARO (B2a, 21/09) ═════════════════════════════════
+   «Il Profilo deve avere lo stesso tema e la barra identica» di Vetrina
+   e Per te (verdetto di Massimo): `profilo.js` scrive
+   `data-tema="chiaro"` sulla sezione, e da qui in giù ogni `var(--...)`
+   di questo foglio prende da sola i valori chiari — NESSUN HEX cambia,
+   la regola del file resta intatta. */
+
+/* ══ R0 · LA RIGA DELLA PERSONA (E19·A) ══════════════════════════════
+   Iniziali su tinta neutra, il codice e da quando è cliente. Il NOME
+   vive una sola volta in tutta la radice: sulla tessera, non qui. */
+.f6-avatar{flex:none;width:44px;height:44px;border-radius:var(--r-capsula);
+  background:var(--piano);box-shadow:inset 0 0 0 1px var(--linea);
+  display:flex;align-items:center;justify-content:center;
+  font:600 15px/1 var(--f-testo);color:var(--testo)}
 
 /* ══ LA TESSERA ═════════════════════════════════════════════════════
    LE REGOLE DELLA CARTA SE NE SONO ANDATE NEL SISTEMA (`sistema.css`,
@@ -54,7 +63,70 @@
    in uno solo dei tre — l'ingresso non carica questo foglio.
    Qui resta l'unica cosa che è DI QUESTA VISTA: quanta aria le sta
    intorno nella pagina del profilo. */
-.tessera-scena{margin:18px 0 22px}
+.tessera-scena{margin:16px 0 -8px}
+
+/* ══ R0 · IL BLOCCO FUORI DALLA CARTA (E04·B + E05·C) ═══════════════
+   Il credito e «Mostra al banco» — che gira la carta di sopra, non
+   un'altra — poi, sotto un filo, la riga del livello con l'anello.
+   Regola Wallet pura: il credito non sta più SULLA carta (v.
+   `ui/tessera.js`, `opz.senzaCredito`), sta qui, appena sotto. */
+.f6-fuori{background:var(--piano);border-radius:var(--r-card);
+  margin:0 0 24px;overflow:hidden}
+.f6-fuori-riga1{display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:12px 16px}
+.f6-fuori-et{display:block;font:var(--t-foot);color:var(--testo-2)}
+.f6-fuori-riga1 b{display:block;margin-top:4px;font:600 17px/1.2 var(--f-testo);
+  color:var(--credito)}
+/* IL BERSAGLIO È 44, NON 40 (la tavola ne disegnava 40): l'accessibilità
+   vince sul millimetro della tavola — nessun bersaglio sotto 44. */
+.f6-fuori-tasto{flex:none;display:inline-flex;align-items:center;justify-content:center;
+  min-height:var(--tocco-min);padding:0 16px;border-radius:var(--r-capsula);
+  border:0;background:none;box-shadow:inset 0 0 0 1px var(--accento);
+  color:var(--accento);font:600 15px/1 var(--f-testo);cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.f6-fuori-tasto:active{opacity:.6}
+.f6-fuori-tasto:focus-visible{outline:2px solid var(--accento);outline-offset:2px}
+.f6-fuori-sep{height:1px;background:var(--linea);margin:0 16px}
+.f6-fuori-riga2{display:flex;align-items:center;gap:8px;width:100%;
+  min-height:var(--tocco-min);padding:8px 16px 12px;border:0;background:none;
+  color:var(--testo-2);font:var(--t-foot);text-align:left;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.f6-fuori-parole{flex:1 1 auto;min-width:0;color:var(--testo)}
+.f6-fuori-riga2 .frec{flex:none;color:var(--testo-2)}
+.f6-fuori-riga2:active{background:color-mix(in srgb,var(--testo) 6%,transparent)}
+.f6-fuori-riga2:focus-visible{outline:2px solid var(--accento);outline-offset:-2px}
+
+/* ══ R0 · L'INTESTAZIONE DI GRUPPO CHE SI TOCCA (E06·C + chevron) ════
+   «LE TUE DATE» apre l'elenco intero (secondo giro, 21/09: «si deve
+   capire a primo impatto che si tratta di date» — qui più la
+   tessera-calendario sotto). Il bersaglio è 44, e il margine negativo
+   lo riassorbe perché il testo resti alla stessa quota dell'occhiello
+   di prima. */
+.f6-testa-gruppo{display:flex;align-items:center;justify-content:space-between;
+  width:100%;min-height:var(--tocco-min);margin:-12px 0 -4px;padding:0 0 0 4px;
+  border:0;background:none;color:inherit;text-align:left;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.f6-testa-gruppo .occhiello{margin:0}
+.f6-testa-gruppo .frec{color:var(--testo-2)}
+.f6-testa-gruppo:active{opacity:.6}
+.f6-testa-gruppo:focus-visible{outline:2px solid var(--accento);outline-offset:-2px;
+  border-radius:6px}
+
+/* ══ LA TESSERA-CALENDARIO (E20·A) ════════════════════════════════════
+   Mese in tre lettere sopra, giorno grande sotto — a sinistra di ogni
+   riga di data, in radice e nell'elenco intero. */
+.f6-cal{flex:none;width:44px;border-radius:var(--r-lista);overflow:hidden;
+  box-shadow:inset 0 0 0 1px var(--linea);text-align:center}
+.f6-cal-mese{display:block;background:var(--incavo);padding:4px 0;
+  font:700 10px/13px var(--f-testo);letter-spacing:.06em;text-transform:uppercase;
+  color:var(--accento)}
+.f6-cal-gg{display:block;padding:4px 0;font:var(--t-2);font-weight:400;
+  color:var(--testo)}
+
+/* ══ R0 · «AGGIUNGI UNA DATA», col segno «+» invece del chevron ═════ */
+.f6-piu{flex:none;width:22px;height:22px;border-radius:var(--r-capsula);
+  background:var(--incavo);display:flex;align-items:center;justify-content:center;
+  color:var(--accento)}
 
 /* ══ R0 · IL PIE' ═══════════════════════════════════════════════════ */
 .f6-pie{display:block;margin:6px 0 10px;text-align:center;color:var(--testo-2)}
@@ -65,30 +137,34 @@
 .f6-azione .testo b{color:var(--accento)}
 .f6-pericolo .testo b{color:var(--errore)}
 
+/* IL RIMANDO BREVE ALLA PRIVACY (E14·B, testo 1, 21/09). La frase
+   intera vive SOLO in «Cosa sappiamo di te»: qui e nel foglio Cancella
+   restava una copia identica — un link corto basta, e porta dove
+   risponde per esteso. */
+.f6-privacy-link{display:inline-flex;align-items:center;gap:4px;
+  min-height:var(--tocco-min);margin:-24px 0 12px -4px;padding:0 4px;
+  border:0;background:none;color:var(--accento);font:var(--t-foot);
+  cursor:pointer;-webkit-tap-highlight-color:transparent}
+.f6-privacy-link .frec{color:var(--accento)}
+.f6-privacy-link:active{opacity:.6}
+.f6-privacy-link:focus-visible{outline:2px solid var(--accento);outline-offset:2px;
+  border-radius:4px}
+
 /* ══ R1 · IL CREDITO ════════════════════════════════════════════════
    La somma NON si ripete sotto il titolo: la somma È il titolo grande
    (Bodoni 34, cifre tabulari — `html{font-feature-settings:"tnum"}` le
    accende in tutta l'app). Scriverla due volte sarebbe due volte lo
    stesso numero a otto punti di distanza. */
-/* UNA FIRMA SOLA. C'era una riga in Inter — «Credito, firmato Regina»
-   — e sotto la stessa firma in Bodoni corsivo: la stessa frase detta
-   due volte, una in parole e una col gesto. Il critic l'ha chiamata
-   firma doppia, ed è quello che era. Resta il gesto, che è quello che
-   firma davvero; il mittente lo ripete comunque ogni riga del registro
-   («da Regina»). La classe `.f6-firmato` non esiste più.
-   LA FIRMA. Non c'è nessun SVG di firma nella cartella del progetto
-   (cercato il 15/09/2026: `assets/`, `font/`, `pezzi/` — niente), e una
-   firma disegnata a mano da noi sarebbe una firma inventata a nome di
-   Stefano Regina. Finché non arriva il file vero, la firma è la
-   parola «Regina» in Bodoni CORSIVO — il corsivo è l'unica faccia
-   della famiglia che porta il gesto della mano, ed è già in casa
-   (`font/bodoni-it.woff2`, dichiarata in sistema.css come
-   `Bodoni` italic). L'alias "Bodoni Moda" non ha il corsivo: qui la
-   famiglia si nomina per esteso apposta, altrimenti il browser
-   inclinerebbe il tondo (oblique sintetico) e si vedrebbe. */
-.f6-firma{display:block;margin:6px 0 26px;font:var(--t-1);
-  font-family:Bodoni,Didot,serif;font-style:italic;
-  letter-spacing:var(--ls-display);color:var(--testo)}
+/* IL MARCHIO, NON LA FIRMA A TESTO (corretto 21/09). La parola
+   «Regina» in Bodoni corsivo era un marchio ridotto travestito da
+   lettering — il canone di Massimo lo vieta quanto vieterebbe
+   «REGINA» in Inter: non conta la famiglia, conta che non sia il
+   segno. Qui va `marchio.png`, lo stesso file che apre la tessera
+   (`app/ui/tessera.js`, `.f1-pass-marchio`), a un'altezza che lo tiene
+   un marchio leggibile e non un'icona (≥36; qui 40, coerente col peso
+   della cifra sopra). */
+.f6-marchio{display:block;height:40px;width:auto;object-fit:contain;
+  margin:10px 0 26px}
 /* L'OCCHIELLO DEL LIVELLO apre la seconda metà dello schermo — il
    registro è finito, comincia la spiegazione — e si stacca dal gruppo
    di sopra come si staccano due gruppi di lista (30). */
@@ -181,6 +257,27 @@
 .f6-seg > button:focus-visible > span{outline:2px solid var(--accento);
   outline-offset:2px}
 
+/* «FINE» HA SEMPRE IL SUO SPAZIO (21/09, trovato dallo screenshot: a
+   393x852 i quattro campi misurano più dei 342px che il fermo mezzo
+   lascia a `.corpo`, e su 375x667 il divario è ancora più largo — e
+   «Fine», ultimo di un'unica colonna che scorre tutta insieme,
+   restava tagliato dal bordo dello schermo.
+   Un primo tentativo lo fissava con `sticky` nello STESSO flusso dei
+   campi: appena il contenuto sopra si avvicinava al fondo, il tasto
+   ci finiva SOPRA invece che sotto — sovrapposto ad «Avvisami», non
+   più tagliato ma comunque sbagliato.
+   La cura è dargli un posto SUO. `.f6-foglio-data` è alto quanto
+   `.corpo` (`height:100%`); dentro, `.f6-campi` è l'UNICA zona che
+   scorre (`flex:1 1 auto;min-height:0;overflow-y:auto`) — i quattro
+   campi, mai «Fine» — e «Fine» resta un fratello fuori da quel
+   flusso, con l'altezza sua e il filo di 14 (il `gap` di
+   `.f6-foglio`) sopra di lui: non scorre mai via, e niente scorre
+   MAI sopra di lui. Solo questo foglio: «Cancella il cofanetto» sta
+   già dentro il fermo e non ha bisogno di questa impalcatura. */
+.f6-foglio-data{height:100%}
+.f6-campi{flex:1 1 auto;min-height:0;overflow-y:auto;
+  display:flex;flex-direction:column;gap:14px}
+
 /* il campo data: quello di sistema, alto 44 come ogni campo. Su iOS
    apre la ruota; su desktop il calendario del browser. */
 .f6-data{font:var(--t-body);color:var(--testo);
@@ -252,6 +349,15 @@
   outline-offset:3px}
 .f6-nota{display:block;margin:22px 0 0;text-align:center;color:var(--testo-2)}
 
+/* ══ IL FOGLIO «CANCELLARE IL COFANETTO?» — coerenza distruttiva
+   (E15·B, 21/09) ═══════════════════════════════════════════════════
+   Il tasto di conferma diventava turchese (`--accento`) mentre la riga
+   che apre il foglio è rossa (`--errore`, `.f6-pericolo`): due colori
+   per la stessa azione. «Il colore porta UN solo significato» (canone
+   del Registro, 16/09) — il tasto prende `--errore`, non un quarto
+   tasto: è il primario, ricolorato. */
+.tasto.pericolo{background:var(--errore);color:var(--carta)}
+
 /* ══ R4 · L'INTERRUTTORE ════════════════════════════════════════════
    51 x 31, le misure di iOS. Il bersaglio è tutta la riga: è così
    anche in Impostazioni, dove si tocca il nome e l'interruttore
@@ -298,6 +404,10 @@
 /* ══ «COSA SAPPIAMO DI TE» ══════════════════════════════════════════ */
 .f6-dati-testa{margin:0 0 18px;color:var(--testo)}
 .f6-pie-gruppo{display:block;margin:-14px 0 22px 4px;color:var(--testo-2)}
+/* DOPO UN TASTO, NON DOPO UNA LISTA (Aiuto, 21/09): il tasto non porta
+   lo spazio sotto che una `lista()` ha già — il margine negativo di
+   sopra lo faceva sovrapporre. 10px, dentro la forchetta 8-12 chiesta. */
+.f6-pie-dopo-tasto{margin-top:10px}
 
 /* ══ IL FOGLIO «SEI AL SECONDO.» ════════════════════════════════════
    Mezza altezza, la tessera piccola che si gira e cambia nome, la riga

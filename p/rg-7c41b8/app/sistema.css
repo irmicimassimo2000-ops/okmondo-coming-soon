@@ -1696,14 +1696,18 @@ body[data-nav="c"][data-sez="cofanetto"] #fascia{
 /* 2 · LA BARRA DI VETRO SULLA CARTA. La barra è approvata e NON cambia:
    «la tinta del vetro segue la sezione» è scritto sopra (blocco C), e
    fino al 20/09 la sola sezione di carta era il cofanetto. Dal 21/09
-   sono tre — cofanetto, vetrina, «Per te» (F6, verdetto di Massimo:
-   «Per te» deve avere la stessa barra della Vetrina, byte per byte):
+   sono QUATTRO — cofanetto, vetrina, «Per te» (F6, verdetto di Massimo:
+   «Per te» deve avere la stessa barra della Vetrina, byte per byte) e,
+   dal 21/09, il Profilo (stesso verdetto, stessa richiesta esplicita
+   per la sezione «Profilo»: «deve avere lo stesso tema e la barra
+   identica» di Vetrina e Per te — `viste/profilo.js` scrive
+   `data-tema="chiaro"` come le altre due, non un terzo set di token):
    stessi valori, stessa pastiglia (finitura 3), riga per riga. Il
    fondo del documento lo scrive il telaio (`fondoScocca` legge il
-   `data-tema` della sezione — `viste/perte.js` lo scrive come
-   `viste/vetrina.js`, non un secondo set di token). */
+   `data-tema` della sezione). */
 body[data-nav="c"][data-sez="vetrina"],
-body[data-nav="c"][data-sez="perte"]{--vetro:rgba(255,255,255,.74);
+body[data-nav="c"][data-sez="perte"],
+body[data-nav="c"][data-sez="profilo"]{--vetro:rgba(255,255,255,.74);
   --riflesso:rgba(255,255,255,.90);
   --pastiglia:color-mix(in srgb,var(--carta) 98%,transparent);
   --pastiglia-orlo:rgba(26,22,20,.055);
@@ -1713,7 +1717,8 @@ body[data-nav="c"][data-sez="perte"]{--vetro:rgba(255,255,255,.74);
   --spento:rgba(42,33,27,.70);
   --spento-su:rgba(42,33,27,1)}
 body[data-nav="c"][data-sez="vetrina"] #fascia,
-body[data-nav="c"][data-sez="perte"] #fascia{background:var(--carta)}
+body[data-nav="c"][data-sez="perte"] #fascia,
+body[data-nav="c"][data-sez="profilo"] #fascia{background:var(--carta)}
 
 /* 3 · LO SCHELETRO DELL'ELENCO, mentre il corpo della vetrina arriva a
    richiesta (`viste/vetrina.js`): la forma vera, monocroma e ferma. */
@@ -1724,3 +1729,6 @@ body[data-nav="c"][data-sez="perte"] #fascia{background:var(--carta)}
 .va-osso-riga{width:100%;height:var(--s-8);border-radius:var(--r-capsula)}
 .va-ossa-griglia{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-5) var(--s-3)}
 .va-osso-quadro{aspect-ratio:1/1;border-radius:var(--r-card)}
+
+/* il marchio sul retro della tessera: completo, un gradino sotto il fronte */
+.f1-pass-marchio.f1-pass-marchio-retro{height:28px;align-self:center;margin-bottom:4px}

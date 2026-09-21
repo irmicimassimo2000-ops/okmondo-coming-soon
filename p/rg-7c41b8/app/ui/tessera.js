@@ -48,8 +48,8 @@ import { RIDOTTO } from "app/moto.js";
 
 export const GIRO = 600;          /* 2 x --d-ct-in, keyframe a 300     */
 export const GIRO_RIDOTTO = 200;  /* la dissolvenza, non il giro       */
-/* 200 e non 250: il tetto del movimento ridotto e' 200 ms (SISTEMA-DESIGN
-   regola 4, «dissolvenze 150-200»), e una dissolvenza che lo sfonda e'
+/* 200 e non 250: il tetto del movimento ridotto è 200 ms (SISTEMA-DESIGN
+   regola 4, «dissolvenze 150-200»), e una dissolvenza che lo sfonda è
    movimento che chi ne ha chiesto meno riceve lo stesso. */
 
 /* ── IL CODICE A BARRE ──────────────────────────────────────────────
@@ -79,16 +79,20 @@ export function barre(messaggio){
    come un progresso — quanto manca, a che punto sono — e una carta non
    è una barra di avanzamento. La percentuale vive dove si spiega:
    nello schermo del credito. Qui resta il NOME del livello. */
-function fronte(d){
+function fronte(d, opz = {}){
   return e("div", {class: "f1-pass f1-pass-fronte", "data-fodera": d.fodera || null}, [
     e("div", {class: "f1-pass-testa"}, [
       e("img", {class: "f1-pass-marchio", src: "marchio.png", alt: "",
                 decoding: "async"}),
-      e("div", {class: "f1-pass-credito"}, [
+      /* REGOLA WALLET PURA (E03·B, 21/09): il credito esce dalla carta —
+         vive nel blocco fuori dalla carta di chi la mostra (Profilo R0).
+         `opz.senzaCredito` lo toglie SOLO da lì: S3 e il foglio della
+         salita di livello non lo passano, e restano com'erano. */
+      opz.senzaCredito ? null : e("div", {class: "f1-pass-credito"}, [
         e("span", {class: "occhiello", testo: "Credito"}),
         e("b", {class: "cifra", testo: d.credito})
       ])
-    ]),
+    ].filter(Boolean)),
     e("div", {class: "f1-pass-corpo"}, [
       e("span", {class: "occhiello", testo: "Tessera"}),
       e("b", {class: "t-1 cifra f1-pass-codice", testo: d.codice})
@@ -117,8 +121,12 @@ function retroFaccia(d){
   const codice = r.codice || d.codice;
   return e("div", {class: "f1-pass f1-pass-retro", "data-fodera": d.fodera || null}, [
     e("div", {class: "f1-pass-dietro"}, [
+      /* critic 22/09: al banco, senza il fronte davanti, il retro era la
+         tessera di chiunque. Il marchio VERO e completo, piccolo, sopra il codice. */
+      e("img", {class: "f1-pass-marchio f1-pass-marchio-retro", src: "marchio.png", alt: "",
+                decoding: "async"}),
       e("div", {class: "f1-pass-corpo"}, [
-        e("span", {class: "occhiello", testo: "Tessera"}),
+        /* il marchio ha preso il posto dell'occhiello «Tessera»: il retro resta alto quanto il fronte */
         e("b", {class: "t-1 cifra f1-pass-codice", testo: codice})
       ]),
       r.qr || barre(codice),
@@ -143,13 +151,17 @@ function retroFaccia(d){
    diventerebbe `--quieto` su crema (2,0:1) e `--credito` diventerebbe
    `--firma-fuoco` (2,8:1).
 
-   opz.suClick — la carta diventa un COMANDO che fa quella cosa (in R0
-     apre «Credito e livello»: la tessera è il tasto, e la lista che
-     ripeteva le stesse due righe sotto è sparita). Senza, la carta è
-     un comando che GIRA — ed è il caso di S3 e del foglio del livello.
+   opz.suClick — la carta diventa un COMANDO che fa quella cosa. SENZA,
+     la carta è un comando che GIRA — ed è il caso di S3, del foglio del
+     livello e (dal 21/09, E04·B) della radice del Profilo: «Mostra al
+     banco» e il tocco sulla carta fanno la STESSA cosa ovunque, la
+     girano, non aprono più «Credito» da qui.
+   opz.senzaCredito — il fronte non porta il blocco credito (regola
+     Wallet pura, E03·B): lo usa solo chi mette il credito FUORI dalla
+     carta, in un blocco suo (Profilo R0).
    opz.etichetta — l'aria-label, quando la frase di serie non basta. */
 export function tessera(d = {}, opz = {}){
-  const f = fronte(d);
+  const f = fronte(d, opz);
   const r = retroFaccia(d);
   const faccia1 = e("div", {class: "tessera-faccia fronte"}, [f]);
   const faccia2 = e("div", {class: "tessera-faccia retro"}, [r]);

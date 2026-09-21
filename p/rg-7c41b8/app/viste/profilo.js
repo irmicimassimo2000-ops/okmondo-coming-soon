@@ -391,6 +391,15 @@ export const FAQ = [
    sarebbero due numeri per un tempo solo. */
 
 export function monta(el, store){
+  /* IL TEMA CHIARO (verdetto di Massimo, 21/09: «il Profilo deve avere
+     lo stesso tema e la barra identica» di Vetrina e Per te). Stessa
+     leva delle altre due — non un terzo set di token — `sistema.css`
+     (blocco «LA BARRA DI VETRO SULLA CARTA») dà la stessa tinta alla
+     barra quando `data-sez="profilo"`. Il velluto restava dal 15/09,
+     prima che il canone chiaro esistesse: qui si allinea, e basta. */
+  const sezioneProfilo = el.closest(".vista");
+  if(sezioneProfilo) sezioneProfilo.dataset.tema = "chiaro";
+
   const {leggi, invia, soldi} = store;
   const cliente = () => leggi().cliente || {};
 
@@ -488,49 +497,190 @@ export function monta(el, store){
     };
   }
 
-  /* ══ R0 · IL PROFILO ═══════════════════════════════════════════ */
+  /* ── LE INIZIALI DELL'AVATAR, «LS» da «Lucia Sabatini» ────────────
+     Prima e ultima parola del nome per l'incisione (o nome+cognome):
+     due lettere, come Wallet/Contatti — mai una foto vera senza che il
+     cliente ce l'abbia data. */
+  function iniziali(nome){
+    const parti = String(nome || "").trim().split(/\s+/).filter(Boolean);
+    if(!parti.length) return "";
+    const a = parti[0][0] || "";
+    const b = parti.length > 1 ? parti[parti.length - 1][0] : "";
+    return (a + b).toUpperCase();
+  }
+  /* «SET», non «settembre»: la tessera-calendario (E20·A) porta il mese
+     in tre lettere maiuscole, come il badge di un evento in Wallet. */
+  const meseCorto = (m) => nomeMese(m).slice(0, 3).toUpperCase();
+  function scomponiData(iso){
+    const g = aGiorni(iso);
+    if(!isFinite(g)) return {giorno: "", mese: 1};
+    const dt = new Date(g * 86400000);
+    return {giorno: dt.getUTCDate(), mese: dt.getUTCMonth() + 1};
+  }
+  /* LA TESSERA-CALENDARIO. Non è un segno del sistema (`ui/segni.js`):
+     porta due CIFRE vere, non un pittogramma, e vive solo qui. */
+  function badgeCalendario(iso){
+    const {giorno, mese} = scomponiData(iso);
+    return e("span", {class: "f6-cal", "aria-hidden": "true"}, [
+      e("span", {class: "f6-cal-mese", testo: meseCorto(mese)}),
+      e("span", {class: "f6-cal-gg cifra", testo: String(giorno)})
+    ]);
+  }
+
+  /* L'ANELLO DI AVANZAMENTO DEL LIVELLO. Un SVG vero (non un segno del
+     sistema): `ui/dom.js` non costruisce nodi SVG (namespace sbagliato),
+     quindi passa dal template — lo stesso trucco di `ui/segni.js`. */
+  function anelloLivello(quota){
+    const R = 10, C = 2 * Math.PI * R;
+    const off = Math.max(0, C * (1 - quota / 100));
+    const t = document.createElement("template");
+    t.innerHTML =
+      '<svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">' +
+      '<circle cx="13" cy="13" r="' + R + '" fill="none" stroke="var(--incavo)" stroke-width="4"/>' +
+      '<circle cx="13" cy="13" r="' + R + '" fill="none" stroke="var(--accento)" stroke-width="4" ' +
+      'stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + off.toFixed(2) +
+      '" stroke-linecap="round" transform="rotate(-90 13 13)"/></svg>';
+    return t.content.firstElementChild;
+  }
+
+  /* L'INTESTAZIONE DI GRUPPO CHE SI TOCCA (E06·C + chevron): «LE TUE
+     DATE» apre l'elenco intero. Non passa da `cella()`/`lista()` — è un
+     occhiello con un comando, non una riga di lista. */
+  function testaGruppoTasto(titolo, suClick){
+    return e("button", {type: "button", class: "f6-testa-gruppo",
+      "aria-label": titolo, suClick}, [
+      e("span", {class: "occhiello", testo: titolo}),
+      segno("chevron", {misura: 14, classe: "frec"})
+    ]);
+  }
+
+  /* «AGGIUNGI UNA DATA», col segno «+» a sinistra invece del chevron a
+     destra: non passa da `cella()` (che il chevron lo mette sempre da
+     sé quando c'è un tocco) — qui il segno del comando è un altro. */
+  function rigaAggiungiData(suClick){
+    return e("button", {type: "button", class: "cella f6-azione", suClick}, [
+      e("span", {class: "f6-piu", "aria-hidden": "true"}, [segno("piu", {misura: 14})]),
+      e("div", {class: "testo"}, [e("b", {testo: "Aggiungi una data"})])
+    ]);
+  }
+
+  /* UNA RIGA DI DATA, col badge — per la radice (non si tocca: è
+     un'anteprima) e per l'elenco intero (`rigaData`, che invece porta
+     anche «Togli»). */
+  function rigaDataAnteprima(x){
+    return e("div", {class: "cella due piatta", stile: "gap:12px"}, [
+      badgeCalendario(x.quando),
+      e("div", {class: "testo"}, [
+        e("b", {testo: nomeData(x)}),
+        e("span", {testo: "avviso " + testoAvviso(x.avviso)})
+      ])
+    ]);
+  }
+
+  /* LA RIGA DELLA PERSONA (E19·A): iniziali su tinta neutra, il codice
+     e da quando è cliente — MAI il nome, che vive una sola volta, sulla
+     tessera. Apre «I tuoi dati». */
+  function rigaAvatarPersona(c){
+    const da = c.cliente_dal ? daQuando(c.cliente_dal) : "";
+    return e("button", {type: "button", class: "cella due",
+      "aria-label": "I tuoi dati. " + (c.tessera || "") +
+        (da ? ", cliente " + da : ""),
+      suClick: () => spingi("dati/apri")}, [
+      e("span", {class: "f6-avatar", "aria-hidden": "true",
+        testo: iniziali(c.nome_incisione || [c.nome, c.cognome].filter(Boolean).join(" "))}),
+      e("div", {class: "testo"}, [
+        e("b", {testo: c.tessera || ""}),
+        e("span", {testo: da ? "Cliente " + da : "Cliente"})
+      ]),
+      segno("chevron", {misura: 14, classe: "frec"})
+    ]);
+  }
+
+  /* IL BLOCCO FUORI DALLA CARTA (E04·B + E05·C): il credito e «Mostra
+     al banco» — che gira la STESSA carta di sopra, non un'altra — e,
+     sotto un filo, la riga del livello con l'anello: AL TOCCO apre la
+     pagina col registro e con TUTTI i livelli (richiesta esplicita di
+     Massimo, 21/09). */
+  function bloccoFuoriCarta(d, scena){
+    const quota = quotaFilo(d.speso, d.prossimo);
+    const nomeAttuale = d.attuale ? d.attuale.nome : "Primo";
+    const parole = d.prossimo
+      ? "Livello " + nomeAttuale + " · mancano " + soldi(d.manca) + " al " + d.prossimo.nome
+      : "Livello " + nomeAttuale + " · sei al livello più alto";
+    const riga1 = e("div", {class: "f6-fuori-riga1"}, [
+      e("div", {}, [
+        e("span", {class: "f6-fuori-et", testo: "Credito"}),
+        e("b", {class: "cifra", testo: soldi(d.credito)})
+      ]),
+      e("button", {type: "button", class: "f6-fuori-tasto",
+        "aria-label": "Mostra il codice al banco",
+        suClick: () => { try{ scena.gira(); }catch(_){} }},
+        [e("span", {testo: "Mostra al banco"})])
+    ]);
+    const riga2 = e("button", {type: "button", class: "f6-fuori-riga2",
+      "aria-label": parole, suClick: () => spingi("credito/apri")}, [
+      anelloLivello(quota),
+      e("span", {class: "f6-fuori-parole", testo: parole}),
+      segno("chevron", {misura: 14, classe: "frec"})
+    ]);
+    return e("div", {class: "f6-fuori"}, [riga1, e("div", {class: "f6-fuori-sep"}), riga2]);
+  }
+
+  /* «I TUOI ACQUISTI» (E13·B): riusa gli SCHERMI GIÀ FATTI della
+     Vetrina — non si duplica ordini/preferiti/da-parte in un secondo
+     posto. Una riga a zero non si mostra. */
+  function bloccoAcquisti(s){
+    const nOrdini = (s.ordini || []).length;
+    const nParte = (s.wishlist || []).length;
+    const nPref = (s.preferiti || []).length;
+    const righe = [];
+    if(nOrdini) righe.push(cella({titolo: "I tuoi ordini", coda: String(nOrdini),
+      etichetta: "I tuoi ordini, " + nOrdini, suClick: () => spingi("ordini/tutti")}));
+    if(nParte) righe.push(cella({titolo: "Da parte", coda: String(nParte),
+      etichetta: "Da parte, " + nParte, suClick: () => spingi("lista")}));
+    if(nPref) righe.push(cella({titolo: "Preferiti", coda: String(nPref),
+      etichetta: "Preferiti, " + nPref, suClick: () => spingi("preferiti/tutti")}));
+    return righe.length ? lista("I tuoi acquisti", righe) : null;
+  }
+
+  /* ══ R0 · IL PROFILO ═══════════════════════════════════════════
+     Rimontata sulla B2a (21/09, secondo giro): riga-avatar sotto il
+     titolo, poi la tessera, il blocco fuori-carta, le date come
+     tessere-calendario, «I tuoi acquisti», e il resto invariato. */
   function disegna(){
     const d = conti();
     const c = d.c;
     const pagina = schermo(el, {titolo: "Profilo"});
 
-    /* il nome inciso e la riga di servizio: chi sei, e da quando. */
-    pagina.append(e("b", {class: "t-1 f6-inciso",
-      testo: c.nome_incisione || [c.nome, c.cognome].filter(Boolean).join(" ")}));
-    pagina.append(e("span", {class: "t-sub f6-servizio",
-      testo: (c.tessera || "") +
-             (c.cliente_dal ? " · " + daQuando(c.cliente_dal) : "")}));
+    /* ── La riga della persona (E19·A) ── */
+    pagina.append(lista(null, [rigaAvatarPersona(c)]));
 
-    /* LA TESSERA È IL TASTO. Sotto c'erano due righe — «Credito 25,00 €»
-       e «Livello Secondo · 3%» — che dicevano le STESSE due cose
-       scritte sulla carta dieci punti più su: la carta le mostrava, la
-       lista le ripeteva, e nessuna delle due era il comando. Adesso il
-       comando è la carta: si tocca e si apre «Credito e livello».
-       (Il giro della carta resta dov'è nato — in S3, dove si impara
-       che il retro è quello che si porge al banco — e nel foglio della
-       salita, dove il retro È il livello nuovo. Un oggetto che in due
-       posti fa due cose diverse si regge finché in ognuno dei due c'è
-       una cosa sola da fare, e qui c'è: aprire il credito.) */
-    pagina.append(tessera(datiTessera(),
-      {suClick: () => spingi("credito/apri")}));
+    /* ── La tessera: il tocco gira, non apre più «Credito» da qui
+       (E04·B — «Mostra al banco» e la carta fanno la STESSA cosa). ── */
+    const scena = tessera(datiTessera(), {senzaCredito: true});
+    pagina.append(scena);
+    pagina.append(bloccoFuoriCarta(d, scena));
 
-    /* ── Le tue date ── */
+    /* ── Le tue date (E20·A): al massimo due, il resto dietro «tutte»
+       — l'intestazione stessa è il comando verso l'elenco. ── */
     const date = dateUnite(d.s, OGGI);
-    const prima = date[0];
-    const righeDate = [];
-    righeDate.push(prima
-      ? cella({titolo: nomeData(prima),
-          sotto: giornoEMese(prima.quando) + " · " + testoAvviso(prima.avviso),
-          suClick: () => spingi("date/apri")})
-      : cella({titolo: "Nessuna data", sotto: "Le tue ricorrenze stanno qui.",
-          suClick: () => spingi("date/apri")}));
-    if(date.length > 1)
-      righeDate.push(cella({titolo: "Tutte le date",
-        coda: String(date.length), suClick: () => spingi("date/apri")}));
-    const rAgg = cella({titolo: "Aggiungi una data", suClick: foglioData});
-    rAgg.classList.add("f6-azione");
-    righeDate.push(rAgg);
-    pagina.append(lista("Le tue date", righeDate));
+    const righeDate = date.length
+      ? date.slice(0, 2).map(rigaDataAnteprima)
+      : [e("div", {class: "cella due piatta"}, [
+          e("div", {class: "testo"}, [
+            e("b", {testo: "Nessuna data"}),
+            e("span", {testo: "Le tue ricorrenze staranno qui."})
+          ])
+        ])];
+    righeDate.push(rigaAggiungiData(foglioData));
+    pagina.append(e("section", {class: "lista-blocco"}, [
+      testaGruppoTasto("LE TUE DATE", () => spingi("date/apri")),
+      e("div", {class: "lista"}, righeDate)
+    ]));
+
+    /* ── I tuoi acquisti (E13·B) ── */
+    const acquisti = bloccoAcquisti(d.s);
+    if(acquisti) pagina.append(acquisti);
 
     /* ── Fodera ── */
     const f = FODERE.find(x => x.id === (d.s.preferenze || {}).fodera) || FODERE[0];
@@ -545,7 +695,7 @@ export function monta(el, store){
     pagina.append(lista(null, [
       cella({titolo: "Impostazioni", suClick: () => spingi("impostazioni/apri")}),
       cella({titolo: "I tuoi dati",  suClick: () => spingi("dati/apri")}),
-      cella({titolo: "Il negozio",   sotto: NEGOZIO.via + ", " + NEGOZIO.citta,
+      cella({titolo: "Il negozio",   coda: NEGOZIO.citta,
         suClick: () => spingi("profilo-negozio/apri")}),
       cella({titolo: "Aiuto",        suClick: () => spingi("aiuto/apri")})
     ]));
@@ -554,20 +704,20 @@ export function monta(el, store){
   }
 
   /* ══ IL PIE' — E QUELLO CHE C'E' SOTTO ══════════════════════════
-     «Regina Jewels 1.0 · RJ 00042» e' la firma in fondo al Profilo.
-     Cinque tocchi entro due secondi aprono la DIAGNOSTICA: e' il
-     pattern «Info su» di iOS, dove il numero di build si tocca finche'
+     «Regina Jewels 1.0 · RJ 00042» è la firma in fondo al Profilo.
+     Cinque tocchi entro due secondi aprono la DIAGNOSTICA: è il
+     pattern «Info su» di iOS, dove il numero di build si tocca finché
      non si apre quello che serve a chi ripara.
-     PERCHE' ESISTE. Il difetto dell'altezza non si riproduce in
+     PERCHÉ ESISTE. Il difetto dell'altezza non si riproduce in
      cornice: Chrome impagina onesto, iOS in standalone no, e fra i due
-     non c'e' un ponte. I numeri li ha in mano Massimo, e finora
+     non c'è un ponte. I numeri li ha in mano Massimo, e finora
      arrivavano come fotografie da misurare a mano. Qui si leggono, si
      copiano e si mandano.
-     NON E' UNA FUNZIONE DEL COFANETTO. Non ha segno, non ha cella, non
+     NON È UNA FUNZIONE DEL COFANETTO. Non ha segno, non ha cella, non
      ha voce nella barra: si apre solo se la si cerca, e chi non la
      cerca non la trova mai. Per questo il pie' resta uno `span` e non
      diventa un comando — un `button` in fondo al Profilo direbbe al
-     cliente che li' c'e' qualcosa da fare. */
+     cliente che lì c'è qualcosa da fare. */
   const WA_DIAGNOSTICA = "393208599301";   /* il telefono di Massimo, non il negozio */
 
   function pieVersione(tess){
@@ -610,11 +760,11 @@ export function monta(el, store){
     ]);
     const dentro = e("div", {class: "f6-foglio"}, [
       e("p", {class: "t-sub tenue", testo:
-        "I numeri di questo iPhone, come li dichiara adesso. Servono a capire perche' l'applicazione si impagina diversa da come si vede in prova."}),
+        "I numeri di questo iPhone, come li dichiara adesso. Servono a capire perché l'applicazione si impagina diversa da come si vede in prova."}),
       /* I COMANDI STANNO SOPRA IL REGISTRO. Le righe sono venticinque e
          su un telefono finiscono sotto il bordo: se «Copia» sta in
          fondo, per copiare bisogna prima scorrere tutto quello che si
-         vuole copiare. Qui l'elenco e' la PROVA, non la lettura. */
+         vuole copiare. Qui l'elenco è la PROVA, non la lettura. */
       tasti,
       registro
     ]);
@@ -630,38 +780,21 @@ export function monta(el, store){
     const pagina = schermo(dove, {titolo: soldi(d.credito), indietro: torna,
       etichettaIndietro: "Profilo"});
 
-    /* UNA FIRMA SOLA. Sotto la somma c'erano due firme in fila —
-       «Credito, firmato Regina» e poi «Regina» in Bodoni corsivo:
-       la stessa frase detta due volte, una in parole e una col gesto.
-       Resta il GESTO, che è quello che firma davvero; chi non vede il
-       corsivo lo sente lo stesso, perché ogni riga del registro qui
-       sotto porta già il mittente («da Regina»). */
-    pagina.append(e("span", {class: "f6-firma", testo: "Regina"}));
+    /* IL MARCHIO, NON LA FIRMA A TESTO. Sotto la somma c'era la parola
+       «Regina» in Bodoni corsivo: un marchio ridotto a testo, che il
+       canone di Massimo vieta (come «REGINA» in Inter l'avrebbe
+       vietato) — non conta la famiglia scelta, conta che sia lettering
+       al posto del segno. Qui va il marchio vero, quello che apre la
+       tessera (`marchio.png`, `app/ui/tessera.js`), a un'altezza che lo
+       tiene leggibile: non un monogramma, non un pittogramma. */
+    pagina.append(e("img", {class: "f6-marchio", src: "marchio.png",
+      alt: "Regina Jewels", decoding: "async"}));
 
-    /* IL REGISTRO SUBITO SOTTO L'IMPORTO. È la prima domanda di
-       chiunque apra un saldo — «da dove vengono questi 25 euro?» — e
-       finora la risposta stava in fondo, dopo la scala dei livelli e
-       dopo tre righe di regolamento (Apple Card: saldo, poi le
-       transazioni; il resto dopo). La scala e il «Come funziona»
-       vengono DOPO: sono la spiegazione, non il fatto. */
-    for(const mese of perMese(d.mov)){
-      pagina.append(lista(mese.titolo, mese.righe.map(m => {
-        const v = vociMovimento(m, d.c.tessera);
-        const meno = (m.importo | 0) < 0;
-        const sotto = [giornoEMese(m.data),
-                       meno ? "in negozio" : "da Regina",
-                       v.regola].filter(Boolean).join(" · ");
-        const r = cella({titolo: v.titolo, sotto,
-          coda: (meno ? "−" : "+") + soldi(Math.abs(m.importo | 0))});
-        r.classList.add("f6-mov");
-        if(meno) r.classList.add("meno");
-        const coda = r.querySelector(".coda");
-        if(coda) coda.classList.add("cifra");
-        return r;
-      })));
-    }
-
-    /* ── E QUI COMINCIA IL LIVELLO ── */
+    /* IL BLOCCO DEI LIVELLI, IN CIMA (richiesta di Massimo, 21/09): chi
+       tocca la riga del livello in radice arriva qui per vedere TUTTI i
+       livelli — se quella risposta sta sotto lo storico dei movimenti,
+       la prima cosa che legge è un mese di acquisti, non i livelli che
+       è venuto a cercare. Il registro resta intero, solo più sotto. */
     pagina.append(e("span", {class: "occhiello foot f6-occhiello-livello",
       testo: d.attuale
         ? "Livello " + d.attuale.nome + " · " + d.attuale.sconto + "%"
@@ -695,6 +828,27 @@ export function monta(el, store){
         stile: "--quota:" + quota.toFixed(1) + "%"}, [e("i", {})])
     ]));
 
+    /* IL REGISTRO, SOTTO I LIVELLI. È la risposta a «da dove vengono
+       questi 25 euro?», e resta subito leggibile — solo che adesso i
+       livelli, che sono ciò che si è venuti a cercare dal tocco sulla
+       radice, non stanno più sotto un mese di movimenti. */
+    for(const mese of perMese(d.mov)){
+      pagina.append(lista(mese.titolo, mese.righe.map(m => {
+        const v = vociMovimento(m, d.c.tessera);
+        const meno = (m.importo | 0) < 0;
+        const sotto = [giornoEMese(m.data),
+                       meno ? "in negozio" : "da Regina",
+                       v.regola].filter(Boolean).join(" · ");
+        const r = cella({titolo: v.titolo, sotto,
+          coda: (meno ? "−" : "+") + soldi(Math.abs(m.importo | 0))});
+        r.classList.add("f6-mov");
+        if(meno) r.classList.add("meno");
+        const coda = r.querySelector(".coda");
+        if(coda) coda.classList.add("cifra");
+        return r;
+      })));
+    }
+
     pagina.append(e("h2", {class: "occhiello foot lista-testa", testo: "Come funziona"}));
     const p = d.attuale ? d.attuale.sconto : 2;
     pagina.append(e("div", {class: "f6-regola"}, [
@@ -714,10 +868,15 @@ export function monta(el, store){
       etichettaIndietro: "Profilo"});
 
     const date = dateUnite(d.s, OGGI);
-    const righe = date.map(x => rigaData(x, () => ridisegnaSchermo(dove, schermoDate)));
-    const rAgg = cella({titolo: "Aggiungi una data", suClick: foglioData});
-    rAgg.classList.add("f6-azione");
-    righe.push(rAgg);
+    const righe = date.length
+      ? date.map(x => rigaData(x, () => ridisegnaSchermo(dove, schermoDate)))
+      : [e("div", {class: "cella due piatta"}, [
+          e("div", {class: "testo"}, [
+            e("b", {testo: "Ancora nessuna data"}),
+            e("span", {testo: "Compleanni e anniversari: te li ricordiamo noi."})
+          ])
+        ])];
+    righe.push(rigaAggiungiData(foglioData));
     pagina.append(lista(null, righe));
     pagina.append(e("span", {class: "t-foot f6-pie-gruppo",
       testo: "L’avviso arriva solo se hai acceso «Le tue date» in Impostazioni."}));
@@ -743,10 +902,11 @@ export function monta(el, store){
   }
 
   function rigaData(x, poi){
-    const r = e("div", {class: "cella piatta due f6-data-riga"}, [
+    const r = e("div", {class: "cella piatta due f6-data-riga", stile: "gap:12px"}, [
+      badgeCalendario(x.quando),
       e("div", {class: "testo"}, [
         e("b", {testo: nomeData(x)}),
-        e("span", {testo: giornoEMese(x.quando) + " · " + testoAvviso(x.avviso)})
+        e("span", {testo: "avviso " + testoAvviso(x.avviso)})
       ]),
       e("button", {type: "button", class: "f6-togli", testo: "Togli",
         "aria-label": "Togli " + nomeData(x),
@@ -840,13 +1000,23 @@ export function monta(el, store){
 
     const boxNome = e("div", {},
       [e("span", {class: "t-foot f6-eti", testo: "Di chi"}), campoNome]);
-    const dentro = e("div", {class: "f6-foglio"}, [
+    /* «FINE» NON STA DENTRO CIÒ CHE SCORRE (corretto 21/09). Un primo
+       tentativo lo fissava con `position:sticky` DENTRO lo stesso
+       flusso dei campi: a 393x852 i campi arrivano quasi al bordo del
+       fermo da soli, e il tasto incollato in fondo finiva SOPRA
+       l'ultimo campo (Avvisami) invece che sotto — sovrapposto, non
+       tagliato, ma comunque sbagliato (visto nello screenshot).
+       La cura è tenere i due ruoli SEPARATI: `.f6-campi` è la zona che
+       scorre (i quattro campi, altezza libera), `fine` sta FUORI, un
+       fratello suo — non dentro il suo flusso — e per questo ha
+       SEMPRE il suo spazio, mai conteso. */
+    const campi = e("div", {class: "f6-campi"}, [
       e("div", {}, [e("span", {class: "t-foot f6-eti", testo: "Che cos’è"}), chips]),
       boxNome,
       e("div", {}, [e("span", {class: "t-foot f6-eti", testo: "Il giorno"}), campoData]),
-      e("div", {}, [e("span", {class: "t-foot f6-eti", testo: "Avvisami"}), seg]),
-      fine
+      e("div", {}, [e("span", {class: "t-foot f6-eti", testo: "Avvisami"}), seg])
     ]);
+    const dentro = e("div", {class: "f6-foglio f6-foglio-data"}, [campi, fine]);
     boxNome.hidden = !TIPI_DATA.find(x => x.id === tipo).chiede;
     apriFoglio({titolo: "Una data", contenuto: dentro, fermo: "basso"});
   }
@@ -979,8 +1149,15 @@ export function monta(el, store){
       cella({titolo: "Cosa sappiamo di te", suClick: () => spingi("dati/apri")}),
       canc
     ]));
-    pagina.append(e("span", {class: "t-foot f6-pie-gruppo",
-      testo: "Solo il negozio vede il tuo cofanetto. Nessun tracciamento, nessuna pubblicità, nessun account."}));
+    /* FONTE UNICA (E14·B, testo 1, 21/09): la frase intera di privacy
+       vive SOLO in «Cosa sappiamo di te». Qui restava una copia
+       identica, la stessa ripetuta anche in «I tuoi dati» — un rimando
+       breve basta, e porta alla pagina che risponde. */
+    pagina.append(e("button", {type: "button", class: "f6-privacy-link",
+      suClick: () => spingi("dati/apri")}, [
+      e("span", {testo: "La tua privacy"}),
+      segno("chevron", {misura: 12, classe: "frec"})
+    ]));
 
     pagina.append(lista("Il negozio", [
       cella({titolo: NEGOZIO.nome, sotto: NEGOZIO.via + ", " + NEGOZIO.citta,
@@ -997,21 +1174,33 @@ export function monta(el, store){
      leggere, non un tocco da dare. La riga che conta è la seconda: i
      pezzi non si perdono, restano in negozio. */
   function foglioCancella(){
+    /* COERENZA DISTRUTTIVA (E15·B, 21/09): la riga che apre questo
+       foglio è rossa (`.f6-pericolo`), e prima il tasto di conferma era
+       turchese — due colori per la stessa azione. Il canone del
+       Registro (16/09) vale anche qui: «il colore porta UN solo
+       significato». Il tasto diventa `.pericolo`, stesso `--errore`
+       della riga che l'ha aperto. */
+    const bCancella = tasto("Cancella il cofanetto", {tipo: "primario", largo: true,
+      suClick: () => {
+        invia("demo/reset", {seme: store.seme});
+        chiudiFoglio();
+        /* `?reset=1` è il parametro che `app/stato.js` legge all'avvio
+           per cancellare la chiave e ripartire dal seme. `replace` e
+           non `assign`: cancellare non è un passo della cronologia. */
+        location.replace(location.pathname + "?reset=1");
+      }});
+    bCancella.classList.add("pericolo");
     const dentro = e("div", {class: "f6-foglio"}, [
       e("p", {class: "t-body", testo:
         "Il cofanetto sparisce da questo iPhone: le date che hai messo, la fodera che hai scelto, quello che hai guardato."}),
       e("p", {class: "t-sub tenue", testo:
         "I pezzi restano in negozio: rientri col codice, e ritrovi tutto."}),
-      tasto("Cancella il cofanetto", {tipo: "primario", largo: true,
-        suClick: () => {
-          invia("demo/reset", {seme: store.seme});
-          chiudiFoglio();
-          /* `?reset=1` è il parametro che `app/stato.js` legge all'avvio
-             per cancellare la chiave e ripartire dal seme. `replace` e
-             non `assign`: cancellare non è un passo della cronologia. */
-          location.replace(location.pathname + "?reset=1");
-        }}),
-      tasto("Lascia stare", {tipo: "terziario", suClick: chiudiFoglio})
+      bCancella,
+      /* «Annulla», non «Lascia stare» (E15·B, lessico Apple, 21/09):
+         è la parola che iOS usa nel tasto gemello di ogni conferma
+         distruttiva — «Lascia stare» è un registro colloquiale che qui
+         non ha pari altrove nell'app. */
+      tasto("Annulla", {tipo: "terziario", suClick: chiudiFoglio})
     ]);
     apriFoglio({titolo: "Cancellare il cofanetto?", contenuto: dentro,
       fermo: "basso"});
@@ -1082,7 +1271,14 @@ export function monta(el, store){
           (cliente().nome || "") + " · " + (cliente().tessera || "") +
           ". Ho un problema con: ")})
     ]));
-    pagina.append(e("span", {class: "t-foot f6-pie-gruppo",
+    /* IL DISTACCO DAL TASTO (corretto 21/09). `.f6-pie-gruppo` porta un
+       margine NEGATIVO (-14px): serve a riavvicinare la nota quando
+       sopra c'è una `lista()`, che ha già il suo spazio sotto. Qui
+       sopra c'è un `tasto`, non una lista — lo stesso margine negativo
+       mordeva dentro il tasto e la nota gli finiva sopra. La classe
+       aggiuntiva `.f6-pie-dopo-tasto` inverte solo QUESTO margine, senza
+       toccare le altre cinque righe che usano `.f6-pie-gruppo`. */
+    pagina.append(e("span", {class: "t-foot f6-pie-gruppo f6-pie-dopo-tasto",
       testo: "Il messaggio parte già col tuo codice: al banco sanno chi sei."}));
   }
 
