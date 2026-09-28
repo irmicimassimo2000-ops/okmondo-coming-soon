@@ -668,6 +668,25 @@ export function riduci(s, e){
                                registro: {regole, mostrate, sessione}}};
     }
 
+    /* {articolo, regola} — L'ANNULLA DI «SCOPRI» (F6, 28/09;
+       `SCOPERTA-MOTORE.md` §2): una capacità nuova, piccola, voluta FUORI
+       dal motore puro (`app/motore/proposte.js` non si tocca). Disfa
+       l'ULTIMO gesto — toglie l'esclusione appena scritta
+       (`rifiuti[articolo]`) e il verdetto di rifiuto che l'aveva
+       registrata — e basta: non riscrive il contatore di sessione né
+       `chiusa_fino`, che restano la storia vera di quante volte si è
+       detto «non fa per me» oggi. */
+    case "proposta/annulla_rifiuto":{
+      if(!dato.articolo || !(dato.articolo in ramoProposte(s).rifiuti)) return s;
+      const P = ramoProposte(s);
+      const rifiuti = {...P.rifiuti};
+      delete rifiuti[dato.articolo];
+      const verdetti = P.verdetti.filter(v =>
+        !(v.articolo === dato.articolo && v.esito === "rifiuto" &&
+          (!dato.regola || v.regola === dato.regola)));
+      return {...s, proposte: {...P, rifiuti, verdetti}};
+    }
+
     /* {articolo, motivo, chi, quando, abbina_a, in_cima, fino, cliente}
        La correzione a mano del negozio, modello Shopify: `chi` e
        `quando` non sono facoltativi — un pin anonimo non si può

@@ -43,10 +43,11 @@ import { e, svuota, annuncia } from "app/ui/dom.js";
 import { segno } from "app/ui/segni.js";
 import { tasto, vestiTasto } from "app/ui/tasto.js";
 import { apriFoglio, chiudiFoglio } from "app/ui/foglio.js";
-import { molla, lineare, RIDOTTO, dueGiri } from "app/moto.js";
+import { molla, RIDOTTO, dueGiri } from "app/moto.js";
 import { NEGOZIO, waNegozio } from "app/dati/negozio.js";
 import { tessera } from "app/ui/tessera.js";
 import { telaioAstuccio } from "app/tre/telaio.js";
+import { fermiS1, FERMI_LATO } from "app/tre/fermi.js";
 
 /* ── I NUMERI ──────────────────────────────────────────────────────
    Ingresso di una schermata: 320 ms, ease-out iOS, 24 pt di
@@ -55,19 +56,16 @@ import { telaioAstuccio } from "app/tre/telaio.js";
 const CURVA = "cubic-bezier(.2,.8,.2,1)";
 const T_SCHERMATA = 320, SCORRE = 24, STAGGER = 40;
 
-/* la molla del pezzo che si posa: 400 ms, smorzamento 0,8. `lineare()`
-   CAMPIONA la molla vera e la consegna al CSS come `linear(...)`; una
-   cubic-bezier che la imita sbaglia la coda, ed è la coda che fa la
-   differenza fra «si posa» e «si ferma». L'omega si ricava dalla
-   durata voluta: l'inviluppo scende sotto lo 0,4% a ln(1/0,004)/(z*w),
-   quindi w = 5,52/(0,8 * 0,400) = 17,25. */
-const MOLLA_PEZZO = lineare({ omega: 17.25, zeta: 0.8, punti: 30 });
 /* la barra che sale alla fine: 420 ms, smorzamento 0,85 →
    w = 5,52/(0,85 * 0,420) = 15,47. */
 const BARRA_OMEGA = 15.47, BARRA_ZETA = 0.85, BARRA_SALITA = 56;
 
 export const CERIMONIA = {
   pressione: 80,                       /* il tasto a 0,98 prima di tutto */
+  /* la sovrascatola che si sfila PRIMA dei tempi lockati (regia B, scelta
+     di Massimo 28/09): tutti i tempi qui sotto si leggono DOPO di lei,
+     e la cerimonia intera dura 700 + 1600 = 2300 */
+  prologo: 700,
   coperchio: { da: 0, a: 700, gradi: -105 },
   luce: { da: 300, a: 800 },
   pezzo: { da: 600, a: 1000, alza: 12 },
@@ -357,17 +355,17 @@ export function montaIngresso(store, opz = {}) {
      schede: l'anello sta IN PIEDI in UNA fenditura tagliata in un
      cuscinetto unico, gli orecchini su un PANNELLO INCLINATO (aletta
      coi due tagli per i perni, cuscino coi due tagli in alto per i
-     pendenti), la collana POSATA su un cuscino piatto che sale nelle
-     DUE TACCHE del bordo di dietro, il bracciale POSATO e fermato da
+     pendenti), la collana RIMODELLATA a U sul cuscino, sotto due
+     linguette e col resto sotto il rullo di dietro (28/09), il bracciale POSATO e fermato da
      due elastici, l'orologio col GUANCIALE dentro il cinturino. Se
      l'interno non cambia mestiere, la famiglia non esiste.
      La scena sta nel telaio `astuccio.html`; qui restano i TESTI, il
      tasto e la voce — cioè tutto ciò che ha bisogno del carattere, del
      lettore di schermo e della tastiera, e che dentro un telaio vivrebbe
      peggio.
-     IL COFANETTO DISEGNATO IN CSS RESTA SOTTO, come ripiego: se il
-     telaio non dà il contesto grafico entro quattro secondi, la
-     cerimonia si suona su di lui e nessuno resta con un tasto muto. */
+     IL RIPIEGO NON È PIÙ UN ALTRO OGGETTO (28/09): prima del 3D si vede
+     la sovrascatola, in immagine ferma resa dalla stessa scena — vedi
+     «IL RIPIEGO È LA SOVRASCATOLA», sotto. */
   function s1() {
     /* DOVE STA IL PEZZO NEL MODELLO. `fam` e `k` vengono dall'esemplare
        (il ponte dei codici li porta per i ventidue che il .glb conosce);
@@ -382,46 +380,43 @@ export function montaIngresso(store, opz = {}) {
       fam: famBanco, k: haModello ? consegna.k : null,
       fodera: FODERA, codice: codice || null,
       provino: haModello ? null : PEZZO.foto,
-      /* ARIA 1,30, non 1,55. Il quadro si costruisce sull'unione di
-         CHIUSO e APERTO — il coperchio alzato occupa tutta la metà di
-         sopra — e da chiuso la scatola cade perciò nella metà di
-         SOTTO. Misurato sullo scatto (`_C5_s1_chiuso`, 393x852): col
-         numero dello studio restavano trecento punti di vuoto fra il
-         titolo e il coperchio, cioè più di un terzo dello schermo, e
-         quel vuoto è la prima cosa che si vede. Stringendo a 1,30
-         l'oggetto cresce e il vuoto si chiude, e l'aperto ci sta lo
-         stesso perché il quadro è calcolato sull'unione. */
-      aria: 1.30
+      /* ARIA 1,30 (misurata sullo scatto `_C5_s1_chiuso`, 17/09): con
+         1,55 restavano trecento punti di vuoto fra il titolo e il
+         coperchio. Dal 28/09 il quadro parte centrato sull'astuccio
+         CHIUSO e si allarga al passo del coperchio (regia B). */
+      aria: 1.30,
+      /* REGIA B · LA CONFEZIONE A STRATI (scelta di Massimo, 28/09):
+         la sovrascatola bianca col marchio si sfila (0-700) e scopre
+         l'astuccio della famiglia, che poi si apre coi tempi lockati. */
+      opzione: "B"
     });
 
-    /* ── IL RIPIEGO, DISEGNATO ────────────────────────────────────
-       Gli stessi strati di prima, senza più i .webp: scatola, fodera,
-       pezzo, luce, coperchio. Si vede solo se il telaio non risponde. */
-    const pezzoImg = PEZZO.foto
-      ? e("img", { class: "f1-pezzo-fig", src: PEZZO.foto, alt: "", decoding: "async" })
-      : e("div", { class: "f1-pezzo-fig redatto" }, [e("span", { testo: PEZZO.nome })]);
-    const pezzo = e("div", { class: "f1-cof-pezzo" }, [
-      pezzoImg,
-      e("i", { class: "f1-cof-ombra", "aria-hidden": "true" })
-    ]);
-    const luce = e("i", { class: "f1-cof-luce", "aria-hidden": "true" });
-    const coperchioDentro = e("div", { class: "f1-cof-coperchio" }, [
-      e("i", { class: "f1-cof-bordo", "aria-hidden": "true" }),
-      e("img", { class: "f1-cof-marchio", src: "marchio.png", alt: "", decoding: "async" })
-    ]);
-    /* due nodi per il coperchio e non uno: uno RUOTA sulla cerniera,
-       l'altro ESCE dall'alto. Due trasformazioni sullo stesso elemento
-       si sovrascrivono a vicenda. */
-    const coperchio = e("div", { class: "f1-cof-fuori" }, [coperchioDentro]);
-    const cof = e("div", {
-      class: "f1-cof", "data-fodera": FODERA, "aria-hidden": "true"
-    }, [
-      e("div", { class: "f1-cof-scatola" }, [
-        e("i", { class: "f1-cof-fodera" }),
-        pezzo, luce
-      ]),
-      coperchio
-    ]);
+    /* ── IL RIPIEGO È LA SOVRASCATOLA ─────────────────────────────
+       Fino al 28/09 qui c'era un cofanetto disegnato in CSS color
+       cipria, 260 x 180, centrato a 400: finché il 3D non arrivava si
+       vedeva LUI, e poi si dissolveva in un astuccio turchese di altra
+       misura, più in basso. Due oggetti per una cerimonia sola — un
+       contenitore che si trasforma in un altro senza ragione.
+       Adesso quello che si vede prima del 3D è la SOVRASCATOLA STESSA:
+       un'immagine ferma resa dalla stessa scena, alla stessa misura,
+       nello stesso punto, col suo marchio (`app/tre/fermi.js`). Quando
+       il 3D arriva non cambia niente a vista.
+       Tre immagini e non una: `tutto` è il riposo (la sovrascatola
+       sull'astuccio, esattamente il fotogramma 0); `astuccio` e
+       `manicotto` servono solo al RIPIEGO DICHIARATO — se il 3D non
+       arriva entro il tetto, la sovrascatola si sfila lo stesso, con
+       la stessa scia misurata sulla scena, e sotto resta l'astuccio
+       chiuso. Non si apre (un'immagine ferma non ha un coperchio), non
+       vola niente sopra il titolo; se la scena arriva più tardi, lo
+       apre lei dal punto in cui è rimasto. */
+    const FERMI = fermiS1(famBanco);
+    const img = (src, cls) => e("img", { class: "f1-sov-img" + (cls ? " " + cls : ""),
+      src, alt: "", decoding: "async", draggable: "false" });
+    const fermoTutto = img(FERMI.tutto);
+    const fermoAstuccio = img(FERMI.astuccio, "f1-sov-sotto");
+    const fermoManicotto = img(FERMI.manicotto, "f1-sov-sotto");
+    const quadroFermo = e("div", { class: "f1-sov-q" }, [fermoAstuccio, fermoManicotto, fermoTutto]);
+    const sov = e("div", { class: "f1-sov", "aria-hidden": "true" }, [quadroFermo]);
 
     const nomePezzo = e("b", { class: "t-2 f1-pezzo-nome", testo: PEZZO.nome });
     const daQuando = e("span", {
@@ -432,149 +427,326 @@ export function montaIngresso(store, opz = {}) {
     const scena3d = e("div", { class: "f1-scena3d" }, [telaio.nodo]);
 
     const apri = tasto("Apri", { tipo: "primario", largo: true });
-    let inTre = false;          /* la scena vera ce l'ha fatta? */
+    /* IL SEGNO D'ATTESA: un anello sottile al posto della parola, e
+       solo se l'attesa passa i 150 ms — sotto, un segno che lampeggia è
+       peggio dell'attesa. A movimento ridotto l'anello non gira: al suo
+       posto una parola. */
+    apri.append(e("i", { class: "f1-attesa", "aria-hidden": "true" }));
+    /* IL RIPIEGO SI DICHIARA, in una riga sotto il nome: se la scena non
+       arriva, l'astuccio resta chiuso e lo si dice invece di fingere. */
+    const nota = e("span", { class: "t-foot tenue f1-pezzo-nota", hidden: true,
+      testo: "Su questo telefono non riusciamo ad aprirlo: lo trovi nel tuo cofanetto." });
+    testi.append(nota);
+
+    /* LO STATO, UNO SOLO: «riposo» (nessuno ha toccato), «attesa» (ha
+       toccato e il 3D non c'è ancora), «tre» (la cerimonia è della
+       scena), «ripiego» (la sovrascatola si è sfilata in immagine e si
+       aspetta ancora la scena), «chiuso» (ripiego definitivo, dichiarato). */
+    let stato = "riposo";
+    let inTre = false;          /* la scena vera è a schermo? */
     let fatta = false;
-    telaio.pronto.then((ok) => {
-      inTre = !!ok;
-      if (ok) { cof.hidden = true; scena3d.dataset.pronto = "1"; }
-      else scena3d.hidden = true;
+    let sfilata = null;         /* la sovrascatola del ripiego mentre scorre */
+    let attesaDa = 0, segno = 0, secondoTetto = 0;
+    const P = CERIMONIA.prologo;
+    /* il ripiego aspetta la scena ANCORA un poco, a sovrascatola sfilata:
+       un 3D che arriva a 6-8 s su una rete lenta apre lui l'astuccio */
+    const SECONDO_TETTO = 4000;
+
+    /* LO SCAMBIO. Il 3D entra SOPRA l'immagine ferma che gli somiglia
+       pixel per pixel: da fermi in dissolvenza (200, il tetto del
+       ridotto), e SECCO quando la cerimonia parte nello stesso istante
+       — una dissolvenza fra una scena che si muove e una che sta ferma
+       è un fantasma. L'immagine si toglie a scambio finito: sotto una
+       tela trasparente, una sovrascatola rimasta lì si vedrebbe quando
+       quella vera si sfila. */
+    function mostra3d(secco) {
+      if (inTre) return;
+      inTre = true;
+      if (secco) scena3d.dataset.secco = "1";
+      scena3d.dataset.pronto = "1";
+      if (secco) sov.hidden = true;
+      else setTimeout(() => { sov.hidden = true; }, 220);
+    }
+    telaio.pronto.then(() => {
+      if (stato === "riposo") mostra3d(false);
+      else if ((stato === "ripiego" || stato === "chiuso") && !sfilata) apreLaScena();
+      /* «attesa» la gestisce chi aspetta; il ripiego che sta scorrendo
+         passa la mano alla sua fine */
     });
+
     apri.addEventListener("click", () => {
-      if (!fatta) { fatta = true; cerimonia(); return; }
+      if (!fatta) {
+        fatta = true;
+        /* la pressione del tasto: 80 ms a 0,98. È la prima cosa che
+           dice «ti ho sentito», anche quando poi si aspetta. */
+        apri.animate([{ transform: "scale(1)" }, { transform: "scale(.98)" }, { transform: "scale(1)" }],
+          { duration: CERIMONIA.pressione, easing: "linear" });
+        parti();
+        return;
+      }
+      /* un tocco mentre si aspetta la scena non fa niente; durante la
+         cerimonia il tasto non c'è (è `inert`) */
+      if (apri.getAttribute("aria-busy") === "true" || stato === "attesa" || stato === "ripiego") return;
       vai("s2");
     });
 
     const sch = schermata("s1", [
       e("p", { class: "occhiello f1-occhiello", testo: codice || leggibile(ATTESO) }),
       e("h1", { class: "t-1 f1-titolo-s1", testo: "Il tuo cofanetto" }),
-      e("div", { class: "f1-scena" }, [scena3d, cof, testi]),
+      e("div", { class: "f1-scena" }, [sov, scena3d, testi]),
       e("div", { class: "f1-fondo" }, [apri])
     ], { pieno: true });
 
+    /* ── IL SEGNO D'ATTESA, ACCESO E SPENTO IN UN POSTO SOLO ────────── */
+    function attendi() {
+      clearTimeout(segno);
+      segno = setTimeout(() => {
+        if (stato !== "attesa" && stato !== "ripiego") return;
+        apri.setAttribute("aria-busy", "true");
+        if (RIDOTTO.matches) vestiTasto(apri, "Un momento");
+        annuncia("Un momento.");
+      }, stato === "ripiego" ? 0 : 150);
+    }
+    function smettiDiAttendere() {
+      clearTimeout(segno);
+      if (apri.getAttribute("aria-busy") === "true") {
+        apri.removeAttribute("aria-busy");
+        vestiTasto(apri, "Apri");
+      }
+    }
+
+    /* ── IL TOCCO SU «APRI» ────────────────────────────────────────
+       Se la scena c'è, suona lei. Se non c'è ANCORA, la cerimonia
+       ASPETTA la scena — col segno d'attesa sul tasto — invece di
+       suonare su un'immagine: è l'errore misurato il 28/09
+       (`OGGI_arrivo_tocco-subito.jpg`), il coperchio bianco che volava
+       sopra il titolo con dentro una foto. Se il tetto scade, o il
+       telaio dice «guasto», parte il ripiego dichiarato. */
+    function parti() {
+      if (inTre) { cerimonia(); return; }
+      stato = "attesa";
+      attesaDa = performance.now();
+      attendi();
+      let deciso = false;
+      const decidi = (come) => {
+        if (deciso) return;
+        deciso = true;
+        window.__cerimonia.attesa = Math.round(performance.now() - attesaDa);
+        /* LA SCENA APPENA ARRIVATA SI LASCIA POSARE: due giri e 120 ms.
+           Il «pronto» arriva in coda al lavoro più pesante del telaio
+           (il .glb decodificato, la posa, la compilazione), e partire
+           nello stesso giro vuol dire pagare i suoi strascichi sui primi
+           fotogrammi della sovrascatola. Chi aspetta da un secondo non
+           vede 150 ms in più; vede un fotogramma che salta. */
+        if (come === "tre") {
+          dueGiri().then(() => setTimeout(() => { mostra3d(true); cerimonia(); }, 120));
+          return;
+        }
+        ripiego();
+      };
+      telaio.pronto.then(() => decidi("tre"));
+      telaio.tetto.then((scaduto) => { if (scaduto) decidi("ripiego"); });
+    }
+
     /* ── LA CERIMONIA ──────────────────────────────────────────────
-       Il moto della SCATOLA sta nel telaio, coi tempi lockati: coperchio
-       0 → −105 in 700 ms, la fodera che prende luce a +140, la luce del
-       vano fra 300 e 800, il pezzo che si posa con la molla fra 600 e
-       1000, la camera da 28 a 36 gradi a 1100, fine a 1600.
-       Qui restano le due battute che sono TESTO — il nome del pezzo a
-       1250-1500 e il tasto che cambia nome a 1400 — e vivono come
-       animazioni della scocca, così `currentTime` resta il tempo della
-       scena e una sonda che lo ferma legge davvero cio' che si vede.
+       Il moto della SCATOLA sta nel telaio: la sovrascatola si sfila
+       (0-700), poi coi tempi lockati il coperchio 0 → −105 in 700 ms,
+       la fodera che prende luce a +140, la luce del vano fra 300 e
+       800, il pezzo che si posa con la molla fra 600 e 1000, la camera
+       da 28 a 36 gradi a 1100, fine a 1600 — tutti spostati di 700.
+       LA SCOCCA PARLA SOLO QUANDO LA SCENA HA FINITO DI MOSTRARE (web-
+       critic, 28/09). Il nome del pezzo arriva a 1250 (il pezzo si è
+       posato a 1000), e il tasto: durante la cerimonia NON C'È — si
+       spegne in 150 ms al tocco, `inert` — e torna a 1400-1600 già
+       come «Continua». Prima diceva «Apri» sopra un astuccio aperto:
+       un comando che nomina un gesto già fatto. Vale in tutti i
+       percorsi: normale, tocco precoce, 3D che arriva tardi.
+       Le battute vivono come animazioni della scocca, così
+       `currentTime` resta il tempo della scena e una sonda che lo ferma
+       legge davvero cio' che si vede.
        E IL TOCCO CHE SALTA: chi tocca la scena la salta DENTRO il
-       telaio, e il telaio ce lo dice. Le due battute di testo vanno
-       allora alla fine anche loro, o resterebbero indietro da sole —
-       una scatola già aperta con sotto un nome che non è ancora
-       arrivato. */
+       telaio, e il telaio ce lo dice. Le battute vanno allora alla fine
+       anche loro. */
     const A = {};
-    function testiSubito() {
-      for (const k in A) { try { A[k].finish(); } catch (_) { /* niente */ } }
+    let continua = 0, fine = 0;
+    function prontoAContinuare() {
+      clearTimeout(continua);
+      apri.inert = false;
       vestiTasto(apri, "Continua");
       apri.setAttribute("aria-label", "Continua");
     }
+    function testiSubito() {
+      for (const k in A) { try { A[k].finish(); } catch (_) { /* niente */ } }
+      prontoAContinuare();
+    }
     function finita() {
+      clearTimeout(fine);
       if (window.__cerimonia.finita) return;
       window.__cerimonia.finita = true;
       annuncia(PEZZO.nome + ". " + daQuando.textContent);
     }
-    telaio.ascolta.fine = () => { testiSubito(); finita(); };
-    telaio.ascolta.tocco = () => { testiSubito(); };
+    telaio.ascolta.fine = () => { if (stato === "tre") { testiSubito(); finita(); } };
+    /* il tocco conta solo a cerimonia partita: a riposo, girare o
+       toccare l'astuccio non deve cambiare il nome al tasto */
+    telaio.ascolta.tocco = () => { if (stato === "tre") testiSubito(); };
 
-    function cerimonia() {
-      cof.dataset.aperto = "1";
-      /* la pressione del tasto: 80 ms a 0,98. È la prima cosa che dice
-         «ti ho sentito», e viene prima di qualunque altra. */
-      apri.animate([{ transform: "scale(1)" }, { transform: "scale(.98)" }, { transform: "scale(1)" }],
-        { duration: CERIMONIA.pressione, easing: "linear" });
+    /* le battute di testo e del tasto per una scena che parte ADESSO dal
+       suo istante `inizio` (0, o P se la sovrascatola l'ha già sfilata
+       il ripiego) */
+    function battute(inizio) {
       const c = CERIMONIA;
-
-      if (RIDOTTO.matches) {
-        /* meno movimento = lo stesso picco, senza moto. Il grado della
-           celebrazione scende di uno, non sparisce (carta psicologica).
-           La scena fa la sua dissolvenza da sola; qui i testi arrivano
-           subito, perché aspettarli sarebbe un'attesa senza niente da
-           guardare. */
-        cof.dataset.ridotto = "1";
-        if (inTre) telaio.suona();
-        else {
-          coperchio.animate([{ opacity: 1 }, { opacity: 0 }],
-            { duration: c.ridotto, easing: "linear", fill: "forwards", id: "F1-uscita" });
-          luce.animate([{ opacity: 0 }, { opacity: 1 }],
-            { duration: c.ridotto, easing: "linear", fill: "forwards", id: "F1-luce" });
-        }
-        testi.animate([{ opacity: 0 }, { opacity: 1 }],
-          { duration: c.ridotto, easing: "linear", fill: "forwards", id: "F1-testi" });
-        vestiTasto(apri, "Continua");
-        apri.setAttribute("aria-label", "Continua");
-        finita();
-        window.__cerimonia.avviata = true;
-        return;
-      }
-
-      if (inTre) telaio.suona();
-      else {
-        /* IL RIPIEGO SUONA DA SOLO, con gli stessi tempi: la scatola in
-           CSS si apre di −105 gradi, la luce entra, il pezzo si posa. */
-        A.coperchio = coperchioDentro.animate(
-          [{ transform: "rotateX(0deg)" }, { transform: "rotateX(" + c.coperchio.gradi + "deg)" }],
-          { duration: c.coperchio.a - c.coperchio.da, delay: c.coperchio.da,
-            easing: CURVA, fill: "both", id: "F1-coperchio" });
-        A.luce = luce.animate([{ opacity: 0 }, { opacity: 1 }],
-          { duration: c.luce.a - c.luce.da, delay: c.luce.da,
-            easing: CURVA, fill: "both", id: "F1-luce" });
-        A.pezzo = pezzo.animate(
-          [{ transform: "translateY(" + c.pezzo.alza + "px)" }, { transform: "translateY(0px)" }],
-          { duration: c.pezzo.a - c.pezzo.da, delay: c.pezzo.da,
-            easing: MOLLA_PEZZO.curva, fill: "both", id: "F1-pezzo" });
-        A.uscita = coperchio.animate(
-          [{ transform: "translateY(0%)", opacity: 1 },
-           { transform: "translateY(-160%)", opacity: 0 }],
-          { duration: c.uscita.a - c.uscita.da, delay: c.uscita.da,
-            easing: CURVA, fill: "both", id: "F1-uscita" });
-      }
-
+      const dTesti = P + c.testi.da - inizio, dTasto = P + c.etichetta - inizio;
+      const tot = P + c.fine - inizio;
       A.testi = testi.animate(
         [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }],
-        { duration: c.testi.a - c.testi.da, delay: c.testi.da,
+        { duration: c.testi.a - c.testi.da, delay: dTesti,
           easing: CURVA, fill: "both", id: "F1-testi" });
-
-      /* il tasto cambia NOME a 1400, e lo fa in dissolvenza: due parole
-         che si scambiano di colpo sotto il dito sono uno sfarfallio. */
       A.tasto = apri.animate(
-        [{ opacity: 1 }, { opacity: 0, offset: .5 }, { opacity: 1 }],
-        { duration: c.fine - c.etichetta, delay: c.etichetta,
-          easing: "linear", fill: "both", id: "F1-tasto" });
-      setTimeout(() => {
-        vestiTasto(apri, "Continua");
-        apri.setAttribute("aria-label", "Continua");
-      }, c.etichetta + (c.fine - c.etichetta) / 2);
-
-      setTimeout(finita, c.fine);
-      window.__cerimonia.avviata = true;
+        [{ opacity: 1 }, { opacity: 0, offset: 150 / tot }, { opacity: 0, offset: dTasto / tot }, { opacity: 1 }],
+        { duration: tot, easing: "linear", fill: "both", id: "F1-tasto" });
+      apri.inert = true;
+      continua = setTimeout(prontoAContinuare, dTasto);
+      fine = setTimeout(finita, tot);
+    }
+    function battuteRidotte() {
+      A.testi = testi.animate([{ opacity: 0 }, { opacity: 1 }],
+        { duration: CERIMONIA.ridotto, easing: "linear", fill: "forwards", id: "F1-testi" });
+      A.tasto = apri.animate([{ opacity: 0 }, { opacity: 1 }],
+        { duration: CERIMONIA.ridotto, easing: "linear", fill: "both", id: "F1-tasto" });
+      prontoAContinuare();
+      finita();
     }
 
-    /* la maniglia della sonda: ferma l'orologio, lo porta a `t` e
-       restituisce cio' che il browser sta davvero disegnando — le due
-       battute di testo dalla scocca, la scatola dal telaio (che sta
-       sulla stessa origine, e si interroga dritto invece di aspettare
-       un giro di messaggi). */
+    function cerimonia() {
+      stato = "tre";
+      smettiDiAttendere();
+      window.__cerimonia.avviata = true;
+      /* se il tocco arriva mentre il 3D sta ancora entrando in
+         dissolvenza sopra la sua immagine, lo scambio si chiude SUBITO:
+         sotto una tela trasparente la sovrascatola ferma resterebbe
+         visibile mentre quella vera si sfila. A movimento ridotto invece
+         l'immagine resta sotto per i 200 ms della dissolvenza della
+         scena, e se ne va con lei. */
+      if (RIDOTTO.matches) setTimeout(() => { sov.hidden = true; }, CERIMONIA.ridotto + 20);
+      else { scena3d.dataset.secco = "1"; sov.hidden = true; }
+      telaio.suona();
+      /* meno movimento = lo stesso picco, senza moto: la scena fa la sua
+         dissolvenza da 200 sul fotogramma finale (astuccio aperto, pezzo
+         dentro), e nome e «Continua» arrivano con lei */
+      if (RIDOTTO.matches) battuteRidotte();
+      else battute(0);
+    }
+
+    /* la scena arrivata DOPO il ripiego: si mette dov'è l'immagine
+       (astuccio chiuso, sovrascatola già sfilata) e apre lei, coi tempi
+       lockati; nome e «Continua» arrivano quando il pezzo è posato */
+    function apreLaScena() {
+      clearTimeout(secondoTetto);
+      const d = telaio.dentro();
+      if (d) d.a(P);
+      mostra3d(true);
+      const eraChiuso = stato === "chiuso";
+      stato = "tre";
+      smettiDiAttendere();
+      telaio.suona(P);
+      if (eraChiuso) {
+        /* il ripiego definitivo aveva già detto il nome e dichiarato:
+           la dichiarazione non è più vera, e se ne va */
+        nota.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" })
+          .finished.then(() => { nota.hidden = true; }, () => {});
+        return;
+      }
+      if (RIDOTTO.matches) battuteRidotte();
+      else battute(P);
+    }
+
+    /* ── IL RIPIEGO DICHIARATO ─────────────────────────────────────
+       Oltre il tetto (4 s) la sovrascatola si sfila in immagine, sulla
+       scia misurata della scena (stessi 700 ms, stessa curva:
+       `app/tre/fermi.js`, `scia`), e sotto resta l'astuccio chiuso. Il
+       segno d'attesa resta sul tasto: la scena ha ancora 4 s. Se arriva,
+       apre lei. Se non arriva (o il telaio ha detto «guasto»), il
+       ripiego diventa DEFINITIVO e lo dice: nome del pezzo, una riga
+       che dichiara che qui l'astuccio non si apre, e «Continua».
+       Niente coperchio in CSS, niente foto nel vano: un astuccio vero
+       chiuso è meno di un astuccio aperto, ma è lo STESSO oggetto. */
+    function ripiego() {
+      stato = "ripiego";
+      window.__cerimonia.avviata = true;
+      window.__cerimonia.ripiego = true;
+      attendi();
+      fermoAstuccio.classList.remove("f1-sov-sotto");
+      fermoManicotto.classList.remove("f1-sov-sotto");
+      const dopo = () => {
+        sfilata = null;
+        fermoManicotto.hidden = true;
+        if (telaio.arrivato) { apreLaScena(); return; }
+        if (telaio.guasto) { definitivo(); return; }
+        secondoTetto = setTimeout(() => { if (stato === "ripiego") definitivo(); }, SECONDO_TETTO);
+      };
+      if (RIDOTTO.matches) {
+        sfilata = fermoTutto.animate([{ opacity: 1 }, { opacity: 0 }],
+          { duration: CERIMONIA.ridotto, easing: "linear", fill: "forwards" });
+        sfilata.finished.then(dopo, () => {});
+        return;
+      }
+      /* il riposo `tutto` e le due immagini a strati differiscono solo
+         nel fianco aperto della sovrascatola (dentro si vede l'astuccio
+         o la sua parete): si passa dall'uno agli altri nei primi 150
+         ms, quando la sovrascatola si è mossa di pochi punti */
+      fermoTutto.animate([{ opacity: 1 }, { opacity: 0 }],
+        { duration: 150, easing: "linear", fill: "forwards" });
+      const s = quadroFermo.getBoundingClientRect().width / FERMI_LATO.s1;
+      const scia = FERMI.scia || [[0, 0, 0], [P, -366, -63]];
+      sfilata = fermoManicotto.animate(scia.map(([ms, dx, dy]) => ({
+        offset: ms / P, transform: "translate(" + (dx * s).toFixed(1) + "px," + (dy * s).toFixed(1) + "px)"
+      })), { duration: P, easing: "linear", fill: "forwards", id: "F1-sfila" });
+      sfilata.finished.then(dopo, () => {});
+    }
+    function definitivo() {
+      stato = "chiuso";
+      window.__cerimonia.definitivo = true;
+      smettiDiAttendere();
+      nota.hidden = false;
+      const d = RIDOTTO.matches ? CERIMONIA.ridotto : CERIMONIA.testi.a - CERIMONIA.testi.da;
+      A.testi = testi.animate(
+        [{ opacity: 0, transform: RIDOTTO.matches ? "none" : "translateY(6px)" }, { opacity: 1, transform: "none" }],
+        { duration: d, easing: CURVA, fill: "both", id: "F1-testi" });
+      A.tasto = apri.animate([{ opacity: 0 }, { opacity: 1 }],
+        { duration: d, easing: "linear", fill: "both", id: "F1-tasto" });
+      prontoAContinuare();
+      finita();
+    }
+
+    /* la maniglia della sonda: ferma l'orologio, lo porta a `t` (ms
+       sulla linea della SCENA, prologo compreso) e restituisce cio' che
+       il browser sta davvero disegnando — le battute dalla scocca, la
+       scatola dal telaio. */
     window.__cerimonia = {
-      numeri: CERIMONIA, avviata: false, finita: false,
+      numeri: CERIMONIA, avviata: false, finita: false, ripiego: false,
+      definitivo: false, attesa: null,
       get gradi(){ return CERIMONIA.coperchio.gradi; },
       get tre(){ return inTre; },
       get render(){ return inTre; },
-      parti: () => { if (!fatta) { fatta = true; cerimonia(); } },
+      get stato(){ return stato; },
+      parti: () => { if (!fatta) { fatta = true; parti(); } },
       a(t) {
         for (const k in A) { try { A[k].pause(); A[k].currentTime = t; } catch (_) { /* niente */ } }
+        /* il nome del tasto lo cambia un timer, non un'animazione: la
+           sonda che ferma l'orologio lo rimette dove sta a quell'istante */
+        vestiTasto(apri, t >= P + CERIMONIA.etichetta ? "Continua" : "Apri");
         void testi.offsetHeight;
         const d = telaio.dentro();
         const tre = (d && inTre) ? d.a(t) : null;
         return {
           t, tre,
-          coperchio: tre ? tre.coperchio : leggiMoto(coperchioDentro).gradi,
-          luce: tre ? tre.luce : leggiMoto(luce).opacita,
-          pezzo: tre ? tre.pezzo : leggiMoto(pezzo).y,
+          coperchio: tre ? tre.coperchio : 0,
+          luce: tre ? tre.luce : 0,
+          pezzo: tre ? tre.pezzo : null,
           elevazione: tre ? tre.elevazione : null,
+          manicotto: tre ? tre.manicotto : null,
           testi: leggiMoto(testi).opacita,
+          tasto: leggiMoto(apri).opacita,
           etichetta: apri.textContent.trim()
         };
       }

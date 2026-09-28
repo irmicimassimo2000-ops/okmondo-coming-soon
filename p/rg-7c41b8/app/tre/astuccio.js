@@ -206,10 +206,6 @@ const PERNO_METALLO = {roughness: 0.50, metalness: 0.70};
    FESSURA la fenditura del cuscinetto da anello: luce 4,2 (ci passa una
            fascia da 2-3 mm con gioco), lunga al massimo 30 — nelle foto
            il taglio non arriva mai ai due fianchi del cuscino.
-   TACCA  l'intaglio nel bordo di dietro del cuscino da collana: largo
-           10, profondo 12. Non è un buco: è un VARCO aperto sul filo,
-           da cui la catena sale e gira dietro il cuscino
-           (`co-westpack-oslo-160x160x34.jpg`, `co-astuccishop-newyork`).
    ALETTA il pannello inclinato degli orecchini: 58 gradi dal pavimento,
            che è l'inclinazione delle foto Finer/Astuccishop. */
 /* I MILLIMETRI DELLE QUOTE STANNO FUORI DA `monta`, e non è pedanteria:
@@ -222,7 +218,6 @@ const mm = v => +(v * 1000).toFixed(2);
 
 const ASOLA   = {L: 0.013, W: 0.0050, smusso: 0.0012};
 const FESSURA = {W: 0.0042, Lmax: 0.030};
-const TACCA   = {larg: 0.013, prof: 0.017};
 /* LE DUE INCLINAZIONI NON SONO LA STESSA, e le foto lo dicono a colpo
    d'occhio: l'aletta dei PERNI è RIPIDA (Finer Majestic, Astuccishop
    Velvet: sta su come un leggio, sui 55-60 gradi, perché deve tenere in
@@ -264,6 +259,20 @@ export const REGIA = {
   camera: 1100, fine: 1600, ridotto: 200,   /* regola 4 del sistema: reduced = 150-200 */
   scatto: 700,          /* l'istante in cui il coperchio è a fine corsa */
 };
+
+/* ── IL PROLOGO DELLA CONFEZIONE (scelta di Massimo, 28/09) ──────────
+   B · LA CONFEZIONE A STRATI: prima della cerimonia lockata c'è la
+   SOVRASCATOLA — un manicotto di cartoncino bianco col marchio in oro —
+   che si sfila in 700 ms e scopre l'astuccio della famiglia. Totale
+   2300 ms. 700 e non meno: più corto si legge come un salto, più lungo
+   come un'attesa (`studio/elementi/studio-ingresso/INDICE.md`, §3).
+   A · SOLO L'ASTUCCIO: nessun prologo, 1600 come sempre — è la regia
+   della pagina del regalo, che è già lunga di suo.
+   In TUTTE E DUE il quadro parte centrato sull'astuccio CHIUSO e si
+   allarga al passo del coperchio: il chiuso non affoga più nella metà
+   bassa dello schermo, e aprendosi il coperchio resta nel quadro.
+   Senza `opzione` resta il quadro di prima (il banco, C2). */
+export const PROLOGO = {A: 0, B: 700};
 
 const ELEV_CHIUSO = 28 * Math.PI / 180, ELEV_APERTO = 36 * Math.PI / 180;
 const ROT = 20 * Math.PI / 180, FOV = 22;
@@ -329,6 +338,9 @@ export function monta(el, opz = {}){
   const ARIA = +(opz.aria || 1.55);
   const APTICO = opz.aptico !== false;
   const RIDOTTO = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const OPZ = (opz.opzione === "A" || opz.opzione === "B") ? opz.opzione : "oggi";
+  const PRO = PROLOGO[OPZ] || 0;
+  const FINE = REGIA.fine + PRO;
 
   /* il colore da dare al piano perche' ne ESCA `--carta` (#FAF8F5): si
      puo' scavalcare da fuori solo per rimisurarlo (`?carta=`) */
@@ -694,7 +706,9 @@ export function monta(el, opz = {}){
      trama della grana tirata a un terzo di cella — il riflesso lungo
      del filo, non il pelo corto. */
   function raso(w, d, colore){
-    const c = new THREE.Color(colore === undefined ? VESTE : colore);
+    /* RASO BIANCO, come Finer Premier e Westpack Oslo: l'avorio a
+       schermo usciva color cartone (studio d'ingresso, 28/09) */
+    const c = new THREE.Color(colore === undefined ? 0xF4F1EA : colore);
     const m = tieni(new THREE.MeshPhysicalMaterial({
       color: c.clone().multiplyScalar(0.95),
       metalness: 0, roughness: 0.34,
@@ -856,38 +870,6 @@ export function monta(el, opz = {}){
     return pa;
   }
 
-  /* ── IL BORDO DI DIETRO CON LE TACCHE ────────────────────────────
-     La tacca della collana non è un'asola e non è un buco: è un VARCO
-     aperto sul FILO del cuscino, verso l'alto. Lo si vede nelle foto
-     Westpack Oslo e Astuccishop New York — negli angoli alti del
-     cuscino ci sono due intagli, e la catena sale, ci entra e gira
-     DIETRO il cuscino, dove il fermaglio sparisce. Un buco in mezzo al
-     velluto non lo farebbe: la catena non ha dove andare.
-     Qui si riscrive solo il lato di dietro del rettangolo tondo, che
-     nella forma è quello a y = +d/2 (il -z del mondo). */
-  function formaConTacche(w, d, r, tacche){
-    const s = new THREE.Shape();
-    const X = w / 2, Z = d / 2;
-    s.moveTo(-X + r, -Z);
-    s.lineTo(X - r, -Z);  s.quadraticCurveTo(X, -Z, X, -Z + r);
-    s.lineTo(X, Z - r);   s.quadraticCurveTo(X, Z, X - r, Z);
-    const ord = (tacche || []).slice()
-      .filter(t => t.x + t.larg / 2 < X - r && t.x - t.larg / 2 > -X + r)
-      .sort((a, b) => b.x - a.x);
-    for(const t of ord){
-      const hw = t.larg / 2, pr = Math.min(t.prof, d * 0.35);
-      const rr = Math.min(hw, pr) * 0.55;
-      s.lineTo(t.x + hw, Z);
-      s.lineTo(t.x + hw, Z - pr + rr);
-      s.quadraticCurveTo(t.x + hw, Z - pr, t.x + hw - rr, Z - pr);
-      s.lineTo(t.x - hw + rr, Z - pr);
-      s.quadraticCurveTo(t.x - hw, Z - pr, t.x - hw, Z - pr + rr);
-      s.lineTo(t.x - hw, Z);
-    }
-    s.lineTo(-X + r, Z);  s.quadraticCurveTo(-X, Z, -X, Z - r);
-    s.lineTo(-X, -Z + r); s.quadraticCurveTo(-X, -Z, -X + r, -Z);
-    return s;
-  }
 
   /* ══ IL FILETTO D'ORO ═══════════════════════════════════════════════
      È il segno che, in tutte le foto degli astucci italiani a cerniera,
@@ -1071,6 +1053,18 @@ export function monta(el, opz = {}){
       polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
     })));
   let imgMarchio = null;
+  const MARCHI_EXTRA = [];
+  /* «PRONTO» ASPETTA ANCHE IL MARCHIO. La scocca tiene sotto la scena
+     un'immagine FERMA dello stesso astuccio, e la toglie quando il
+     telaio dice «pronto»: se in quell'istante il marchio non fosse
+     ancora arrivato, a schermo si vedrebbe il coperchio perdere il suo
+     marchio. E un `alphaMap` assegnato dopo la compilazione è un
+     programma nuovo da compilare durante la cerimonia. */
+  let marchioArrivato = false, dopoIlMarchio = null;
+  const marchioC_e = () => {
+    marchioArrivato = true;
+    if(dopoIlMarchio){ const f = dopoIlMarchio; dopoIlMarchio = null; f(); }
+  };
   {
     const img = imgMarchio = new Image();
     img.onload = () => {
@@ -1097,13 +1091,66 @@ export function monta(el, opz = {}){
          marchi dello stesso astuccio siano due file diversi. */
       marchio.material.alphaMap = t; marchio.material.needsUpdate = true;
       marchioDentro.material.alphaMap = t; marchioDentro.material.needsUpdate = true;
+      for(const m2 of MARCHI_EXTRA){ m2.alphaMap = t; m2.needsUpdate = true; }
       sveglia();
+      marchioC_e();
     };
+    img.onerror = () => { if(!morto) marchioC_e(); };
     img.src = dove("marchio.png");
   }
   marchio.rotation.x = -Math.PI / 2;
   marchio.position.set(0, H_BASE - CERN_Y + H_COP + 0.00022, -CERN_Z);
   perno.add(marchio);
+
+  /* ══ LA SOVRASCATOLA (B) ══════════════════════════════════════════
+     Un tubo di cartoncino bianco aperto ai due fianchi, appena più
+     grande dell'astuccio: è il manicotto della confezione vera (Finer,
+     Brosway, Pandora). Il bianco che la scocca mostra prima del 3D È
+     lui — la stessa immagine resa da questa scena — e quindi quando il
+     3D arriva non cambia niente a vista. */
+  let manicotto = null;
+  if(OPZ === "B"){
+    const BB0 = new THREE.Box3().setFromObject(astuccio);
+    const EX = BB0.max.x - BB0.min.x, EZ = BB0.max.z - BB0.min.z;
+    const YM = (BB0.max.y + BB0.min.y) / 2, EY = BB0.max.y - BB0.min.y;
+    /* BIANCO CARTA, MISURATO A SCHERMO. Dichiarata #F7F4EF, sotto la luce
+       calda dello studio e l'ACES a 0,62 usciva CREMA (cima #DFD8CB,
+       fronte #B1A693). La scelta di Massimo è la sovrascatola BIANCA:
+       albedo bianco pieno e un'emissione bianco-fredda che neutralizza il
+       caldo della luce — resa: cima #ECEAE7, fronte #DEDCDA (28/09,
+       `costruzione-ingresso-2/banco/tara.py`). Sotto l'1 di emissione,
+       perché le facce devono restare due: sopra, la scatola diventa piatta. */
+    const carta = tieni(new THREE.MeshPhysicalMaterial({color: 0xFFFFFF, roughness: 0.78, emissive: 0xEEF2F8, emissiveIntensity: 0.90,
+      metalness: 0, sheen: 0.25, sheenRoughness: 0.8, sheenColor: new THREE.Color(0xffffff),
+      side: THREE.DoubleSide}));
+    carta.normalMap = celle(ruvido, 0.05, 0.05, CELLA * 0.5); carta.normalScale.set(0.05, 0.05);
+    const P = 0.0008, G = 0.0009;
+    const w = EX + 0.0004, hh = EY + 2 * (P + G), dd = EZ + 2 * (P + G);
+    manicotto = new THREE.Group();
+    for(const [sx, sy, sz, y, z] of [[w, P, dd, YM + hh / 2 - P / 2, 0], [w, P, dd, YM - hh / 2 + P / 2, 0],
+                                     [w, hh, P, YM, dd / 2 - P / 2], [w, hh, P, YM, -dd / 2 + P / 2]]){
+      const m = new THREE.Mesh(tieni(new THREE.BoxGeometry(sx, sy, sz)), carta);
+      m.position.set(0, y, z); m.castShadow = !MOBILE; m.receiveShadow = true; manicotto.add(m);
+    }
+    /* il marchio in ORO, impresso: stesso file, stessa alfa della cima */
+    const lm = Math.min(LA, PR) * 0.46;
+    /* l'oro più CUPO dell'oro della cima: sul bianco l'ORO chiaro spariva (resa del tratto più scuro: #996616) */
+    const mOro = tieni(new THREE.MeshPhysicalMaterial({color: 0xA67F30, metalness: 0.30, roughness: 0.34,
+      transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2}));
+    MARCHI_EXTRA.push(mOro);
+    const stampa = new THREE.Mesh(tieni(new THREE.PlaneGeometry(lm, lm * 578 / 700)), mOro);
+    stampa.rotation.x = -Math.PI / 2; stampa.position.y = YM + hh / 2 + 0.0002;
+    manicotto.add(stampa);
+    astuccio.add(manicotto);
+  }
+  function prologo(ms){
+    if(!manicotto) return;
+    const k = c01(ms / PRO);
+    /* si sfila verso sinistra, lento all'attacco e poi via: la mano tira */
+    const e = k * k * k * (k * (6 * k - 15) + 10);
+    manicotto.position.x = -(LA * 1.9) * e;
+    manicotto.visible = k < 1;
+  }
 
   if(!MOBILE && PIANO){
     const op = new THREE.Mesh(tieni(new THREE.PlaneGeometry(0.60, 0.60)),
@@ -1520,68 +1567,6 @@ export function monta(el, opz = {}){
       gradi: +(f.ang * 180 / Math.PI).toFixed(1)}));
   }
 
-  /* ── IL CUSCINO DELLA COLLANA, E PERCHÉ LA SELLA È STATA TOLTA ───
-     Qui c'era una SELLA: un profilo misurato sotto l'arco della
-     collana, ventiquattro fette lungo z, estruso lungo x e sgonfiato ai
-     capi. Era misurata bene — colmava venti millimetri su ventotto di
-     bombatura — ed era un oggetto che in gioielleria non esiste. Nessun
-     fornitore, su centotto foto, mette una sella dentro un astuccio da
-     collana: ci mette un CUSCINO PIATTO estraibile, e in alto due
-     TACCHE dove la catena sale e gira dietro
-     (`co-westpack-oslo-160x160x34.jpg`, `co-astuccishop-newyork-165x165.jpg`,
-     `co-finer-majestic-clip-negli-angoli.jpg`).
-     La sella nasceva da una domanda giusta — la collana di Regina è
-     modellata sul busto e conserva 29,5 mm di bombatura anche stesa,
-     quindi sotto di lei resta aria — ma dava una risposta da officina
-     invece che da gioielleria. La risposta vera è un'altra, ed è nella
-     scatola: l'astuccio da collana è ALTO abbastanza (Madrid 41) perché
-     l'aria sotto l'arco non sia un difetto ma il normale gioco di una
-     catena posata. Quello che non deve succedere è che il pezzo tocchi
-     la fodera, e questo lo si misura (`spazio_nel_coperchio_mm`).
-     DICHIARATO: la nostra catena è un ANELLO CHIUSO modellato sul
-     busto, non una collana stesa a U con due capi. I due rami che
-     salgono verso il fondo sono veri e vanno nelle tacche; il fermaglio
-     no, perché il modello non ce l'ha. Il giorno che arriva una catena
-     modellata aperta, le tacche sono già dove servono. */
-  function costruisciCuscinoCollana(tacche){
-    const W = V_LA - 0.0010, D = V_PR - 0.0010, SM = 0.0010;
-    const sh = formaConTacche(W, D, 0.0030, tacche);
-    const g = new THREE.ExtrudeGeometry(sh, {depth: Math.max(0.0008, INT.padH - SM),
-      bevelEnabled: true, bevelThickness: SM, bevelSize: SM, bevelOffset: 0,
-      bevelSegments: SEG.smusso, curveSegments: SEG.angolo});
-    g.rotateX(-Math.PI / 2); g.translate(0, SM, 0); g.computeVertexNormals();
-    const pad = new THREE.Mesh(uvEstruso(g, CELLA), vellutoMondo());
-    pad.position.y = H_FONDO;
-    pad.castShadow = !MOBILE; pad.receiveShadow = true;
-    base.add(pad);
-    /* DENTRO LA TACCA CI VUOLE IL BUIO. La tacca è un varco aperto sul
-       fondo della base, che è dello stesso velluto e alla stessa luce:
-       senza niente sotto, l'intaglio si richiude all'occhio e resta un
-       bordo appena ondulato. Un fondello scurissimo sul pavimento,
-       largo quanto la tacca più un millimetro, la fa leggere come un
-       passaggio. */
-    for(const t of tacche){
-      const gg = new THREE.PlaneGeometry(t.larg + 0.0020, t.prof + 0.0020);
-      gg.rotateX(-Math.PI / 2);
-      const m = new THREE.Mesh(tieni(gg), vellutoMondo(VESTE, 0.16));
-      m.position.set(t.x, H_FONDO + 0.0003, -D / 2 + t.prof / 2);
-      m.receiveShadow = true;
-      base.add(m);
-    }
-    /* LA LINGUETTA PER SFILARE IL CUSCINO. Un pad estraibile si dichiara
-       da solo: è l'unica cosa che spiega come si toglie, ed è in tutte
-       le foto — Finer la chiama «easy lift tab». Sta davanti, dalla
-       parte opposta alle tacche. */
-    const al = new THREE.Mesh(
-      uvScatola(new THREE.BoxGeometry(Math.min(0.022, W * 0.16), 0.0016, 0.008), CELLA),
-      vellutoMondo(VESTE, 0.86));
-    al.position.set(0, INT.padSu - 0.0004, D / 2 - 0.0050);
-    al.rotation.x = -0.30;
-    al.castShadow = !MOBILE;
-    base.add(al);
-    INT.tacche = tacche.map(t => ({x_mm: mm(t.x), larga_mm: mm(t.larg),
-                                   profonda_mm: mm(t.prof)}));
-  }
 
   if(FAM === "orologi" && !PROVINO){
     /* ── UN GUANCIALE, NON UN CILINDRO ────────────────────────────
@@ -1678,7 +1663,20 @@ export function monta(el, opz = {}){
   const SCATOLA = unioneDiTutteLePose();
   const CENTRO = SCATOLA.getCenter(new THREE.Vector3());
   let DIST = 0;
+  /* IL CHIUSO: l'astuccio, e basta. Il quadro di partenza di A e B. */
+  const CHIUSO = new THREE.Box3(new THREE.Vector3(-LA / 2, 0, -PR / 2),
+    new THREE.Vector3(LA / 2, H_BASE + H_COP, PR / 2));
+  const CENTRO_CH = CHIUSO.getCenter(new THREE.Vector3());
+  let DIST_CH = 0;
+  function distanzaDi(box){
+    const d = box.getSize(new THREE.Vector3());
+    const raggio = Math.max(d.x, d.y, d.z) * 0.5;
+    const vfov = FOV * Math.PI / 180;
+    const hfov = 2 * Math.atan(Math.tan(vfov / 2) * (LARGO / ALTO));
+    return ARIA * raggio / Math.tan(Math.min(vfov, hfov) / 2);
+  }
   function calcolaDistanza(){
+    DIST_CH = distanzaDi(CHIUSO) * 1.38;
     const d = SCATOLA.getSize(new THREE.Vector3());
     const raggio = Math.max(d.x, d.y, d.z) * 0.5;
     const vfov = FOV * Math.PI / 180;
@@ -1688,13 +1686,16 @@ export function monta(el, opz = {}){
     DIST = ARIA * raggio / Math.tan(Math.min(vfov, hfov) / 2);
   }
   calcolaDistanza();
+  let kQ = 1;
   function inquadra(){
-    const dist = DIST * avvicina;
+    const QU = OPZ !== "oggi";
+    const CEN = QU ? CENTRO_CH.clone().lerp(CENTRO, kQ) : CENTRO;
+    const dist = (QU ? DIST_CH + (DIST - DIST_CH) * kQ : DIST) * avvicina;
     camera.position.set(
-      CENTRO.x + dist * Math.cos(elev) * Math.sin(ROT),
-      CENTRO.y + dist * Math.sin(elev),
-      CENTRO.z + dist * Math.cos(elev) * Math.cos(ROT));
-    camera.lookAt(CENTRO.x, CENTRO.y, CENTRO.z);
+      CEN.x + dist * Math.cos(elev) * Math.sin(ROT),
+      CEN.y + dist * Math.sin(elev),
+      CEN.z + dist * Math.cos(elev) * Math.cos(ROT));
+    camera.lookAt(CEN.x, CEN.y, CEN.z);
     camera.updateProjectionMatrix();
     sole.target.position.set(CENTRO.x, CENTRO.y * 0.5, CENTRO.z);
     sole.target.updateMatrixWorld();
@@ -2020,110 +2021,236 @@ export function monta(el, opz = {}){
     };
   }
 
-  /* ── COLLANA: posata sul cuscino piatto, i due rami nelle tacche ── */
-  function posaCollana(dentro){
-    const involucro = new THREE.Group();
-    const pts0 = campiona(dentro, 2000);
-    const a = terna(pts0);
-    const rot = new THREE.Group(); rot.add(dentro); involucro.add(rot);
-    /* LA U SI CORICA, E IL VERSO NON SI SCRIVE A MANO. Una collana
-       drappeggiata non è piatta e il suo piano non è quello del busto:
-       la direzione di varianza minima è la normale del piano in cui sta
-       più stesa, e va in su. Poi l'asse lungo (163 mm) si mette lungo il
-       LATO LUNGO della scatola, che è quello che ha più luce. */
-    const qa = new THREE.Quaternion().setFromUnitVectors(
-      a.min.clone(), new THREE.Vector3(0, 1, 0));
-    const lungoOra = a.max.clone().applyQuaternion(qa);
-    const versoIlLungo = PR >= LA
-      ? -Math.atan2(lungoOra.x, lungoOra.z)
-      :  Math.atan2(lungoOra.z, lungoOra.x);
-    rot.quaternion.copy(qa).premultiply(
-      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), versoIlLungo));
-    rot.updateMatrixWorld(true);
-    involucro.updateMatrixWorld(true);
-    const b = new THREE.Box3().setFromObject(involucro, true);
-    const cc = b.getCenter(new THREE.Vector3());
-    involucro.position.x -= cc.x;
-    involucro.position.y += INT.padSu - b.min.y - 0.0008;   /* affonda nel velluto */
-    /* ── LA COLLANA NON SI CENTRA: SI APPOGGIA ALLE TACCHE ──────────
-       Centrata in profondità, la catena restava in mezzo al cuscino e
-       le tacche del bordo di dietro erano due intagli che non
-       c'entravano niente con lei. In un astuccio vero è il contrario:
-       la collana si posa CONTRO il filo di dietro — è lì che sale e
-       gira — e quello che avanza avanza DAVANTI, dove sta il pendente.
-       Il di dietro del pezzo finisce a metà della profondità della
-       tacca, così i due rami sono dentro il varco e non davanti. */
-    /* il di dietro della catena cade dentro la tacca: la bocca
-       dell'intaglio resta scoperta dietro di lei, e si vede che il filo
-       ci ENTRA invece di fermarsi contro il bordo.
-       MA NON SI SPINGE OLTRE LA PARETE. Questa collana è lunga 163,7 in
-       un vano da 169: spostandola indietro di undici millimetri usciva
-       DAVANTI di quasi tre, cioè entrava nel muro — e il muro, a quel
-       punto, la taglia. Il posto giusto è il più indietro dei due
-       vincoli, non quello voluto. */
-    const zDietro = Math.min(-V_PR / 2 + TACCA.prof * 0.66,
-                             V_PR / 2 - 0.0015 - (b.max.z - b.min.z));
-    involucro.position.z = zDietro - b.min.z;
-    involucro.updateMatrixWorld(true);
-    volo.add(involucro);
-    /* DOVE VANNO LE TACCHE. Questa collana è un anello CHIUSO: non ha
-       due capi da infilare, e cercarli dà due posti a caso. Quello che
-       ha sono due RAMI — vicino al fondo la catena passa due volte, una
-       a sinistra e una a destra — ed è lì che in un astuccio vero si
-       mette la tacca, perché è lì che la catena sale e gira dietro. */
-    /* ── IL RAMO NON È L'INGOMBRO, E NEMMENO IL PUNTO PIÙ INDIETRO ──
-       Due tentativi sbagliati, e vale la pena scriverli tutti e due.
-       (1) La x MINIMA e la x MASSIMA dei punti vicini al fondo: davano
-       -60 e +20, cioè la larghezza della catena, non i suoi rami; due
-       intagli sbilenchi su un cuscino leggono come un errore di taglio.
-       (2) Il punto PIÙ INDIETRO di ciascuna metà: su un arco largo e
-       piatto il minimo cade dove capita, e le due tacche venivano a
-       -20 e +7, cioè appiccicate in mezzo.
-       Il ramo vero è dove la catena ATTRAVERSA una certa profondità
-       mentre sale: si fissa una quota dodici millimetri davanti al suo
-       punto più arretrato e si cerca, in ciascuna metà, il punto che ci
-       passa più vicino. Su un arco simmetrico i due vengono simmetrici
-       da soli, e stanno negli ANGOLI ALTI — che è dove le foto le
-       mettono. */
-    const pts = campiona(involucro, 2600)
-      .map(p => p.clone().add(involucro.position));
-    let zlo = Infinity;
-    for(const p of pts) if(p.z < zlo) zlo = p.z;
-    const quota = zlo + 0.012;
-    let sx = null, dx = null;
-    for(const p of pts){
-      const d = Math.abs(p.z - quota);
-      if(p.x < -0.006){ if(!sx || d < Math.abs(sx.z - quota)) sx = p; }
-      else if(p.x > 0.006){ if(!dx || d < Math.abs(dx.z - quota)) dx = p; }
+
+  /* ══ LA COLLANA COME NELLA CONFEZIONE VERA (studio d'ingresso, 28/09) ════════════════
+     Ancora: `co-westpack-oslo-160x160x34.jpg`, `co-astuccishop-newyork`,
+     `co-finer-majestic-clip-negli-angoli`. Nelle foto la collana NON è un
+     anello chiuso posato a caso: scende a U dal centro del cuscino, SALE a
+     due LINGUETTE di velluto nel terzo di dietro, ci passa SOTTO, e da lì
+     il resto della catena va dietro il cuscino, dove non si vede.
+     Il modello di Regina è un anello chiuso modellato sul busto: non si
+     posa, si RIMODELLA. La catena si srotola lungo la sua linea di mezzo
+     (ogni vertice tiene la sua distanza dalla linea, cioè la maglia resta
+     la maglia) e si riavvolge su un percorso nuovo lungo ESATTAMENTE
+     quanto lei: U sul cuscino → linguetta → dietro → giù nella fessura fra
+     cuscino e parete → di traverso → su → linguetta → U. */
+  function posaCollanaVera(dentro){
+    dentro.updateMatrixWorld(true);
+    const inv = new THREE.Matrix4().copy(dentro.matrixWorld).invert();
+    const geos = [];
+    dentro.traverse(o => { if(!o.isMesh) return;
+      const g = o.geometry.clone();
+      g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
+      geos.push({g, mat: o.material}); });
+    const a = terna(campiona(dentro, 3000));
+    const E1 = a.max.clone().normalize(), E2 = a.mid.clone().normalize(), NB = a.min.clone().normalize();
+    const C0 = a.c.clone();
+    const NBIN = 480;
+    const v = new THREE.Vector3(), r = new THREE.Vector3();
+    const binDi = (p) => { r.copy(p).sub(C0);
+      const th = Math.atan2(r.dot(E2), r.dot(E1));
+      return ((Math.floor((th + Math.PI) / (2 * Math.PI) * NBIN) % NBIN) + NBIN) % NBIN; };
+    const acc = Array.from({length: NBIN}, () => [0, 0, 0, 0]);
+    for(const q of geos){ const p = q.g.getAttribute("position");
+      for(let i = 0; i < p.count; i++){ v.fromBufferAttribute(p, i); const A = acc[binDi(v)];
+        A[0] += v.x; A[1] += v.y; A[2] += v.z; A[3]++; } }
+    let C = acc.map(A => A[3] ? new THREE.Vector3(A[0] / A[3], A[1] / A[3], A[2] / A[3]) : null);
+    const vuoti = C.filter(c => !c).length;
+    for(let i = 0; i < NBIN; i++) if(!C[i]){
+      let j = 1; while(!C[(i - j + NBIN) % NBIN]) j++;
+      let k = 1; while(!C[(i + k) % NBIN]) k++;
+      C[i] = C[(i - j + NBIN) % NBIN].clone().lerp(C[(i + k) % NBIN], j / (j + k)); }
+    for(let it = 0; it < 4; it++)
+      C = C.map((c, i) => c.clone().multiplyScalar(0.5)
+        .addScaledVector(C[(i - 1 + NBIN) % NBIN], 0.25).addScaledVector(C[(i + 1) % NBIN], 0.25));
+    const S = [0]; for(let i = 1; i <= NBIN; i++) S.push(S[i - 1] + C[i % NBIN].distanceTo(C[i - 1]));
+    const L = S[NBIN];
+    const TT = C.map((c, i) => C[(i + 1) % NBIN].clone().sub(C[(i - 1 + NBIN) % NBIN]).normalize());
+    const BB = TT.map(t => NB.clone().addScaledVector(t, -NB.dot(t)).normalize());
+    const NN = TT.map((t, i) => new THREE.Vector3().crossVectors(BB[i], t));
+    /* il davanti della collana sul busto: il punto più BASSO della linea */
+    let iBasso = 0; for(let i = 1; i < NBIN; i++) if(C[i].y < C[iBasso].y) iBasso = i;
+    const s0 = S[iBasso];
+    /* ogni vertice: dove sta lungo la linea, e a che distanza */
+    const loc = [];
+    let hB = 0, hN = 0;
+    const seg = new THREE.Vector3(), dd = new THREE.Vector3();
+    const _P = new THREE.Vector3(), _T = new THREE.Vector3(), _B = new THREE.Vector3(), _N = new THREE.Vector3();
+    for(const q of geos){
+      const p = q.g.getAttribute("position"), n = q.g.getAttribute("normal");
+      const L4 = new Float32Array(p.count * 7);
+      for(let i = 0; i < p.count; i++){
+        v.fromBufferAttribute(p, i);
+        const b = binDi(v);
+        let best = Infinity, bk = b, bu = 0;
+        for(let d = -10; d <= 10; d++){
+          const k = (b + d + NBIN) % NBIN, k1 = (k + 1) % NBIN;
+          seg.copy(C[k1]).sub(C[k]);
+          const u = Math.max(0, Math.min(1, dd.copy(v).sub(C[k]).dot(seg) / Math.max(1e-12, seg.lengthSq())));
+          const q2 = dd.copy(C[k]).addScaledVector(seg, u).distanceToSquared(v);
+          if(q2 < best){ best = q2; bk = k; bu = u; }
+        }
+        const k1 = (bk + 1) % NBIN;
+        /* vettori di lavoro RIUSATI: sono decine di migliaia di vertici,
+           e un `clone()` per vertice è spazzatura che il netturbino della
+           memoria raccoglie poi DURANTE la cerimonia (misurato: 69 ms a
+           metà della sovrascatola, 28/09) */
+        const P = _P.copy(C[bk]).lerp(C[k1], bu);
+        const T = _T.copy(TT[bk]).lerp(TT[k1], bu).normalize();
+        const B = _B.copy(BB[bk]).lerp(BB[k1], bu); B.addScaledVector(T, -B.dot(T)).normalize();
+        const N = _N.crossVectors(B, T);
+        dd.copy(v).sub(P);
+        const s = (S[bk] + bu * (S[bk + 1] - S[bk]) - s0 + L) % L;
+        L4[i * 7] = s; L4[i * 7 + 1] = dd.dot(T); L4[i * 7 + 2] = dd.dot(N); L4[i * 7 + 3] = dd.dot(B);
+        if(n){ v.fromBufferAttribute(n, i);
+          L4[i * 7 + 4] = v.dot(T); L4[i * 7 + 5] = v.dot(N); L4[i * 7 + 6] = v.dot(B); }
+        hB = Math.max(hB, Math.abs(L4[i * 7 + 3])); hN = Math.max(hN, Math.abs(L4[i * 7 + 2]));
+      }
+      loc.push(L4);
     }
-    let misurate = !!(sx && dx);
-    let xlo = sx ? sx.x : -V_LA * 0.22, xhi = dx ? dx.x : V_LA * 0.22;
-    if(!misurate || xhi - xlo < 0.010){
-      /* nessun ramo leggibile: si ripiega su due tacche simmetriche, e
-         lo si DICHIARA invece di far finta che siano misurate */
-      misurate = false; xlo = -V_LA * 0.22; xhi = V_LA * 0.22;
+
+    /* ── IL CUSCINO, LA FESSURA DIETRO, LE DUE LINGUETTE ───────────── */
+    const GAP = Math.max(0.0035, 2 * hB + 0.0012);
+    INT.padH = 0.0045; INT.padSu = H_FONDO + INT.padH;
+    const zMuro = -V_PR / 2, zPad0 = zMuro + GAP, zPad1 = V_PR / 2 - 0.0005;
+    {
+      const W = V_LA - 0.0010, D = zPad1 - zPad0, SM = 0.0010;
+      const g = new THREE.ExtrudeGeometry(rettangoloTondo(W, D, 0.0030), {depth: INT.padH - SM,
+        bevelEnabled: true, bevelThickness: SM, bevelSize: SM, bevelOffset: 0,
+        bevelSegments: SEG.smusso, curveSegments: SEG.angolo});
+      g.rotateX(-Math.PI / 2); g.translate(0, SM, 0); g.computeVertexNormals();
+      const pad = new THREE.Mesh(uvEstruso(g, CELLA), vellutoMondo());
+      pad.position.set(0, H_FONDO, (zPad0 + zPad1) / 2);
+      pad.castShadow = !MOBILE; pad.receiveShadow = true;
+      base.add(pad);
+      const gg = new THREE.PlaneGeometry(V_LA - 0.002, GAP + 0.001); gg.rotateX(-Math.PI / 2);
+      const fondo = new THREE.Mesh(tieni(gg), vellutoMondo(VESTE, 0.16));
+      fondo.position.set(0, H_FONDO + 0.0002, zMuro + GAP / 2); base.add(fondo);
+      const al = new THREE.Mesh(
+        uvScatola(new THREE.BoxGeometry(Math.min(0.022, W * 0.16), 0.0016, 0.008), CELLA),
+        vellutoMondo(VESTE, 0.86));
+      al.position.set(0, INT.padSu - 0.0004, zPad1 - 0.0050); al.rotation.x = -0.30;
+      base.add(al);
     }
-    const bordoT = V_LA / 2 - TACCA.larg / 2 - 0.0060;
-    const tacche = [xlo, xhi].map(x => ({
-      x: Math.max(-bordoT, Math.min(bordoT, x)),
-      larg: TACCA.larg, prof: TACCA.prof}));
-    costruisciCuscinoCollana(tacche);
-    dati.sella = null;                 /* la sella non c'è più: vedi sopra */
-    dati.asole = null;
-    dati.tacche = INT.tacche || null;
-    dati.tacche_misurate = misurate;
-    const dd = b.getSize(new THREE.Vector3());
-    const b2 = new THREE.Box3().setFromObject(involucro, true);
+    const y0 = INT.padSu + hB + 0.0002;
+    const zg = zMuro + GAP / 2, yg = H_FONDO + hN + 0.0005;
+    const zc = zPad0 + Math.max(0.018, V_PR * 0.15);
+    function percorso(cx, zb){
+      const K = [];
+      const U = 14;
+      for(let i = 0; i <= U; i++){ const f = i / U * Math.PI / 2;
+        K.push(new THREE.Vector3(cx * Math.sin(f), y0, zc + (zb - zc) * Math.cos(f))); }
+      const lato = (sx) => [
+        new THREE.Vector3(sx * cx, y0, zc - 0.006),
+        new THREE.Vector3(sx * cx, y0, zPad0 + 0.0025),
+        new THREE.Vector3(sx * cx, INT.padSu - 0.0004, zg),
+        new THREE.Vector3(sx * cx, yg + 0.0035, zg),
+        new THREE.Vector3(sx * (cx - 0.0040), yg, zg),
+        new THREE.Vector3(sx * cx * 0.5, yg, zg)];
+      K.push(...lato(1));
+      K.push(new THREE.Vector3(0, yg, zg));
+      K.push(...lato(-1).reverse());
+      for(let i = U; i >= 1; i--){ const f = i / U * Math.PI / 2;
+        K.push(new THREE.Vector3(-cx * Math.sin(f), y0, zc + (zb - zc) * Math.cos(f))); }
+      return new THREE.CatmullRomCurve3(K, true, "centripetal");
+    }
+    let cx = Math.min(V_LA * 0.21, V_LA / 2 - 0.018);
+    const zbMax = zPad1 - 0.010 - hN, zbMin = zc + 0.030;
+    let curva = null, zb = zbMax;
+    for(let giro = 0; giro < 30; giro++){
+      let lo = zbMin, hi = zbMax;
+      if(percorso(cx, hi).getLength() < L){ cx += 0.002; if(cx > V_LA / 2 - 0.012) break; continue; }
+      if(percorso(cx, lo).getLength() > L){ cx -= 0.002; if(cx < 0.012) break; continue; }
+      for(let i = 0; i < 40; i++){ const m = (lo + hi) / 2;
+        if(percorso(cx, m).getLength() < L) lo = m; else hi = m; }
+      zb = (lo + hi) / 2; break;
+    }
+    curva = percorso(cx, zb);
+    const M = 2400;
+    const PP = curva.getSpacedPoints(M);
+    const PT = [], PB = [], PN = [];
+    const SU = new THREE.Vector3(0, 1, 0), DIETRO = new THREE.Vector3(0, 0, -1);
+    for(let j = 0; j <= M; j++){
+      const T = curva.getTangentAt(Math.min(1, j / M)).normalize();
+      const p = PP[j];
+      const f = p.z < zPad0 + 0.0015 ? c01((y0 - p.y) / 0.004) : 0;
+      const n = SU.clone().lerp(DIETRO, f * f * (3 - 2 * f)).normalize();
+      const B = n.addScaledVector(T, -n.dot(T)).normalize();
+      PT.push(T); PB.push(B); PN.push(new THREE.Vector3().crossVectors(B, T));
+    }
+    const Lt = curva.getLength();
+    const catena = new THREE.Group();
+    geos.forEach((q, gi) => {
+      const p = q.g.getAttribute("position"), n = q.g.getAttribute("normal"), L4 = loc[gi];
+      for(let i = 0; i < p.count; i++){
+        const u = (L4[i * 7] / L) * M, j = Math.min(M - 1, Math.floor(u)), w = u - j;
+        const P = _P.copy(PP[j]).lerp(PP[j + 1], w);
+        const T = _T.copy(PT[j]).lerp(PT[j + 1], w).normalize();
+        const B = _B.copy(PB[j]).lerp(PB[j + 1], w); B.addScaledVector(T, -B.dot(T)).normalize();
+        const N = _N.crossVectors(B, T);
+        P.addScaledVector(T, L4[i * 7 + 1]).addScaledVector(N, L4[i * 7 + 2]).addScaledVector(B, L4[i * 7 + 3]);
+        p.setXYZ(i, P.x, P.y, P.z);
+        if(n){ const q3 = T.multiplyScalar(L4[i * 7 + 4]).addScaledVector(N, L4[i * 7 + 5])
+                 .addScaledVector(B, L4[i * 7 + 6]).normalize();
+               n.setXYZ(i, q3.x, q3.y, q3.z); }
+      }
+      p.needsUpdate = true; if(n) n.needsUpdate = true;
+      q.g.computeBoundingBox(); q.g.computeBoundingSphere();
+      const m = new THREE.Mesh(tieni(q.g), q.mat);
+      m.castShadow = !MOBILE; m.receiveShadow = true;
+      catena.add(m);
+    });
+    volo.add(catena);
+
+    /* ── IL RULLO DI DIETRO (Westpack Oslo): un cuscinetto tondo lungo la
+       cerniera. La catena, passata la linguetta, ci va SOTTO: è lì che il
+       resto della collana — e la sua chiusura — sparisce. */
+    {
+      const R = Math.max(0.0075, GAP * 1.05);
+      const g = new THREE.CylinderGeometry(R, R, V_LA - 0.0012, 28, 1, false);
+      g.rotateZ(Math.PI / 2); g.scale(1, 0.92, 1);
+      const rullo = new THREE.Mesh(uvScatola(g, CELLA), vellutoMondo());
+      rullo.position.set(0, H_FONDO + R * 0.32, zMuro + R * 0.78);
+      rullo.castShadow = !MOBILE; rullo.receiveShadow = true;
+      base.add(rullo);
+      INT.rullo = {raggio_mm: mm(R)};
+    }
+    /* ── LE LINGUETTE: una fascetta di velluto ad arco sopra la catena,
+       ancorata al cuscino dalle due parti. La catena ci passa sotto. */
+    for(const sx of [-1, 1]){
+      const ri = Math.max(hN, hB) + 0.0026, ro = ri + 0.0013;   /* 2,6 mm di luce: con 1 le maglie in curva bucavano la fascetta */
+      const pr = new THREE.Shape();
+      const A0 = -0.12, A1 = Math.PI + 0.12, NS = 18;
+      for(let i = 0; i <= NS; i++){ const f = A0 + (A1 - A0) * i / NS;
+        const x = Math.cos(f) * ro, y = Math.sin(f) * ro * 0.9;
+        if(i === 0) pr.moveTo(x, y); else pr.lineTo(x, y); }
+      for(let i = NS; i >= 0; i--){ const f = A0 + (A1 - A0) * i / NS;
+        pr.lineTo(Math.cos(f) * ri, Math.sin(f) * ri * 0.9); }
+      pr.closePath();
+      const g = new THREE.ExtrudeGeometry(pr, {depth: 0.0090, bevelEnabled: true,
+        bevelThickness: 0.0005, bevelSize: 0.0004, bevelSegments: 3, curveSegments: 4});
+      g.translate(0, 0, -0.0045);
+      /* IL VELO SPENTO: sulla curva stretta della fascetta il velo del
+         velluto (sheen 0,92) prende tutta la luce radente e la faceva
+         uscire GRIGIO-BIANCA, due tacche chiare invece di due linguette
+         dello stesso tessuto (debole dichiarato dello studio, 28/09) */
+      const mLin = vellutoMondo(VESTE, 0.52); mLin.sheen = 0.30;
+      const lin = new THREE.Mesh(uvEstruso(g, CELLA), mLin);
+      lin.position.set(sx * cx, INT.padSu - 0.0004, zc - 0.0015);
+      lin.castShadow = !MOBILE; lin.receiveShadow = true;
+      base.add(lin);
+    }
+    const b2 = new THREE.Box3().setFromObject(catena, true);
     dati.pezzo = {
-      largo_mm: mm(dd.x), lungo_mm: mm(dd.z), alto_mm: mm(dd.y),
+      posa: "rimodellata: U sul cuscino, due linguette, il resto dietro",
+      lunghezza_catena_mm: mm(L), percorso_mm: mm(Lt), scarto_mm: mm(Lt - L),
+      spessore_mm: mm(2 * hB), larghezza_maglia_mm: mm(2 * hN), bin_vuoti: vuoti,
+      linguette_x_mm: [mm(-cx), mm(cx)], linguette_z_mm: mm(zc), fondo_della_U_z_mm: mm(zb),
+      fessura_dietro_mm: mm(GAP), rullo: INT.rullo,
       sopra_il_cuscino_mm: mm(b2.max.y - INT.padSu),
-      cima_sopra_il_bordo_mm: mm(b2.max.y - H_BASE),
       spazio_nel_coperchio_mm: mm(VANO - (b2.max.y - H_BASE)),
-      rami_nelle_tacche: misurate,
-      avanza_di_lato_mm: mm((V_LA - dd.x) / 2),
-      avanza_davanti_mm: mm(V_PR / 2 - (b2.max.z)),
-      bombatura_mm: mm(dd.y),
     };
+    dati.tacche = null;
   }
 
   /* ── BRACCIALE: la catena posata, sotto due elastici ─────────────
@@ -2157,7 +2284,8 @@ export function monta(el, opz = {}){
        teso, e un tessuto teso riflette più di uno incollato. Appena:
        a 0,86 le due fasce uscivano più chiare del cuscino e leggevano
        come due manici di plastica. */
-    const m = new THREE.Mesh(tieni(g), vellutoMondo(VESTE, 0.80));
+    /* 0,66 e non 0,80: più chiari del cuscino si leggevano come due assi (studio 28/09) */
+    const m = new THREE.Mesh(tieni(g), vellutoMondo(VESTE, 0.66));
     m.position.set(x, INT.padSu - 0.0004, 0);
     m.castShadow = !MOBILE; m.receiveShadow = true;
     base.add(m);
@@ -2500,7 +2628,7 @@ export function monta(el, opz = {}){
       try{
         if(FAM === "anelli")         posaAnello(dentro);
         else if(FAM === "orecchini") posaOrecchini(dentro);
-        else if(FAM === "collane")   posaCollana(dentro);
+        else if(FAM === "collane")   posaCollanaVera(dentro);
         else if(FAM === "bracciali") posaBracciale(dentro);
         else                         posaOrologio(dentro);
       }catch(err){ dati.errore = String((err && err.message) || err); }
@@ -2514,6 +2642,7 @@ export function monta(el, opz = {}){
   }
 
   function finisciIlCaricamento(){
+    if(!marchioArrivato){ dopoIlMarchio = finisciIlCaricamento; return; }
     /* IL FOTOGRAMMA LUNGO HA UN NOME, ED È LA COMPILAZIONE. Nella
        campagna di misura c'era un solo fotogramma fuori posto e cadeva
        sempre nello stesso punto: 169 ms sugli anelli, 167 sugli
@@ -2549,7 +2678,7 @@ export function monta(el, opz = {}){
     try{
       uscita.renderToScreen = false;
       ao.enabled = true;
-      applicaRegia(REGIA.fine);
+      applicaRegia(FINE);
       comp.render();
     }catch(_){ /* niente */ }
     uscita.renderToScreen = true;
@@ -2613,7 +2742,11 @@ export function monta(el, opz = {}){
   let t = 0, inCorso = false, tocco = 0, battuto = false;
 
   function applicaRegia(ms){
+    prologo(ms);
+    applicaRegiaBase(Math.max(0, ms - PRO));
     t = ms;
+  }
+  function applicaRegiaBase(ms){
     sveglia();
     perno.rotation.x = APERTURA * coperchioEase(c01(ms / REGIA.coperchio));
     luceFodera.intensity = FORZA_FODERA * dolce(c01((ms - REGIA.fodera[0]) / REGIA.fodera[1]));
@@ -2626,6 +2759,8 @@ export function monta(el, opz = {}){
     volo.scale.set(s, s, s);
     /* la camera sale CON il coperchio, non dopo: è lo stesso gesto */
     elev = ELEV_CHIUSO + (ELEV_APERTO - ELEV_CHIUSO) * dolce(c01(ms / REGIA.camera));
+    /* il quadro si allarga al passo del COPERCHIO, non della camera */
+    kQ = coperchioEase(c01(ms / REGIA.coperchio));
     inquadra();
   }
 
@@ -2649,7 +2784,7 @@ export function monta(el, opz = {}){
          nessuno perde la scena — perde il moto, che è quello che dà
          fastidio a chi l'ha chiesto. */
       inCorso = false;
-      applicaRegia(REGIA.fine);
+      applicaRegia(FINE);
       /* LA DISSOLVENZA SI FA CON `animate()`, NON CON UNA TRANSIZIONE
          DICHIARATA. Due ragioni, e la seconda è la vera. (1) Una
          transizione inline resta scritta sull'elemento anche dopo, e
@@ -2676,7 +2811,7 @@ export function monta(el, opz = {}){
   function salta(){
     if(!inCorso) return;
     inCorso = false;
-    applicaRegia(REGIA.fine);
+    applicaRegia(FINE);
     dati.fine = true;
     grida("fine", {saltata: true});
   }
@@ -2785,9 +2920,9 @@ export function monta(el, opz = {}){
          il dito ha appena toccato e il ritorno lo dà il tasto — e non
          alla fine, dove non succede niente di fisico. Uno scatto, una
          volta. */
-      if(!battuto && ms >= REGIA.scatto){ battuto = true; mano.batti(); }
-      if(ms >= REGIA.fine){
-        inCorso = false; applicaRegia(REGIA.fine);
+      if(!battuto && ms - PRO >= REGIA.scatto){ battuto = true; mano.batti(); }
+      if(ms >= FINE){
+        inCorso = false; applicaRegia(FINE);
         dati.fine = true; grida("fine", {});
       }
       else applicaRegia(ms);
@@ -2834,7 +2969,7 @@ export function monta(el, opz = {}){
   if(occhio) occhio.observe(el); else addEventListener("resize", ridimensiona);
 
   /* stato iniziale: chiuso. Chi vuole vederlo aperto lo dice. */
-  applicaRegia(opz.stato === "aperto" ? REGIA.fine : 0);
+  applicaRegia(opz.stato === "aperto" ? FINE : 0);
   caricaIlPezzo();
   giro();
 
@@ -2892,6 +3027,8 @@ export function monta(el, opz = {}){
         pezzo: +(volo.position.y * 1000).toFixed(3),
         visibile: volo.visible,
         elevazione: +(elev * 180 / Math.PI).toFixed(3),
+        opzione: OPZ, prologo: PRO, fineVera: FINE,
+        manicotto: manicotto ? {x_mm: mm(manicotto.position.x), visibile: manicotto.visible} : null,
       };
     },
     get stato(){
@@ -2901,6 +3038,30 @@ export function monta(el, opz = {}){
               errore: dati.errore, ridotto: RIDOTTO, aptico: mano.c_e};
     },
     get dati(){ return dati; },
+    get fine(){ return FINE; },
+    get prologo(){ return PRO; },
+    /* SOLO PER IL BANCO DELLE IMMAGINI FERME (`costruzione-ingresso-2/
+       banco/fermi.mjs`): «manicotto» lascia in scena la sola
+       sovrascatola, «tutto» rimette tutto com'era; `proietta(ms)` dice
+       dove sta a schermo il centro della sovrascatola all'istante ms. */
+    strati(che){
+      scena.traverse(o => {
+        if(!o.isMesh) return;
+        if(o.userData.vis0 === undefined) o.userData.vis0 = o.visible;
+        let dentroMan = false;
+        for(let p = o; p; p = p.parent) if(p === manicotto){ dentroMan = true; break; }
+        o.visible = che === "manicotto" ? (dentroMan && o.userData.vis0) : o.userData.vis0;
+      });
+      sveglia();
+    },
+    proietta(ms){
+      if(!manicotto) return null;
+      applicaRegia(ms);
+      manicotto.updateMatrixWorld(true);
+      const b = new THREE.Box3().setFromObject(manicotto, true);
+      const c = b.getCenter(new THREE.Vector3()).project(camera);
+      return [+((c.x + 1) / 2 * LARGO).toFixed(2), +((1 - c.y) / 2 * ALTO).toFixed(2)];
+    },
     quote(){
       return {
         famiglia: FAM, nome: F.nome, fodera: FODERA,

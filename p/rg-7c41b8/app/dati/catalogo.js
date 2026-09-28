@@ -164,7 +164,14 @@ export const ARTICOLI = [
       mat: "Acciaio dorato e cabochon turchese · misura 14",
       prezzo: 39.00,
       att: { misura: "14", pietra: "turchese", metallo: "acciaio dorato" },
-      foto: ["pezzi/rg-fl-001.jpg"],
+      /* F6 (28/09, verdetto di Massimo): la foto che stava qui era uno
+         scatto lifestyle di Regina che ritrae ALTRI gioielli (la
+         didascalia lo dice già: «Lo scatto ritrae la collezione, non il
+         solo pezzo») — mostrata come se fosse LA foto di questo
+         articolo, false. Tolta: l'articolo resta col suo packshot
+         (`app/dati/provini.js`, via `app/innesto.js`), e la stessa
+         fotografia va nei banner di «Dal negozio» (`app/dati/promo.js`),
+         dove una foto lifestyle è quello che dice davvero di essere. */
       coll: "filo", cura: "turchese" }),
   P({ fam: "anelli", k: 1, ean: "8054321000202",
       nome: "Anello Filo",
@@ -202,7 +209,8 @@ export const ARTICOLI = [
       mat: "Acciaio dorato · 45 cm",
       prezzo: 59.00,
       att: { lunghezza_cm: 45, metallo: "acciaio dorato" },
-      foto: ["pezzi/8054321000123.jpg"],
+      /* stessa correzione di «Anello Cabochon», qui sopra: la foto era
+         lo scatto lifestyle della collezione, non del pezzo. */
       coll: "filo", cura: "dorato" }),
   P({ fam: "busto", k: 1, ean: "8054321000206",
       nome: "Collana Punto",
@@ -226,7 +234,8 @@ export const ARTICOLI = [
       mat: "Acciaio dorato e cabochon",
       prezzo: 26.00,
       att: { pietra: "turchese", metallo: "acciaio dorato" },
-      foto: ["pezzi/8054321000456.jpg", "pezzi/rg-fl-002.jpg"],
+      /* stessa correzione: due scatti lifestyle, nessuno dei due del
+         solo pezzo — tolti, restano nei banner di «Dal negozio». */
       coll: "turchese", cura: "turchese" }),
   P({ fam: "orecchini", k: 1, ean: "8054321000208",
       nome: "Creola Media",
@@ -234,7 +243,7 @@ export const ARTICOLI = [
       mat: "Argento 925 · 16 mm",
       prezzo: 28.00,
       att: { diametro_mm: 16, metallo: "argento 925" },
-      foto: ["pezzi/rg-fl-004.jpg"],
+      /* stessa correzione di «Anello Cabochon», qui sopra. */
       coll: "filo", cura: "argento" }),
   P({ fam: "orecchini", k: 2, ean: "8054321000209",
       nome: "Perno Turchese",
@@ -304,7 +313,7 @@ export const ARTICOLI = [
       mat: "Acciaio dorato · 19 cm",
       prezzo: 54.00,
       att: { lunghezza_cm: 19, metallo: "acciaio dorato" },
-      foto: ["pezzi/rg-fl-003.jpg"],
+      /* stessa correzione di «Anello Cabochon», qui sopra. */
       coll: "filo", cura: "dorato" }),
 
   /* ── OROLOGI · 3 pezzi, il REGINA SWATCH, dal ripiano `orologi` ───── */

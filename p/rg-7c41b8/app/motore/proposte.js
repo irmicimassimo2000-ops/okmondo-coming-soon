@@ -59,6 +59,14 @@
    frase a essere sbagliata, non la regola. */
 export const PESI = {
   chiude_collezione: 40,
+  /* STESSO PESO di `chiude_collezione`, apposta (correzione del
+     coordinatore, 28/09): è LO STESSO componente («appartiene a una
+     collezione tua»), la stessa importanza — cambia solo la CHIAVE con
+     cui si presenta, «chiude_collezione» a un pezzo dalla fine,
+     «collezione» prima. Senza questa voce il peso cadrebbe a zero non
+     appena la chiave smette di essere "chiude_collezione", e la regola
+     sparirebbe dalle proposte invece di cambiare solo etichetta. */
+  collezione: 40,
   /* 21/09/2026 — DECISIONE DI MASSIMO: LA DATA VIENE PRIMA.
      Fino al 21 settembre `da_prendere` valeva 35 e `data_vicina` 30: la
      lista batteva la ricorrenza. Invertiti, e non per simmetria: LA
@@ -607,7 +615,7 @@ export function proposte(stato = {}, opz = {}) {
     const c = a.collezione ? perCollezione.get(a.collezione) : null;
     if (c && c.sua && !c.chiusa && c.mancanti.includes(a.id)) {
       const ultimo = c.manca === 1;
-      const conta = c.ha + " su " + c.totale;
+      const conta = c.ha + " di " + c.totale;   /* regola «4 di 5» (scelta di Massimo, 21/09) */
       const suo = perId.get(c.posseduti[0]);
       const frase = ultimo
         ? scegliFrase(
@@ -621,7 +629,17 @@ export function proposte(stato = {}, opz = {}) {
           : scegliFrase(
               "Della tua collezione " + c.nome + " — " + conta,
               "Della collezione " + c.nome);
-      metti("chiude_collezione", {
+      /* CORREZIONE (coordinatore, 28/09) — LA CHIAVE DEVE VARIARE CON
+         `ultimo`, NON SOLO LA `regola` INTERNA. Fino a oggi `metti()`
+         veniva chiamata sempre con la chiave letterale
+         "chiude_collezione": il campo `regola` del componente diceva
+         giusto ("collezione" quando non è l'ultimo pezzo), ma `chiave`
+         — quella che `viste/perte.js` legge per scegliere l'etichetta-
+         motivo — restava sempre "chiude_collezione". Risultato: una
+         collezione a 2 di 5 si presentava con «L'ULTIMO DI …», un
+         fatto falso mostrato alla cliente. Ora la chiave è la stessa
+         cosa della regola, come per ogni altro componente del file. */
+      metti(ultimo ? "chiude_collezione" : "collezione", {
         s: 1, bonus: ultimo ? EXTRA.chiude_ultimo : 0,
         regola: ultimo ? "chiude_collezione" : "collezione",
         gruppo: c.id, frase,
@@ -629,6 +647,7 @@ export function proposte(stato = {}, opz = {}) {
           { campo: "collezione", valore: c.nome },
           { campo: "posseduti", valore: c.ha, pezzi: c.posseduti },
           { campo: "totale", valore: c.totale },
+          { campo: "manca", valore: c.manca },
         ],
       });
     }
@@ -763,7 +782,7 @@ export function proposte(stato = {}, opz = {}) {
     /* 7 · MATERIA COERENTE (10) — stessa materia di ≥ 2 pezzi che ha.
        TESTO (coordinatore, 21/09): «Nella tua materia (X)» portava la
        parentesi che Massimo ha bocciato nelle tavole «Per te» —
-       l'etichetta scelta è «Si abbinano ai tuoi» (SCELTE-MASSIMO.md,
+       l'etichetta scelta è «Si abbina ai tuoi» (singolare: è UNA proposta) (SCELTE-MASSIMO.md,
        riga «Stessa materia»); il nome della materia resta un dato vero
        in `dati`, e la vista lo scrive come riga sotto il titolo, non
        fra parentesi nello stesso rigo. Solo il testo cambia: peso,
@@ -771,7 +790,7 @@ export function proposte(stato = {}, opz = {}) {
     if (materia && metalloDi(a) === materia) {
       metti("materia", {
         s: 1,
-        frase: scegliFrase("Si abbinano ai tuoi"),
+        frase: scegliFrase("Si abbina ai tuoi"),
         gruppo: materia,
         dati: [{ campo: "materia", valore: materia }],
       });
@@ -1095,6 +1114,41 @@ export function proposte(stato = {}, opz = {}) {
 export function spiega(proposta) {
   if (!proposta || !proposta.frase) return null;
   return fraseValida(proposta.frase) ? proposta.frase : null;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   8 · `mazzoScopri(m)` — IL MAZZO DI «SCOPRI», POST-FILTRO.
+
+   Studio `SCOPERTA-MOTORE.md` §0-1 (28/09, coordinatore + Massimo):
+   una carta a schermo intero senza immagine è il difetto già bocciato.
+   Regola: il mazzo di «Scopri» ammette SOLO i componenti (il `grande` e
+   i pezzi dei `rail`) che portano un'immagine vera — foto o, in sua
+   assenza, il packshot del provino (`articolo.foto`, che l'innesto ha
+   già riempito: qui non c'è nessuna scelta di foto da fare).
+
+   NON È UNA NUOVA CORSA DEL MOTORE: `proposte()` ha già scelto chi
+   vince e in che ordine (`grande` prima, poi i `rail` nell'ordine in
+   cui li ha messi, che è già `ORDINE_REGOLE`). Questa funzione si
+   limita ad appiattire quell'uscita in una sequenza e a togliere chi
+   non ha immagine — mai a riordinare, mai a ripescare un candidato
+   scartato altrove. Pura, zero DOM, stessa legge di tutto il file. */
+export function mazzoScopri(m) {
+  const carte = [];
+  if (m && m.grande && m.grande.articolo && m.grande.articolo.foto) carte.push(m.grande);
+  if (m && Array.isArray(m.rail)) for (const r of m.rail)
+    for (const p of r.pezzi) if (p && p.articolo && p.articolo.foto) carte.push(p);
+  return carte;
+}
+
+/* il complemento: cosa RESTA fuori dal mazzo (nessuna immagine) — quello
+   che «Dal negozio» mostra come riga di testo (E05-B), mai come carta.
+   Stessa fonte, stesso ordine: non una seconda selezione. */
+export function senzaFotoScopri(m) {
+  const righe = [];
+  if (m && m.grande && m.grande.articolo && !m.grande.articolo.foto) righe.push(m.grande);
+  if (m && Array.isArray(m.rail)) for (const r of m.rail)
+    for (const p of r.pezzi) if (p && p.articolo && !p.articolo.foto) righe.push(p);
+  return righe;
 }
 
 /* ═══════════════════════════════════════════════════════════════════

@@ -415,3 +415,241 @@ body[data-pieno="1"] #toast-zona{bottom:calc(24px + var(--safe-b))}
 
 /* il gruppo dei rimandi in radice respira come un gruppo di Impostazioni */
 .pt-rimandi{margin-top:24px}
+
+/* ═══════════════════════════════════════════════════════════════════
+   F6 (28/09) · «PER TE» A DUE INTERFACCE — «Scopri» / «Dal negozio».
+   Ancore: tavole-perte-2 (E01-E12), ASSIEME_SCOPERTA_B, ASSIEME_VETRINA_A.
+   Stesse due regole di sempre: nessun hex (solo ruoli e i token di
+   palette fissi già usati sopra — --quieto/--tenue/--incisa/--notte/
+   --luce, mai un colore nuovo), nessuna durata nuova.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── E01-A · IL COMMUTATORE ─────────────────────────────────────────
+   Capsula segmentata, sotto il titolo. Si apre su «Scopri»: è il
+   motore personale, la ragione per cui la sezione si chiama «Per te». */
+.pt-commutatore{display:flex;gap:2px;margin:14px 0 18px;padding:2px;
+  border-radius:var(--r-capsula);background:var(--incavo)}
+.pt-commutatore button{flex:1;min-height:var(--tocco-min);border:0;
+  border-radius:var(--r-capsula);background:none;color:var(--testo-2);
+  font:600 14px/1 var(--f-testo);cursor:pointer;
+  transition:background var(--d-tocco) var(--molla),color var(--d-tocco) var(--molla)}
+.pt-commutatore button.attivo{background:var(--piano);color:var(--testo);
+  box-shadow:0 1px 3px rgb(0 0 0/.18)}
+.pt-commutatore button:focus-visible{outline:2px solid var(--accento);outline-offset:2px}
+
+/* ── «SCOPRI» · LA PAGINA DIVENTA UNA COLONNA CHE RIEMPIE LO SCHERMO ──
+   Solo in questa modalità: `.pagina` (di suo un blocco che cresce col
+   contenuto) diventa una colonna flessibile alta quanto lo strato, così
+   la scena della carta può prendere TUTTO lo spazio che avanza sotto
+   il titolo, il commutatore e la riga di conto — zero scroll, come un
+   mazzo che si guarda una carta alla volta. */
+.pt-scopri-pagina{display:flex;flex-direction:column;min-height:100%}
+
+/* ── E03-B · LA RIGA DI CONTO (Annulla / N di M) ──────────────────── */
+.pt-riga-conto{display:flex;align-items:center;justify-content:space-between;
+  min-height:var(--tocco-min);margin:0 0 6px}
+.pt-annulla{display:inline-flex;align-items:center;min-height:var(--tocco-min);
+  padding:0 2px;border:0;background:none;color:var(--accento);
+  font:var(--t-sub);cursor:pointer;transition:opacity var(--d-tocco) var(--molla)}
+.pt-annulla:active{opacity:.55}
+.pt-annulla[aria-disabled="true"]{color:var(--testo-2);opacity:.5;cursor:default}
+.pt-annulla:focus-visible{outline:2px solid var(--accento);outline-offset:2px;border-radius:6px}
+.pt-conto{font:var(--t-foot);color:var(--testo-2);font-feature-settings:"tnum","lnum"}
+
+/* ── E02-A · LA SCENA, EDGE-TO-EDGE ───────────────────────────────────
+   Sfora il margine della pagina per lato (stessa tecnica di `.rail`,
+   più su): il pezzo riempie l'INTERO telaio in larghezza, zero bordo
+   arrotondato, zero margine laterale — non una card fra le altre. */
+.pt-scena{position:relative;flex:1 1 auto;min-height:280px;overflow:hidden;
+  margin:0 calc(-1 * max(var(--margine),var(--safe-dx))) 12px
+         calc(-1 * max(var(--margine),var(--safe-sx)))}
+.pt-carta{position:absolute;inset:0;touch-action:pan-y;will-change:transform;
+  transform-origin:50% 100%}
+.pt-carta[data-pos="1"]{transform:scale(.96) translateY(10px);z-index:1}
+.pt-carta[data-pos="2"]{transform:scale(.92) translateY(18px);z-index:0}
+.pt-carta[data-pos="0"]{z-index:2}
+.pt-carta.in-trascinamento{transition:none}
+.pt-carta-img{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;background:var(--incavo);pointer-events:none;user-select:none;
+  -webkit-user-drag:none}
+.pt-carta-scrim{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,
+    color-mix(in srgb, var(--notte) 22%, transparent) 0%,
+    transparent 30%,
+    color-mix(in srgb, var(--notte) 90%, transparent) 84%)}
+/* IL TINTA DEL VETRO — 74/88%, non il 46% della tavola di studio: misurato
+   (banco `sonda.py`, 28/09) contro il caso peggiore — una fotografia
+   chiara sotto — il 46% scendeva a 2,78:1. Qui la trasparenza resta
+   vera (si legge ancora il vetro, `backdrop-filter`), ma la tinta è
+   scura abbastanza da garantire il contrasto SEMPRE, non solo sulle
+   foto che oggi capitano scure. */
+.pt-carta-motivo{position:absolute;top:14px;left:14px;right:14px;z-index:1;
+  display:inline-flex;align-self:flex-start;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--r-capsula);
+  background:color-mix(in srgb, var(--notte) 74%, transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  color:var(--luce);font:var(--t-cap2);letter-spacing:.12em;text-transform:uppercase}
+.pt-carta-corpo{position:absolute;left:14px;right:14px;bottom:14px;
+  padding:12px 14px;border-radius:14px;color:var(--luce);
+  background:color-mix(in srgb, var(--notte) 88%, transparent)}
+.pt-carta-nome{display:block;font:var(--t-1)}
+.pt-carta-prezzo{display:block;margin-top:4px;font:var(--t-sub)}
+.pt-carta-ragione{display:block;margin-top:6px;font:var(--t-sub);color:var(--quieto)}
+/* SENZA FOTO NON ESISTE QUI (E05): questa scena si monta solo su un
+   pezzo già filtrato da `mazzoScopri` — la regola vive nel motore, non
+   in una foto placeholder da disegnare. */
+
+/* ── E03 · I TIMBRI, IN PROPORZIONE ALLA DISTANZA ─────────────────── */
+.pt-timbro{position:absolute;top:28px;z-index:2;padding:8px 16px;
+  border-radius:8px;border-width:3px;border-style:solid;
+  font:600 20px/1 var(--f-testo);letter-spacing:.06em;text-transform:uppercase;
+  opacity:0;pointer-events:none}
+.pt-timbro.si{left:20px;transform:rotate(-14deg);color:var(--accento);border-color:var(--accento)}
+.pt-timbro.no{right:20px;transform:rotate(14deg);color:var(--errore);border-color:var(--errore)}
+
+/* ── E06-C · I DUE TASTI, RIUSATI DAL BLOCCO GRANDE ───────────────── */
+.pt-scopri-pagina .blocco-azioni{margin:0 0 4px}
+
+/* ── E06-A · FINE DEL MAZZO ────────────────────────────────────────── */
+.pt-fine{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;
+  padding:24px 0 12px;text-align:left}
+.pt-fine .segno-filo{color:var(--tenue)}
+.pt-fine-titolo{display:block;margin-top:16px;font:var(--t-2)}
+.pt-fine-sotto{display:block;margin-top:4px;color:var(--testo-2)}
+.griglia-riepilogo{display:flex;gap:28px;margin-top:20px}
+.riepilogo-cella{display:flex;flex-direction:column}
+.riepilogo-cella .num{font:var(--t-1);font-feature-settings:"tnum","lnum"}
+.riepilogo-cella .et{margin-top:2px;font:var(--t-foot);color:var(--testo-2)}
+.pt-fine .tasto{margin-top:22px;align-self:flex-start}
+
+/* ── E07 · STATO VUOTO — dentro la scena, non nella pagina ─────────── */
+.pt-scopri-pagina .vuoto{flex:1 1 auto;justify-content:center;padding:0}
+
+@media (prefers-reduced-motion:reduce){
+  .pt-commutatore button,.pt-annulla{transition:none}
+  .pt-carta{transition:opacity 150ms linear !important}
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   «DAL NEGOZIO» — ASSIEME_VETRINA_A: hero a carosello, riquadri delle
+   collezioni, scaffali tematici. Caricata a richiesta
+   (`app/viste/perte-negozio.js`): non pesa sull'avvio, che apre su
+   «Scopri».
+   ═══════════════════════════════════════════════════════════════════ */
+.pt-negozio{padding-bottom:8px}
+
+/* ── E08-A · L'HERO A CAROSELLO — un solo scorrimento, con aggancio ──
+   (correzione del coordinatore, 28/09: regge da 1 a N promo, mai
+   banner impilati). `.pt-hero-carosello` sfora il margine della pagina
+   per lato (stessa tecnica di `.rail`): con 1 sola promo si comporta
+   come un blocco fermo — il contenuto non basta a scorrere. */
+.pt-hero-carosello{display:flex;margin-top:4px;
+  margin-left:calc(-1 * max(var(--margine),var(--safe-sx)));
+  margin-right:calc(-1 * max(var(--margine),var(--safe-dx)));
+  padding:0 max(var(--margine),var(--safe-dx)) 0 max(var(--margine),var(--safe-sx));
+  overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}
+.pt-hero-carosello::-webkit-scrollbar{display:none}
+.pt-hero-slide{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always}
+.pt-hero{position:relative;border-radius:var(--r-card);overflow:hidden;
+  aspect-ratio:361/470;box-shadow:0 6px 24px rgb(0 0 0/.22)}
+.pt-hero-img{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;background:var(--incavo)}
+.pt-hero-scrim{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,
+    color-mix(in srgb, var(--notte) 10%, transparent) 0%,
+    transparent 30%,
+    color-mix(in srgb, var(--notte) 92%, transparent) 86%)}
+/* stessa tinta misurata di `.pt-carta-corpo`: 88%, non il velo leggero
+   della tavola di studio — garantisce 4,5:1 anche sulla foto più chiara. */
+.pt-hero-corpo{position:absolute;left:14px;right:14px;bottom:14px;
+  padding:14px 16px 16px;border-radius:16px;color:var(--luce);
+  background:color-mix(in srgb, var(--notte) 88%, transparent)}
+.pt-hero-badge{display:inline-block;margin-bottom:8px;padding:5px 12px;
+  border-radius:var(--r-capsula);background:var(--accento);color:var(--accento-testo);
+  font:700 11px/1 var(--f-testo);letter-spacing:.06em;text-transform:uppercase}
+.pt-hero-titolo{display:block;font:var(--t-1)}
+.pt-hero-sotto{display:block;margin-top:5px;max-width:94%;font:var(--t-sub);color:var(--quieto)}
+/* ── E12-B · LA RIGA DI SCADENZA — data per esteso + il calcolo, mai
+   un timer vivo (stessa legge del motore: niente countdown). ──────── */
+.pt-hero-scadenza{display:flex;align-items:baseline;gap:8px;margin-top:8px;
+  color:var(--quieto);font:var(--t-foot)}
+.pt-hero-scadenza .giorni{color:var(--luce);font-weight:600}
+.pt-hero-tasto{display:inline-block;margin-top:14px;padding:0 20px;height:44px;
+  border:0;line-height:44px;border-radius:var(--r-capsula);background:var(--luce);
+  color:var(--notte);font:600 15px/44px var(--f-testo);cursor:pointer}
+.pt-puntini{display:flex;justify-content:center;gap:5px;margin-top:12px}
+.pt-puntini i{width:6px;height:6px;border-radius:var(--r-capsula);
+  background:var(--linea);display:block}
+.pt-puntini i.qui{width:16px;background:var(--accento)}
+
+.pt-occ{display:block;margin:28px 0 10px 2px;font:var(--t-head);color:var(--testo)}
+
+/* ── E09-A · I RIQUADRI DELLE COLLEZIONI ──────────────────────────── */
+.pt-riquadri{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pt-riquadro{position:relative;display:block;width:100%;padding:0;border:0;
+  border-radius:var(--r-card);overflow:hidden;aspect-ratio:1/1.1;
+  background:none;cursor:pointer;text-align:left;
+  transition:transform var(--d-tocco) var(--molla)}
+.pt-riquadro:active{transform:scale(.98)}
+.pt-riquadro:focus-visible{outline:2px solid var(--accento);outline-offset:3px}
+.pt-riquadro-img{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;background:var(--incavo)}
+.pt-riquadro-scrim{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,transparent 44%,
+    color-mix(in srgb, var(--notte) 82%, transparent) 100%)}
+/* stessa tinta misurata di `.pt-carta-corpo`: 88%, garantisce 4,5:1
+   anche sulla foto più chiara sotto — vedi banco `sonda.py`, 28/09. */
+.pt-riquadro-testo{position:absolute;left:10px;right:10px;bottom:10px;
+  padding:8px 10px 10px;border-radius:10px;color:var(--luce);
+  background:color-mix(in srgb, var(--notte) 88%, transparent)}
+.pt-riquadro-eti{display:block;font:700 10px/1 var(--f-testo);
+  letter-spacing:.08em;text-transform:uppercase;color:var(--quieto)}
+.pt-riquadro-tit{display:block;margin-top:3px;font:var(--t-2)}
+
+/* ── E10-A · LE SEZIONI TEMATICHE, A SCAFFALE ─────────────────────── */
+.pt-sez{margin:26px 0 0}
+.pt-sez-intest{display:flex;align-items:baseline;justify-content:space-between;
+  margin:0 2px 8px}
+.pt-sez-intest b{font:var(--t-head);color:var(--testo)}
+.pt-sez-vedi{border:0;background:none;color:var(--accento);font:var(--t-foot);
+  min-height:var(--tocco-min);padding:0 2px;cursor:pointer}
+.pt-rail{display:flex;gap:12px;overflow-x:auto;margin:0;padding:0 2px 2px;
+  scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.pt-rail::-webkit-scrollbar{display:none}
+.pt-rail-card{position:relative;flex:0 0 auto;width:150px;padding:0;border:0;
+  background:none;text-align:left;cursor:pointer;scroll-snap-align:start;
+  transition:transform var(--d-tocco) var(--molla)}
+.pt-rail-card:active{transform:scale(.97)}
+.pt-rail-card:focus-visible{outline:2px solid var(--accento);outline-offset:3px;
+  border-radius:var(--r-card)}
+.pt-rail-img{display:block;width:150px;height:190px;border-radius:var(--r-card);
+  object-fit:cover;background:var(--incavo)}
+.pt-rail-nome{display:block;margin-top:6px;font:var(--t-sub);color:var(--testo)}
+.pt-rail-prezzo{display:block;color:var(--testo-2);font:var(--t-foot)}
+.pt-rail-coda{flex:0 0 auto;width:150px;height:190px;border-radius:var(--r-card);
+  background:var(--piano);display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:16px;color:var(--testo-2);font:var(--t-foot)}
+
+/* ── E11-A / E05-B · «ANCHE PER TE» — la distinzione promo/personale ──
+   Stessa pillola, colore diverso + parola sempre presente (canone
+   Registro: il colore non porta mai da solo il significato). Il pezzo
+   SENZA foto resta una riga di testo pura — mai un riquadro vuoto. */
+.pt-riga-negozio{display:flex;gap:12px;align-items:center;
+  margin:0 0 10px;padding:14px 16px;border-radius:var(--r-lista);background:var(--piano)}
+.pt-riga-negozio-foto{flex:none;width:64px;height:64px;border-radius:10px;
+  object-fit:contain;background:var(--incavo)}
+.pt-riga-negozio-corpo{flex:1 1 auto;min-width:0}
+.pt-badge{display:inline-flex;align-items:center;gap:5px;
+  font:600 10px/1 var(--f-testo);letter-spacing:.07em;text-transform:uppercase;
+  padding:5px 10px;border-radius:var(--r-capsula)}
+.pt-badge.pers{background:var(--incavo);color:var(--testo-2)}
+.pt-badge.promo{background:color-mix(in srgb, var(--accento) 18%, var(--piano));
+  color:var(--accento)}
+.pt-riga-negozio-nome{display:block;margin-top:6px;font:var(--t-body);color:var(--testo)}
+.pt-riga-negozio-sotto{display:block;margin-top:2px;font:var(--t-foot);color:var(--testo-2)}
+
+@media (prefers-reduced-motion:reduce){
+  .pt-riquadro,.pt-rail-card{transition:none}
+  .pt-riquadro:active,.pt-rail-card:active{transform:none}
+}

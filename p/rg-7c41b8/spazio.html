@@ -3149,7 +3149,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perché il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova è una correzione che non arriva. */
-const VERSIONE = "2026-09-28a";
+const VERSIONE = "2026-09-28b";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non è zero, è un ReferenceError, e un ReferenceError lì
@@ -9571,7 +9571,7 @@ function passoDito(){
   gestoSporco = 0;
   if(!giu) return;
   if(livello === 0 && MARMOTTA){
-    if(inMarmotta()) MM.trascina(mosso);
+    if(inMarmotta()) MM.trascina(mosso, mossoY);   // A3: di lato la famiglia, in verticale le file
   } else if(livello === 0){
     const lim = Math.max(0, LARGO_BANCO/2 - 0.06);
     occhioObiettivo.x = Math.max(-lim, Math.min(lim, partenzaX - mosso*0.0016*GUADAGNO));
@@ -9664,6 +9664,7 @@ addEventListener("pointerup", e => {
      sulla stazione più vicina, che è come si comporta una lista con
      l'aggancio quando la si trattiene e la si lascia. */
   if(fermava && Math.abs(dx) < 8 && Math.abs(dy) < 8){
+    if(livello === 0 && inMarmotta()) MM.lascia(0);
     if(livello === 1){
       posMeta = Math.max(0, Math.min(limiteN(), Math.round(pos)));
       fermaCoda();                  // un aggancio, non un lancio
@@ -9810,7 +9811,8 @@ addEventListener("pointerup", e => {
      Sul pezzo si esce con «indietro», col pizzico all'indietro, o toccando
      fuori dal gioiello: tre strade, nessuna delle quali è il gesto con cui
      lo si sta guardando. */
-  if(livello !== 2 && dy > 70 && Math.abs(dy) > Math.abs(dx)){ indietro(); return; }
+  /* A3: nella marmotta il gesto verticale scorre le file del vassoio */
+  if(livello !== 2 && !(livello === 0 && MARMOTTA) && dy > 70 && Math.abs(dy) > Math.abs(dx)){ indietro(); return; }
   if(Math.abs(dx) < 8 && Math.abs(dy) < 8) tocca(e, durata);
   sveglia();
 });
@@ -12155,7 +12157,7 @@ MM = (function creaMarmotta(){
   const V = {W: 0.178, D: 0.146, H: 0.020, P: 0.0015, F: 0.005, R: 0.006};
   const ROTOLO = 0.009;                         // raggio del rotolo imbottito
   const CERN = {y: B.H, z: -B.D / 2};           // la cerniera, sul lato lungo dietro
-  const Z_VASS = -B.D / 2 + B.P + 2 * ROTOLO + 0.002 + V.D / 2;
+  let Z_VASS = -B.D / 2 + B.P + 2 * ROTOLO + 0.002 + V.D / 2;
   const INT = {W: V.W - 2 * V.P, D: V.D - 2 * V.P};   // l'interno del vassoio
   const PASSO_V = 0.34, ALZA_V = 0.042;
   /* LA MARMOTTA SI APRE A LIBRO, quasi piatta (verdetto del critic,
@@ -12171,15 +12173,109 @@ MM = (function creaMarmotta(){
      macchina ALTA, non stendendolo. */
   const GRADI_APERTO = +(par("aperto") || 107);
   const APERTO = -GRADI_APERTO * Math.PI / 180;
-  const ELEV0 = +(par("elev0") || 40) * Math.PI / 180, ELEV1 = +(par("elev") || 62) * Math.PI / 180;
+  let ELEV0 = +(par("elev0") || 40) * Math.PI / 180, ELEV1 = +(par("elev") || 62) * Math.PI / 180;
   /* e uno SCARTO DI LATO fisso, come le foto di catalogo a 3/4: dà
      spessore alle pareti. Lo stesso per tutta la sessione, mai toccato
      dallo swipe. */
-  const YAW = +(par("yaw") || 12) * Math.PI / 180;
+  let YAW = +(par("yaw") || 12) * Math.PI / 180;
   const REGIA_M = {coperchio: 700, luce: [300, 800], pezzo: [600, 1000],
                    camera: 1100, fine: 1600, ridotto: 200};
   const CURVA_COP = bezier(.2, .8, .2, 1);
   const DOVE = new THREE.Vector3(0, 0, 0.020);  // la marmotta sul piano
+
+  /* ══ A3 + B3 — LA VERSIONE VERA (28/09, scelte di Massimo) ══════
+     Dallo studio del secondo giro (`studio-cofanetto-2/INDICE.md`)
+     Massimo ha scelto:
+       · A3  capsule-indice sempre visibili (un tocco = la famiglia) e
+             UN vassoio per famiglia, a sedi di misura fissa; le file che
+             non ci stanno scorrono DENTRO il vassoio (gesto verticale,
+             inerzia, aggancio a una fila). Lo swipe di lato resta la
+             scorciatoia per la famiglia accanto.
+       · B3  frontale bassa 36°, macchina centrata, nessuna diagonale.
+     Di serie quindi A3+B3 col seme vero. Restano per i confronti:
+       ?studio=A1|A2      le strutture scartate
+       ?profilo=P1..P4    le collezioni di prova (il seme vero non si tocca)
+       ?inq=B1|B2         le inquadrature scartate
+     ═══════════════════════════════════════════════════════════════ */
+  const STUDIO = par("studio") || "A3", PROFILO = par("profilo");
+  const INQ = par("inq") || "B3";
+  const PROFILI = {
+    P1: {busto: [0, 1], orecchini: [0, 1], anelli: [0, 1], rampa: [1], orologi: [1]},   // oggi: 8 pezzi, 5 famiglie
+    P2: {busto: 6, orecchini: 8, anelli: 12, rampa: 4, orologi: 10},                    // pieno: 40
+    P3: {anelli: 1, orologi: 10},                                                          // sbilanciato
+    P4: {anelli: 2}};                                                                      // piccolo
+  const PROVA = !!PROFILI[PROFILO];        // una collezione di prova, non il seme vero
+  const PROF = PROFILI[PROFILO] || PROFILI.P1;
+  const quantiProf = fam => { const v = PROF[fam]; return !v ? 0 : Array.isArray(v) ? v.length : v; };
+  const chiaviProf = fam => { const v = PROF[fam]; return !v ? [] : Array.isArray(v) ? v.slice() : [...Array(v).keys()]; };
+  /* LA SEDE DI CATALOGO, densità di PRESENTAZIONE (ESPOSIZIONE §1, §3):
+     [passo in x, passo in z, quanto si può allungare in z]
+       anello   44×47  (M3 riquadro 43×47)       — il riquadro lungo resta
+       orecchini 58×70 (VASP4 55×75, STVN12 90×75)
+       collana  58×100 (scheda CO23, accorciata)
+       bracciale 150×34 (canale MT1 ~30, steso)
+       orologio 58×71  (CO81 84×107, stretto al guanciale) */
+  const SEDE = {anelli: [0.044, 0.047, 3.1], orecchini: [0.058, 0.070, 1.25],
+                busto: [0.058, 0.100, 1.45], rampa: [0.150, 0.034, 1.3], orologi: [0.058, 0.071, 1.25]};
+  const colonne = (fam, W) => Math.max(1, Math.floor(W / SEDE[fam][0] + 0.1));
+  const righeMax = (fam, D) => Math.max(1, Math.floor(D / SEDE[fam][1] + 0.1));
+  const postiPer = (n, cols) => Math.ceil((n + 1) / cols) * cols;      // almeno un posto libero
+  /* LE TAGLIE VERE della marmotta (ESPOSIZIONE §2.8): la S è quella
+     pubblicata; M ~ 26×22; L = M17/M18 28×35; XL fuori catalogo. */
+  const FORMATI = [["S", 0.200, 0.188], ["M", 0.260, 0.220], ["L", 0.280, 0.350], ["XL", 0.340, 0.420]];
+  const studioInfo = {studio: STUDIO, profilo: PROVA ? PROFILO : "vero", inq: INQ, formato: "S", piani: null};
+  function formato(W, D){
+    B.W = W; B.D = D; V.W = W - 0.022; V.D = D - 0.042;
+    INT.W = V.W - 2 * V.P; INT.D = V.D - 2 * V.P;
+    CERN.z = -B.D / 2;
+    Z_VASS = -B.D / 2 + B.P + 2 * ROTOLO + 0.002 + V.D / 2;
+  }
+  /* A2: i piani per AFFINITÀ, e la marmotta che cresce di taglia finché
+     i due piani ci stanno; oltre la XL si aggiunge un piano (primo che
+     entra, nell'ordine delle famiglie). */
+  const AFFINI = [["anelli", "orecchini"], ["busto", "rampa", "orologi"]];
+  function fondoZona(fam, n, IW){
+    const c = colonne(fam, IW);
+    return Math.ceil((n + 1) / c) * SEDE[fam][1];
+  }
+  function pianiA2(){
+    const present = g => g.filter(f => quantiProf(f) > 0);
+    const gruppi = AFFINI.map(present).filter(g => g.length);
+    for(const [nome, W, D] of FORMATI){
+      const IW = W - 0.025, ID = D - 0.045;
+      if(gruppi.every(g => g.reduce((a, f) => a + fondoZona(f, quantiProf(f), IW), 0) <= ID + 1e-4))
+        return {nome, W, D, piani: gruppi};
+    }
+    const [nome, W, D] = FORMATI[FORMATI.length - 1];
+    const IW = W - 0.025, ID = D - 0.045, piani = [];
+    for(const g of gruppi){
+      let cur = [], h = 0;
+      for(const f of g){
+        const z = fondoZona(f, quantiProf(f), IW);
+        if(cur.length && h + z > ID){ piani.push(cur); cur = []; h = 0; }
+        cur.push(f); h += z;
+      }
+      if(cur.length) piani.push(cur);
+    }
+    return {nome, W, D, piani};
+  }
+  if(STUDIO === "A2"){
+    const p = pianiA2();
+    formato(p.W, p.D);
+    studioInfo.formato = p.nome; studioInfo.piani = p.piani;
+  }
+  /* LE INQUADRATURE, tutte con la macchina CENTRATA (yaw 0):
+       B1 frontale alta 58°, marmotta intera;
+       B2 pianta 86°, quadro sul fondo (il coperchio in alto, di taglio);
+       B3 frontale bassa 36°, ravvicinata sul vassoio (coperchio fuori). */
+  const INQUADRATURE = {B1: {elev: 58, quadro: "tutto"}, B2: {elev: 86, quadro: "fondo"},
+                        B3: {elev: 36, quadro: "B3"}};
+  const INQ_ = INQUADRATURE[INQ] || INQUADRATURE.B3;
+  YAW = 0; ELEV1 = (+(par("elev")) || INQ_.elev) * Math.PI / 180;
+  /* B3 E LA CERIMONIA: la macchina sale da 28° a 36° mentre il coperchio
+     si apre — la stessa grammatica lockata dell'astuccio («la macchina da
+     28° a 36° entro 1100»). Da lì in poi 36°, per tutta la sessione. */
+  ELEV0 = (+(par("elev0")) || (INQ_.quadro === "B3" ? 28 : Math.min(40, INQ_.elev))) * Math.PI / 180;
 
   /* ── LE MATERIE ────────────────────────────────────────────── */
   const TURCHESE = 0x106068, AVORIO = 0xD8CEBE, ORO = 0xEED69A;
@@ -12387,6 +12483,7 @@ MM = (function creaMarmotta(){
                  vassoi: [], pos: 0, meta: 0, v: 0, n: 0, marchio: null,
                  fotogrammiCerimonia: []};
   let pronta = false;
+  let marchioCielo = null;
 
   function costruisci(){
     if(stato.costruita) return;
@@ -12430,6 +12527,10 @@ MM = (function creaMarmotta(){
     md.position.set(0, C.H - C.T - 0.0036, 0.004);
     md.renderOrder = 2;
     cop.add(md);
+    marchioCielo = md;
+    /* le file che scorrono dentro il vassoio si tagliano sui due fili
+       della finestra (vedi `taglia`): piani di taglio per materiale */
+    rend.localClippingEnabled = true;
     /* il filetto d'oro attorno al cielo e sul tetto */
     const fil = (w, d, y, giu) => {
       const g = cornice(w, d, 0.0003, 0.0009, 0.004, 0);
@@ -12479,8 +12580,9 @@ MM = (function creaMarmotta(){
     radice.traverse(o => { o.userData.marmotta = true; });
     /* il sole stringe la sua camera sulla marmotta: sul telefono la mappa
        è 512, e sui 1,6 m del banco un texel valeva 3 mm */
-    sole.shadow.camera.left = -0.28; sole.shadow.camera.right = 0.28;
-    sole.shadow.camera.top = 0.32;   sole.shadow.camera.bottom = -0.24;
+    const sk = Math.max(1, B.D / 0.188, B.W / 0.200);     // STUDIO: la taglia cresce, l'ombra la segue
+    sole.shadow.camera.left = -0.28 * sk; sole.shadow.camera.right = 0.28 * sk;
+    sole.shadow.camera.top = 0.32 * sk;   sole.shadow.camera.bottom = -0.24 * sk;
     sole.shadow.camera.updateProjectionMatrix();
     ombraDaRifare();
     window.__marmotta = api;
@@ -12489,6 +12591,7 @@ MM = (function creaMarmotta(){
   /* ── I PEZZI CHE HA ────────────────────────────────────────── */
   const EXTRA = new Set();      // pezzi entrati con `esemplare/nuovo`
   function posseduti(fam){
+    if(PROVA) return chiaviProf(fam).filter(k => merci[fam] && merci[fam][k]);
     const ks = new Set();
     for(const c in PONTE){ const [f, k] = PONTE[c]; if(f === fam) ks.add(k); }
     for(const x of EXTRA){ const [f, k] = x.split(":"); if(f === fam) ks.add(+k); }
@@ -12621,7 +12724,7 @@ MM = (function creaMarmotta(){
   /* le geometrie rimodellate, per famiglia e per file (lite / pieno) */
   const RIMOD = new Map();
   function geometriaStesa(fam, geo, largo, fondo){
-    const chiave = geo.uuid + ":" + (largo || 0).toFixed(4);
+    const chiave = geo.uuid + ":" + (largo || 0).toFixed(4) + ":" + (fondo || 0).toFixed(4);
     if(RIMOD.has(chiave)) return RIMOD.get(chiave);
     const ov = ovale(geo);
     const pc = fam === "rampa" ? stadio(ov) : sullaScheda(ov, largo, fondo);
@@ -12978,26 +13081,22 @@ MM = (function creaMarmotta(){
     const f = firmaOra();
     if(!forza && f === firma) return;
     firma = f;
-    const eraFam = stato.vassoi[Math.round(stato.pos)] && stato.vassoi[Math.round(stato.pos)].fam;
+    const vq = vistaCorrente();
+    const eraFam = vq && vq.fam;
+    /* le file scorse si ricordano, per famiglia: un vassoio che si rifà
+       (un pezzo tolto, un pezzo nuovo) non torna alla prima fila */
+    for(const t of stato.vassoi) if(t.righe) FILA[t.fam] = Math.round(t.filaMeta || 0);
     /* i pezzi tornano a casa prima che i vassoi vecchi si buttino: sono
        oggetti veri, e un pezzo dentro un vassoio buttato sparirebbe */
     for(const t of stato.vassoi) rimetti(t.gruppo);
     for(const t of stato.vassoi){ letto.remove(t.gruppo); liberaGeometrie(t.gruppo); }
-    stato.vassoi = [];
-    for(const fm of FAMIGLIE){
-      if(!arrivate.has(fm.id)) continue;
-      const ks = posseduti(fm.id);
-      if(!ks.length) continue;
-      const g = nuovoVassoio(fm.id);
-      const posti = interno(fm.id, g, ks);
-      g.traverse(o => { o.userData.marmotta = true; });
-      letto.add(g);
-      stato.vassoi.push({fam: fm.id, nome: fm.nome, gruppo: g, posti, ks});
-    }
+    stato.vassoi = []; stato.ponte = null;
+    apparecchiaStudio();
     stato.n = stato.vassoi.length;
     let i = stato.vassoi.findIndex(t => t.fam === eraFam);
     if(i < 0) i = Math.min(Math.round(stato.pos), Math.max(0, stato.n - 1));
     stato.pos = stato.meta = Math.max(0, i); stato.v = 0;
+    indiceFatto = "";
     disponiVassoi();
     chiOmbra();
     ombraDaRifare();
@@ -13010,7 +13109,14 @@ MM = (function creaMarmotta(){
   function rimetti(gr){
     const dentro = [];
     gr.traverse(o => { if(o !== gr && CASA_PEZZO.has(o)) dentro.push(o); });
-    for(const o of dentro){ const c = CASA_PEZZO.get(o); if(c) c.add(o); }
+    for(const o of dentro){
+      /* il pezzo esce dalla finestra del vassoio: i suoi piani di taglio no */
+      o.traverse(m => { if(m.isMesh) for(const x of listaMat(m.material)){
+        if(x.clippingPlanes){ x.clippingPlanes = null; x.clipShadows = false; x.needsUpdate = true; }
+        if(x.userData.mmTr !== undefined){ x.transparent = x.userData.mmTr; x.opacity = x.userData.mmOp;
+          delete x.userData.mmTr; delete x.userData.mmOp; x.needsUpdate = true; } } });
+      const c = CASA_PEZZO.get(o); if(c) c.add(o);
+    }
   }
   function liberaGeometrie(gr){
     gr.traverse(o => {
@@ -13018,12 +13124,24 @@ MM = (function creaMarmotta(){
       let n = o, pezzo = false;
       while(n){ if(CASA_PEZZO.has(n)){ pezzo = true; break; } n = n.parent; }
       if(!pezzo && o.geometry) o.geometry.dispose();
+      /* le copie dei materiali col taglio sono del vassoio: se ne vanno con lui */
+      if(!pezzo) for(const x of listaMat(o.material)) if(x.clippingPlanes) x.dispose();
     });
   }
+  /* IL SALTO DALLA CAPSULA. Da «Anelli» a «Orologi» ci sono due vassoi
+     in mezzo: con la molla che corre da 2 a 4 si vedrebbero passare
+     tutti e due. Per il tempo del salto il vassoio di partenza prende il
+     posto di quello ACCANTO alla meta (`ponte.finto`), e quello vero si
+     spegne: si vede un vassoio che esce e quello chiesto che entra,
+     come uno swipe solo. */
+  const indiceReale = i => (stato.ponte && i === stato.ponte.finto) ? stato.ponte.da : i;
   function disponiVassoi(){
+    const P = stato.ponte;
     for(let i = 0; i < stato.vassoi.length; i++){
       const g = stato.vassoi[i].gruppo;
-      const d = i - stato.pos, u = Math.abs(d);
+      if(P && i === P.finto){ g.visible = false; continue; }
+      const iv = (P && i === P.da) ? P.finto : i;
+      const d = iv - stato.pos, u = Math.abs(d);
       /* a riposo i vicini NON esistono: con la macchina alta e di tre
          quarti il bancone si vede fino ai lati, e un vassoio parcheggiato
          a 34 cm si leggeva come merce sparsa */
@@ -13086,11 +13204,81 @@ MM = (function creaMarmotta(){
       if(c && f){ const r = c.getBoundingClientRect(), rf = f.getBoundingClientRect();
                   if(r.height) y0 = Math.max(y0, r.bottom - rf.top + 6); }
     } catch(_) {}
-    return {x0: a.x0, x1: a.x1, y0, y1: a.y1, cartellino: a.y1};
+    const b = {x0: a.x0, x1: a.x1, y0, y1: a.y1, cartellino: a.y1};
+    if(STUDIO) studioBanda(b);
+    return b;
+  }
+  /* ── B3: IL QUADRO SUL VASSOIO ──────────────────────────────────
+     A 36° e con la macchina centrata il limite è la LARGHEZZA: lo
+     spigolo davanti della base, il più vicino, è il più largo a schermo.
+     Quindi: (1) la base occupa tutta la larghezza meno MARGINE per lato
+     — la marmotta non esce MAI di lato; (2) il suo filo in basso si posa
+     a POSA_GIU punti sopra il cartellino, e tutta l'aria del pavimento
+     sotto la marmotta sparisce; (3) il coperchio sale dietro fin dove
+     arriva, e può uscire dal bordo alto. L'unico vincolo in alto è il
+     MARCHIO del cielo: la sua cima deve stare sotto la fila delle
+     capsule (fondo della fila + 6). Se non ci sta, si stringe il quadro
+     di un 2 % alla volta — mai il contrario. */
+  const MARGINE = 6, POSA_GIU = 10;
+  function puntiSchermo(pts){
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for(const p of pts){ const v = p.clone().project(_cm);
+      const sx = (v.x * 0.5 + 0.5) * innerWidth, sy = (-v.y * 0.5 + 0.5) * innerHeight;
+      x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy); }
+    return {x0, y0, x1, y1};
+  }
+  /* gli angoli del marchio del cielo col coperchio APERTO, nel mondo */
+  function angoliMarchio(){
+    if(!marchioCielo) return [];
+    const r0 = perno.rotation.x;
+    perno.rotation.x = APERTO; radice.updateMatrixWorld(true);
+    const g = marchioCielo.geometry; if(!g.boundingBox) g.computeBoundingBox();
+    const b = g.boundingBox, out = [];
+    for(const [x, y] of [[b.min.x, b.min.y], [b.max.x, b.min.y], [b.min.x, b.max.y], [b.max.x, b.max.y]])
+      out.push(new THREE.Vector3(x, y, 0).applyMatrix4(marchioCielo.matrixWorld));
+    perno.rotation.x = r0; radice.updateMatrixWorld(true);
+    return out;
+  }
+  function misuraQuadroB3(){
+    const a = bandaMarmotta();
+    const base = new THREE.Box3(
+      new THREE.Vector3(DOVE.x - B.W / 2, 0, DOVE.z - B.D / 2),
+      new THREE.Vector3(DOVE.x + B.W / 2, B.H, DOVE.z + B.D / 2));
+    const mira = base.getCenter(new THREE.Vector3()); mira.y = B.H * 0.9;
+    const occ = new THREE.Vector3();
+    const marchio = angoliMarchio();
+    let largo = (a.x1 - a.x0) - 2 * MARGINE, d = 0.8, stretto = 0, qm = null;
+    const giu = a.y1 - POSA_GIU;
+    for(let tent = 0; tent < 16; tent++){
+      for(let i = 0; i < 10; i++){
+        sguardo(ELEV1, d, mira, occ);
+        let q = proietta(base, occ, mira);
+        const k = (q.x1 - q.x0) / largo;
+        d *= k;
+        sguardo(ELEV1, d, mira, occ);
+        q = proietta(base, occ, mira);
+        const perPunto = 2 * d * Math.tan(camera.fov * Math.PI / 360) / innerHeight;
+        const dy = (q.y1 - giu) * perPunto;
+        const dx = ((q.x0 + q.x1) / 2 - (a.x0 + a.x1) / 2) * perPunto;
+        const dx3 = new THREE.Vector3().setFromMatrixColumn(_cm.matrixWorld, 0).normalize();
+        const dy3 = new THREE.Vector3().setFromMatrixColumn(_cm.matrixWorld, 1).normalize();
+        mira.addScaledVector(dy3, -dy).addScaledVector(dx3, dx);
+        if(Math.abs(k - 1) < 0.001 && Math.abs(dy) < perPunto * 0.3) break;
+      }
+      sguardo(ELEV1, d, mira, occ); proietta(base, occ, mira);
+      qm = marchio.length ? puntiSchermo(marchio) : null;
+      if(!qm || qm.y0 >= a.y0) break;
+      largo *= 0.98; stretto++;
+    }
+    quadro.d = d; quadro.mira.copy(mira); quadro.fatto = true; quadro.box = base;
+    quadro.banda = {y0: +a.y0.toFixed(1), y1: +a.y1.toFixed(1), x0: a.x0, x1: a.x1, cartellino: +a.y1.toFixed(1)};
+    quadro.b3 = {largo: +largo.toFixed(1), stretto, marchio: qm && {y0: +qm.y0.toFixed(1), y1: +qm.y1.toFixed(1)},
+                 capsule_fondo: +a.y0.toFixed(1)};
   }
   function misuraQuadro(){
+    if(INQ_.quadro === "B3") return misuraQuadroB3();
     const a = bandaMarmotta();
-    const box = scatolaAperta();
+    const box = INQ_ ? scatolaStudio() : scatolaAperta();
     const mira = box.getCenter(new THREE.Vector3());
     mira.y = B.H * 0.9;
     const occ = new THREE.Vector3();
@@ -13127,6 +13315,7 @@ MM = (function creaMarmotta(){
 
   /* ── LA SCRITTA ─────────────────────────────────────────────── */
   function scritteVassoio(){
+    if(stato.aperta){ scritteStudio(); return; }
     if(!stato.aperta){
       const tot = stato.vassoi.reduce((a, t) => a + t.ks.length, 0);
       scritte("Il tuo cofanetto", "", tot ? tot + (tot === 1 ? " pezzo" : " pezzi") + " · "
@@ -13143,7 +13332,8 @@ MM = (function creaMarmotta(){
   }
   let scrittoI = -1;
   function segnaVassoio(){
-    const i = Math.round(stato.pos);
+    segnaIndice();
+    const i = indiceReale(Math.round(stato.pos));
     if(i !== scrittoI){ scrittoI = i; scritteVassoio(); }
   }
 
@@ -13168,7 +13358,7 @@ MM = (function creaMarmotta(){
   function metti_luce(f){ luceVano.intensity = 2.4 * f; }
   const ALZA_PEZZI = 0.008;
   function pezziDelPrimo(){
-    const t = stato.vassoi[Math.round(stato.pos)];
+    const t = vistaCorrente();
     if(!t) return [];
     const out = [];
     t.gruppo.traverse(o => { if(CASA_PEZZO.has(o)) out.push({o, y: o.position.y}); });
@@ -13252,16 +13442,21 @@ MM = (function creaMarmotta(){
   async function prepara(){
     costruisci();
     await Promise.all(["busto", "rampa"].map(f => chiediPiena(f).catch(() => null)));
+    if(PROVA) duplicaMerce();
     apparecchiaLetto(true);
     for(const f of FAMIGLIE) for(const g of (banchi[f.id] || [])) g.visible = false;
     statoFinale();
     /* TUTTI i vassoi in scena per un fotogramma, uno sopra l'altro: così
        geometrie, materiali e texture salgono sulla scheda qui, sotto il
        velo, e non al primo swipe (misurato: 81 ms al primo vassoio nuovo) */
-    for(const t of stato.vassoi){ t.gruppo.visible = true; t.gruppo.position.set(0, B.F, Z_VASS); }
+    for(const t of stato.vassoi){ t.gruppo.visible = true; t.gruppo.position.set(0, B.F, Z_VASS);
+      /* e TUTTE le file, anche quelle fuori finestra: i loro materiali
+         col taglio si compilano qui, non alla prima passata del dito */
+      if(t.file) for(const r of t.file) r.visible = true; }
     ferma();
     try { rend.compile(scena, camera); } catch(_) {}
     dipingi();
+    for(const t of stato.vassoi) mettiFila(t);
     disponiVassoi();
     if(giaAperta()){ statoFinale(); stato.aperta = true; }
     else statoIniziale();
@@ -13286,9 +13481,35 @@ MM = (function creaMarmotta(){
   const K = 130, OLTRE_V = 0.35;
   let giuPos = 0, trascina = false;
   const pxPerVassoio = () => Math.max(160, innerWidth * 0.62);
+  /* L'ASSE SI DECIDE UNA VOLTA, a 9 punti dal contatto: di lato è la
+     famiglia (la scorciatoia che resta), in verticale sono le file del
+     vassoio. Un gesto, un comando: mai tutte e due. */
+  const SOGLIA_ASSE = 9;
+  let asse = null, filaGiu = 0, tFila = null;
+  const campY = [];                 // (tempo, dy): la velocità in verticale, sulla stessa finestra di 90 ms del banco
+  function campionaY(t, y){
+    campY.push(t, y);
+    while(campY.length > 4 && t - campY[0] > 90) campY.splice(0, 2);
+  }
+  function velY(){                   // punti al secondo, positiva quando il dito SALE
+    if(campY.length < 4) return 0;
+    const fine = campY[campY.length - 2];
+    let peso = 0, somma = 0;
+    for(let i = 2; i < campY.length; i += 2){
+      const dt = campY[i] - campY[i - 2]; if(dt <= 0) continue;
+      const w = dt * (1 - (fine - campY[i]) / 90); if(w <= 0) continue;
+      somma += (campY[i - 1] - campY[i + 1]) / (dt / 1000) * w; peso += w;
+    }
+    return peso > 0 ? somma / peso : 0;
+  }
   function giu_(){
     if(!stato.aperta) return;
+    /* un salto dalla capsula in corsa si chiude subito: il dito comanda */
+    if(stato.ponte){ stato.ponte = null; stato.pos = stato.meta; stato.v = 0; disponiVassoi(); segnaVassoio(); }
     trascina = true; giuPos = stato.pos; stato.v = 0; stato.meta = stato.pos;
+    asse = null; campY.length = 0;
+    tFila = vistaCorrente();
+    if(tFila){ tFila.filaMeta = tFila.fila; tFila.filaV = 0; filaGiu = tFila.fila; }
   }
   function gomma_(x){
     const lo = 0, hi = Math.max(0, stato.n - 1);
@@ -13296,15 +13517,57 @@ MM = (function creaMarmotta(){
     if(x > hi){ const u = x - hi; return hi + OLTRE_V * (1 - 1 / (u / OLTRE_V + 1)); }
     return x;
   }
-  function trascina_(mossoPx){
+  function trascina_(mossoPx, mossoY){
     if(!trascina) return;
+    mossoY = mossoY || 0;
+    if(!asse){
+      if(Math.hypot(mossoPx, mossoY) < SOGLIA_ASSE) return;
+      asse = Math.abs(mossoY) > Math.abs(mossoPx) ? "y" : "x";
+    }
+    if(asse === "y"){
+      const t = tFila;
+      campionaY(performance.now(), mossoY);
+      if(!t || !(t.righe > t.vis)) return;   // un vassoio senza file in più non scorre
+      t.fila = gommaF(t, filaGiu - mossoY / pxPerFila(t));
+      t.filaMeta = t.fila; t.filaV = 0;
+      mettiFila(t); segnaFila(); sveglia();
+      return;
+    }
     stato.pos = gomma_(giuPos - mossoPx / pxPerVassoio());
     stato.meta = stato.pos; stato.v = 0;
     disponiVassoi(); segnaVassoio(); sveglia();
   }
+  /* IL LANCIO DELLE FILE: la stessa legge del banco. Si proietta dove il
+     nastro arriverebbe da solo (tau 0,25 s), si prende la fila intera più
+     vicina a quel punto — l'AGGANCIO — dentro i capi; la molla eredita la
+     velocità solo verso la meta, e al più sqrt(k)·distanza. */
+  const TAU_FILA = 0.25;
+  function lasciaFila(){
+    const t = tFila;
+    if(!t || !(t.righe > t.vis)) return;
+    campionaY(performance.now(), campY.length ? campY[campY.length - 1] : 0);
+    const v = velY() / pxPerFila(t);                 // file al secondo, positive = in su = file dopo
+    const hi = t.righe - t.vis;
+    let meta = Math.round(t.fila + v * TAU_FILA);
+    if(v > 0.8) meta = Math.max(meta, Math.ceil(t.fila - 0.02));
+    if(v < -0.8) meta = Math.min(meta, Math.floor(t.fila + 0.02));
+    t.filaMeta = Math.max(0, Math.min(hi, meta));
+    const dist = t.filaMeta - t.fila;
+    t.filaV = (Math.sign(v) === Math.sign(dist) && dist !== 0)
+      ? Math.sign(v) * Math.min(Math.abs(v), Math.sqrt(K) * Math.abs(dist)) : 0;
+    stato.lancioFila = {v: +v.toFixed(3), da: +filaGiu.toFixed(3), fila: +t.fila.toFixed(3), meta: t.filaMeta};
+    if(ridotto){ t.fila = t.filaMeta; t.filaV = 0; mettiFila(t); }
+    segnaFila(); sveglia();
+  }
   function lascia_(velPx){
     if(!trascina) return;
     trascina = false;
+    if(asse === "y"){ asse = null; lasciaFila(); return; }
+    /* un tocco che ha FERMATO un nastro in corsa: si aggancia alla fila
+       più vicina, come una lista trattenuta e lasciata */
+    if(!asse && tFila && tFila.righe > tFila.vis){
+      tFila.filaMeta = Math.max(0, Math.min(tFila.righe - tFila.vis, Math.round(tFila.fila))); tFila.filaV = 0; }
+    asse = null;
     /* `velDito` ha già il verso del CONTENUTO (positivo = il dito va a
        sinistra = il vassoio dopo), come al livello 1 del banco */
     const v = velPx / pxPerVassoio();               // vassoi al secondo
@@ -13335,19 +13598,47 @@ MM = (function creaMarmotta(){
       occhio.copy(occhioObiettivo); mira.copy(miraObiettivo);
       occhioV.set(0, 0, 0); miraV.set(0, 0, 0);
     }
-    if(trascina || !stato.costruita) return;
+    if(!stato.costruita) return;
+    /* le file: ogni vassoio col suo nastro, tranne quello sotto il dito */
+    for(const t of stato.vassoi){
+      if(!(t.righe > t.vis) || (trascina && asse === "y" && t === tFila)) continue;
+      if(!filaMuove(t)){
+        if(t.fila !== t.filaMeta){ t.fila = t.filaMeta; t.filaV = 0; mettiFila(t); segnaFila(); ombraDaRifare(); }
+        continue;
+      }
+      const r = molla(t.fila, t.filaV, t.filaMeta, K, dt);
+      t.fila = r[0]; t.filaV = r[1];
+      /* l'ultimo decimo di millimetro si chiude QUI: il ciclo si ferma
+         appena la molla è sotto soglia, e la fila deve essere intera */
+      if(!filaMuove(t)){ t.fila = t.filaMeta; t.filaV = 0; ombraDaRifare(); }
+      mettiFila(t); segnaFila();
+    }
+    if(trascina) return;
     if(Math.abs(stato.pos - stato.meta) < 0.0008 && Math.abs(stato.v) < 0.004){
-      if(stato.pos !== stato.meta){ stato.pos = stato.meta; stato.v = 0; disponiVassoi(); segnaVassoio(); }
+      if(stato.pos !== stato.meta || stato.ponte){
+        stato.pos = stato.meta; stato.v = 0; stato.ponte = null; disponiVassoi(); segnaVassoio(); }
       return;
     }
     const r = molla(stato.pos, stato.v, stato.meta, K, dt);
     stato.pos = r[0]; stato.v = r[1];
+    if(Math.abs(stato.pos - stato.meta) < 0.0008 && Math.abs(stato.v) < 0.004){
+      stato.pos = stato.meta; stato.v = 0; stato.ponte = null; ombraDaRifare(); }
     disponiVassoi(); segnaVassoio();
   }
   function vai_(i){
     if(!stato.aperta || !stato.n) return;
-    stato.meta = Math.max(0, Math.min(stato.n - 1, i)); stato.v = 0;
-    if(ridotto){ stato.pos = stato.meta; disponiVassoi(); }
+    i = Math.max(0, Math.min(stato.n - 1, i));
+    if(stato.ponte){ stato.ponte = null; stato.pos = stato.meta; disponiVassoi(); }
+    const da = Math.round(stato.pos);
+    /* più di un vassoio di distanza: il ponte (vedi `disponiVassoi`) */
+    if(Math.abs(i - da) > 1 && !ridotto){
+      const s = Math.sign(i - da);
+      stato.ponte = {da, a: i, finto: i - s};
+      stato.pos = i - s + (stato.pos - da);
+    }
+    stato.meta = i; stato.v = 0;
+    if(ridotto){ stato.ponte = null; stato.pos = stato.meta; }
+    disponiVassoi();
     segnaVassoio(); sveglia();
   }
 
@@ -13358,20 +13649,25 @@ MM = (function creaMarmotta(){
     return [(v.x * 0.5 + 0.5) * innerWidth, (-v.y * 0.5 + 0.5) * innerHeight];
   }
   function postoSotto(x, y){
-    const t = stato.vassoi[Math.round(stato.pos)];
-    if(!t || Math.abs(stato.pos - Math.round(stato.pos)) > 0.05) return null;
+    const t = vistaCorrente();
+    if(!t || stato.ponte || Math.abs(stato.pos - Math.round(stato.pos)) > 0.05) return null;
+    if(t.righe > t.vis && Math.abs(t.fila - Math.round(t.fila)) > 0.05) return null;
     t.gruppo.updateWorldMatrix(true, true);
     let best = null, dmin = 1e9;
+    const f0 = t.righe > t.vis ? Math.round(t.fila) : 0;
     for(const p of t.posti){
+      /* solo le file nella finestra: quelle fuori sono tagliate */
+      if(p.riga !== undefined && (p.riga < f0 || p.riga >= f0 + (t.vis || 99))) continue;
+      const rif = p.gr || t.gruppo;
       /* il posto è un rettangolo sul vassoio: lo si proietta e ci si guarda dentro */
       const c = [];
       for(const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]){
         _p.set(p.x + sx * p.w / 2, p.faccia, p.z + sz * p.d / 2);
-        t.gruppo.localToWorld(_p);
+        rif.localToWorld(_p);
         c.push(allo_schermo(_p));
       }
       const dentro = puntoNelQuad(x, y, c);
-      _p.set(p.x, p.y, p.z); t.gruppo.localToWorld(_p);
+      _p.set(p.x, p.y, p.z); rif.localToWorld(_p);
       const [cx, cy] = allo_schermo(_p);
       const d = Math.hypot(cx - x, cy - y);
       if(dentro && d < dmin){ dmin = d; best = p; }
@@ -13395,20 +13691,29 @@ MM = (function creaMarmotta(){
       mostraToast("Posto libero: qui entra il prossimo " + (NOMI_SING[s.t.fam] || "pezzo") + ".", {durata: 2400});
       return true;
     }
-    apri(s.t.fam, s.p.k);
+    apri(s.p.fam || s.t.fam, s.p.k);
     return true;
   }
   function apri(fam, k){
     if(!mio(fam, k)) return false;
-    const i = stato.vassoi.findIndex(t => t.fam === fam);
-    if(i >= 0 && i !== Math.round(stato.pos)){ stato.pos = stato.meta = i; stato.v = 0; disponiVassoi(); }
+    const i = stato.vassoi.findIndex(t => ((t.ksPer || {})[fam] || []).indexOf(k) >= 0);
+    if(i >= 0 && (i !== indiceReale(Math.round(stato.pos)) || stato.ponte)){
+      stato.ponte = null; stato.pos = stato.meta = i; stato.v = 0; disponiVassoi(); }
+    /* e la fila del pezzo entra nella finestra, se era fuori */
+    const t = stato.vassoi[i];
+    if(t && t.righe > t.vis){
+      const p = t.posti.find(x => x.k === k && x.fam === fam);
+      if(p && (p.riga < Math.round(t.fila) || p.riga >= Math.round(t.fila) + t.vis)){
+        t.fila = t.filaMeta = Math.max(0, Math.min(t.righe - t.vis, p.riga - t.vis + 1)); t.filaV = 0;
+        mettiFila(t); segnaFila(true);
+      }
+    }
     attiva = fam;
     apriPezzo(k);
     return true;
   }
   function mio(fam, k){
-    const t = stato.vassoi.find(x => x.fam === fam);
-    return !!(t && t.ks.indexOf(k) >= 0);
+    return stato.vassoi.some(t => ((t.ksPer || {})[fam] || []).indexOf(k) >= 0);
   }
 
   /* ── IL LIVELLO 2: il pezzo si isola, la marmotta si vela ───────
@@ -13560,7 +13865,780 @@ MM = (function creaMarmotta(){
     else { const f = FAMIGLIE.find(x => x.id === fam); if(f) subitoQuesta(f).then(vai).catch(() => {}); }
   }
 
+  /* ══ STUDIO: la merce che serve, le sedi, le tre strutture ═══════ */
+  /* I PEZZI IN PIÙ sono copie dei GLB veri (nessun modello nuovo): il
+     pezzo i-esimo della famiglia ripete il modello i % m, col suo
+     metallo. La copia si fa PRIMA della cottura delle pose, e il
+     userData si copia a mano (le pose portano matrici e geometrie). */
+  function clona(src){
+    const salvati = [];
+    src.traverse(o => { salvati.push([o, o.userData]); o.userData = {}; });
+    const c = src.clone(true);
+    for(const [o, u] of salvati) o.userData = u;
+    const a = [], b = [];
+    src.traverse(o => a.push(o)); c.traverse(o => b.push(o));
+    for(let j = 0; j < a.length && j < b.length; j++){
+      const u = Object.assign({}, a[j].userData);
+      delete u.cottura; delete u.cotta; delete u.cruda; delete u.cottaPiena;
+      b[j].userData = u;
+    }
+    if(src.parent) src.parent.add(c);
+    c.visible = src.visible;
+    return c;
+  }
+  function duplicaMerce(){
+    for(const f of FAMIGLIE){
+      const m = merci[f.id], ks = chiaviProf(f.id);
+      if(!m || !m.length || !ks.length) continue;
+      const m0 = m.length, serve = Math.max(...ks) + 1;
+      while(m.length < serve){
+        const i = m.length % m0;
+        m.push(clona(m[i]));
+        const rip = RIPIANI[f.id];
+        if(rip && rip[i]) rip.push([rip[i][0] + " " + (Math.floor((m.length - 1) / m0) + 1),
+                                    rip[i][1], rip[i][2]]);
+        const P = pose[f.id];
+        if(P) P.push(P[i] ? clona(P[i]) : null);
+      }
+    }
+    studioInfo.merce = FAMIGLIE.map(f => f.id + ":" + ((merci[f.id] || []).length)).join(" ");
+  }
+
+  /* UNA SEDE: il posto di un pezzo, dentro una cella (x, z, w, d) del
+     vassoio, con l'interno della SUA tipologia. È lo stesso disegno di
+     `interno` (pubblicato), portato su una cella qualunque. */
+  let _lingGeo = null;
+  function linguettaGeo(){
+    if(_lingGeo) return _lingGeo;
+    const sl = new THREE.Shape();
+    sl.moveTo(-0.0075, 0); sl.lineTo(0.0075, 0); sl.lineTo(0.0075, 0.0085);
+    sl.quadraticCurveTo(0.0075, 0.0135, 0, 0.0135); sl.quadraticCurveTo(-0.0075, 0.0135, -0.0075, 0.0085);
+    sl.lineTo(-0.0075, 0);
+    const lg = new THREE.ExtrudeGeometry(sl, {depth: 0.0012, bevelEnabled: true,
+      bevelThickness: 0.0005, bevelSize: 0.0005, bevelSegments: 2, curveSegments: 8});
+    lg.rotateY(Math.PI / 2); lg.translate(-0.0006, 0, 0);
+    return (_lingGeo = lg);
+  }
+  let _oro = null;
+  function misuraOrologio(){
+    if(_oro) return _oro;
+    const o1 = merci.orologi[1] || merci.orologi[0];
+    o1.updateWorldMatrix(true, true);
+    const g1 = new THREE.Group(); scena.add(g1);
+    const tmp = o1.clone(true); tmp.position.set(0, 0, 0); tmp.rotation.set(0, 0, 0); g1.add(tmp);
+    const bb = scatolaIn(tmp, g1); scena.remove(g1);
+    const dz = bb.max.z - bb.min.z;
+    const rc = dz / 2 - 0.0032;
+    const cs = new THREE.Shape();
+    const E = 2.7, N = 48;
+    for(let j = 0; j <= N; j++){
+      const a = 2 * Math.PI * j / N, c = Math.cos(a), s = Math.sin(a);
+      const px = Math.sign(c) * Math.pow(Math.abs(c), 2 / E) * (rc * 1.02 - 0.0045);
+      const py = Math.sign(s) * Math.pow(Math.abs(s), 2 / E) * (rc * 0.98 - 0.0045);
+      j ? cs.lineTo(px, py) : cs.moveTo(px, py);
+    }
+    const cg = new THREE.ExtrudeGeometry(cs, {depth: 0.040, bevelEnabled: true,
+      bevelThickness: 0.007, bevelSize: 0.0045, bevelSegments: 5, curveSegments: 8});
+    cg.rotateY(Math.PI / 2); cg.translate(-0.020, 0, 0);
+    return (_oro = {cz: (bb.min.z + bb.max.z) / 2, cy: bb.min.y + dz / 2, cx: (bb.min.x + bb.max.x) / 2, cg});
+  }
+  function sede(fam, v, x, z, w, d, k, Y){
+    if(fam === "anelli"){
+      const h = 0.007;
+      const cu = mesh(lastra(w - 0.0014, d - 0.002, h, 0.005, 0.0030), M.cuscino, false);
+      cu.position.set(x, Y, z); v.add(cu);
+      const tg = taglio(0.0028, Math.min(0.024, d * 0.5)); tg.position.set(x, Y + h + 0.0002, z); v.add(tg);
+      const li = mesh(linguettaGeo(), M.fodera, false);
+      li.position.set(x, Y + h - 0.001, z); v.add(li);
+      if(k !== null){
+        const o = merci.anelli[k];
+        const h0 = new THREE.Group(); h0.position.set(x, Y + h, z); v.add(h0);
+        o.position.set(0, 0, 0); o.rotation.set(Math.PI / 2, 0, 0); o.scale.set(1, 1, 1);
+        posa(o, h0);
+        const b = scatolaIn(o, h0);
+        o.position.set(-(b.min.x + b.max.x) / 2, -b.min.y - 0.0034, -(b.min.z + b.max.z) / 2);
+        const om = ombraPiana(0.026, 0.012, 0.30); om.position.set(x, Y + h + 0.0003, z + 0.002); v.add(om);
+      }
+      return {fam, x, z, y: Y + h, w, d, k, faccia: Y + h};
+    }
+    if(fam === "orecchini"){
+      const ANG = 13 * Math.PI / 180, bw = w - 0.0014, bd = d - 0.0014;
+      const pl = bd - 0.003, pz0 = z + pl / 2, pz1 = z - pl / 2;
+      const alto = 0.004 + (pz0 - pz1) * Math.tan(ANG);
+      const cu = mesh(profilo([[pz0, 0], [pz0, 0.004], [pz1, alto], [pz1, 0], [pz0, 0]],
+                              bw - 0.003, 0.0030), M.cuscino, false);
+      cu.position.set(x, Y, 0); v.add(cu);
+      const ang = Math.atan2(alto - 0.004, pz0 - pz1);
+      const h0 = new THREE.Group();
+      const zT = pz1 + 0.012 * Math.cos(ang), yT = alto - 0.012 * Math.sin(ang) + 0.0012;
+      const lt = mesh(lastra(0.006, 0.0018, 0.0055, 0.0008, 0.0006), M.fodera, false);
+      lt.position.set(x, Y + alto - 0.004 * Math.sin(ang), pz1 + 0.0045);
+      lt.rotation.x = -ang;
+      v.add(lt);
+      h0.position.set(x, Y + yT, zT);
+      h0.rotation.x = -(Math.PI / 2 - ang);
+      v.add(h0);
+      let dx = 0.0135;
+      if(k !== null){
+        const o = merci.orecchini[k];
+        o.position.set(0, 0, 0); o.rotation.set(Math.PI / 2, 0, 0); o.scale.set(1, 1, 1);
+        posa(o, h0);
+        const b = scatolaIn(o, h0);
+        o.position.set(-(b.min.x + b.max.x) / 2, -b.max.y + 0.0026, -b.min.z + 0.0003);
+        dx = Math.max(0.008, (b.max.x - b.min.x) * 0.32);
+        const om = ombraPiana(0.036, 0.020, 0.22); om.rotation.x = 0;
+        om.position.set(0, -0.009, 0.0004); h0.add(om);
+      }
+      for(const s of [-1, 1]){
+        const tg = taglio(0.0022, 0.006); tg.rotation.x = 0; tg.rotation.z = Math.PI / 2;
+        tg.position.set(s * dx, 0, 0.0003); h0.add(tg);
+      }
+      return {fam, x, z, y: Y + alto * 0.6, w: bw, d: bd, k, faccia: Y + alto};
+    }
+    if(fam === "busto"){
+      const sw = w - 0.0016, sd = d - 0.002, st = 0.0055;
+      const sc = mesh(lastra(sw, sd, st, 0.004, 0.0024), M.cuscino, false);
+      sc.position.set(x, Y, z); v.add(sc);
+      const r = Math.min(0.017, sw * 0.32), zT = z - sd / 2 + 0.010;
+      for(const s of [-1, 1]){
+        const tg = taglio(0.0024, 0.007); tg.position.set(x + s * r, Y + st + 0.0002, zT - 0.001); v.add(tg);
+      }
+      const lt = mesh(lastra(0.0055, 0.0016, 0.0065, 0.0008, 0.0006), M.fodera, false);
+      lt.position.set(x, Y + st - 0.001, zT - 0.006);
+      v.add(lt);
+      if(k !== null){
+        const o = pose.busto[k];
+        cuoci(o); pieno(o, "busto", k);
+        o.traverse(m => { if(m.isMesh) m.geometry = geometriaStesa("busto", m.userData.cottaPiena || m.userData.cotta || m.geometry, sw, sd); });
+        o.position.set(x, Y + st, z); o.rotation.set(0, 0, 0);
+        posa(o, v);
+        o.userData.scheda = [sw, sd];
+      }
+      return {fam, x, z, y: Y + st, w: sw, d: sd, k, faccia: Y + st};
+    }
+    if(fam === "rampa"){
+      const h = 0.0105, S = 48, pts = [[z - d / 2, -0.001]];
+      for(let j = 0; j <= S; j++){
+        const u = j / S;
+        pts.push([z - d / 2 + d * u, h * Math.pow(Math.abs(Math.cos(Math.PI * u)), 5)]);
+      }
+      pts.push([z + d / 2, -0.001]); pts.push([z - d / 2, -0.001]);
+      const cn = mesh(profilo(pts.map(([zz, y]) => [zz, y + 0.0012]), w - 0.001, 0), M.cuscino, false);
+      cn.position.set(x, Y, 0); v.add(cn);
+      if(k !== null){
+        const o = pose.rampa[k];
+        cuoci(o); pieno(o, "rampa", k);
+        o.traverse(m => { if(m.isMesh) m.geometry = geometriaStesa("rampa", m.userData.cottaPiena || m.userData.cotta || m.geometry); });
+        o.position.set(x, Y + 0.0012, z); o.rotation.set(0, 0, 0);
+        posa(o, v);
+        const om = ombraPiana(0.13, 0.034, 0.26); om.position.set(x, Y + 0.0016, z); v.add(om);
+      }
+      return {fam, x, z, y: Y + 0.0012, w, d, k, faccia: Y + 0.0012};
+    }
+    /* orologi: la buca col cuscino, l'orologio allacciato */
+    const mo = misuraOrologio();
+    const al = mesh(lastra(w - 0.0014, d - 0.002, 0.006, 0.005, 0.0028), M.cuscino, false);
+    al.position.set(x, Y, z); v.add(al);
+    const h0 = new THREE.Group(); v.add(h0);
+    h0.rotation.x = 52 * Math.PI / 180;
+    h0.add(mesh(mo.cg, M.cuscino, false));
+    if(k !== null){
+      /* ogni modello ha il SUO centro: i tre Swatch stanno in punti
+         diversi del .glb, e il centro del n.1 portava fuori gli altri */
+      const o = merci.orologi[k];
+      o.position.set(0, 0, 0); o.rotation.set(0, 0, 0); o.scale.set(1, 1, 1);
+      posa(o, h0);
+      const bo = scatolaIn(o, h0), dzo = bo.max.z - bo.min.z;
+      o.position.set(-(bo.min.x + bo.max.x) / 2, -(bo.min.y + dzo / 2), -(bo.min.z + bo.max.z) / 2);
+    }
+    const b = scatolaIn(h0, v);
+    h0.position.set(x, Y + 0.006 - b.min.y - 0.001, z - (b.min.z + b.max.z) / 2 + 0.004);
+    const om = ombraPiana(0.07, 0.07, 0.30); om.position.set(x, Y + 0.0064, z + 0.004); v.add(om);
+    return {fam, x, z: z + 0.004, y: Y + 0.02, w, d, k, faccia: Y + 0.03};
+  }
+  function vassoioNudo(alzo){
+    const g = new THREE.Group(); g.name = "vassoio-studio";
+    g.add(mesh(lastra(V.W, V.D, V.F + alzo, 0.004, 0.0008), M.fodera, false));
+    return g;
+  }
+  function chiudiVassoio(g, Y, posti){
+    const oc = new THREE.Mesh(new THREE.PlaneGeometry(INT.W, INT.D),
+      new THREE.MeshBasicMaterial({color: 0x3A2C1E, transparent: true, opacity: 0.55,
+        map: bordoScuro(), depthWrite: false,
+        polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1}));
+    oc.rotation.x = -Math.PI / 2; oc.position.y = Y + 0.0002; oc.renderOrder = 1;
+    oc.userData.ombra = true;
+    g.add(oc); g.userData.oc = oc;
+    g.userData.posti = posti;
+    g.traverse(o => { o.userData.marmotta = true; });
+    letto.add(g);
+  }
+  /* un blocco di celle di una famiglia: righe dal FONDO verso chi
+     guarda, da sinistra a destra (l'ordine di lettura) */
+  function blocco(fam, g, ks, i0, i1, cols, cellD, z0, Y){
+    const posti = [], cw = INT.W / cols;
+    for(let i = i0; i < i1; i++){
+      const r = Math.floor((i - i0) / cols), c = (i - i0) % cols;
+      posti.push(sede(fam, g, -INT.W / 2 + cw * (c + 0.5), z0 + cellD * (r + 0.5), cw, cellD,
+                      i < ks.length ? ks[i] : null, Y));
+    }
+    return posti;
+  }
+  const FILA = {};                  // A3: la prima fila in vista, per famiglia
+  const nomeFam = id => (FAMIGLIE.find(f => f.id === id) || {nome: id}).nome;
+  function apparecchiaStudio(){
+    const presenti = FAMIGLIE.filter(f => arrivate.has(f.id) && posseduti(f.id).length).map(f => f.id);
+    if(STUDIO === "A2"){
+      const piani = (studioInfo.piani || []).map(p => p.filter(f => presenti.includes(f))).filter(p => p.length);
+      piani.forEach((fams, j) => {
+        const Y = V.F + 0.012, g = vassoioNudo(0.012);
+        const zone = fams.map(f => { const ks = posseduti(f), c = colonne(f, INT.W), n = postiPer(ks.length, c);
+          return {f, ks, c, n, righe: n / c, fondo: (n / c) * SEDE[f][1]}; });
+        const tot = zone.reduce((a, z) => a + z.fondo, 0);
+        const s = Math.min(1.25, INT.D / tot);
+        let z = -tot * s / 2;
+        const posti = [], ksPer = {};
+        zone.forEach((zn, i) => {
+          if(i){ const dv = mesh(lastra(INT.W, 0.0018, 0.010, 0.0008, 0.0008), M.cuscino, false);
+                 dv.position.set(0, Y, z); g.add(dv); }
+          const cd = SEDE[zn.f][1] * s;
+          posti.push(...blocco(zn.f, g, zn.ks, 0, zn.n, zn.c, cd, z, Y));
+          ksPer[zn.f] = zn.ks;
+          z += zn.righe * cd;
+        });
+        chiudiVassoio(g, Y, posti);
+        stato.vassoi.push({fam: fams[0], fams, nome: fams.map(nomeFam).join(" e "), gruppo: g, posti,
+          ks: [].concat(...fams.map(f => ksPer[f])), ksPer, piano: j, piani: piani.length});
+      });
+      return;
+    }
+    for(const f of presenti){
+      const ks = posseduti(f), c = colonne(f, INT.W), R = righeMax(f, INT.D);
+      const Y = V.F + ALZO(f);
+      if(STUDIO === "A3"){
+        /* TUTTE le file si costruiscono, su un NASTRO dentro il vassoio;
+           la finestra ne mostra `vis`, e il nastro scorre sotto (vedi
+           `mettiFila`). Ogni fila è un gruppo suo: quelle fuori finestra
+           si spengono intere. */
+        const postiTot = postiPer(ks.length, c), righe = Math.ceil(postiTot / c);
+        const vis = Math.min(R, righe);
+        const cellD = Math.min(INT.D / vis, SEDE[f][1] * SEDE[f][2]);
+        const z0 = -vis * cellD / 2, cw = INT.W / c;
+        const g = vassoioNudo(ALZO(f));
+        const nastro = new THREE.Group(); nastro.name = "nastro-" + f; g.add(nastro);
+        const file = [];
+        for(let r = 0; r < righe; r++){ const rg = new THREE.Group(); rg.name = "fila-" + r; nastro.add(rg); file.push(rg); }
+        const posti = [];
+        for(let i = 0; i < postiTot; i++){
+          const r = Math.floor(i / c), cc = i % c;
+          const p = sede(f, file[r], -INT.W / 2 + cw * (cc + 0.5), z0 + cellD * (r + 0.5), cw, cellD,
+                         i < ks.length ? ks[i] : null, Y);
+          p.riga = r; p.gr = file[r];
+          posti.push(p);
+        }
+        chiudiVassoio(g, Y, posti);
+        const t = {fam: f, fams: [f], nome: nomeFam(f), gruppo: g, nastro, file, posti, ks, ksPer: {[f]: ks},
+          postiTot, righe, vis, cellD, z0, cols: c, Y, fila: 0, filaMeta: 0, filaV: 0, pxF: 0};
+        t.fila = t.filaMeta = Math.max(0, Math.min(righe - vis, FILA[f] || 0));
+        if(righe > vis) taglia(t);
+        mettiFila(t);
+        stato.vassoi.push(t);
+        continue;
+      }
+      /* A1: la pila per famiglia */
+      const cap = c * R, pn = Math.max(1, Math.ceil(ks.length / cap));
+      for(let j = 0; j < pn; j++){
+        const kj = ks.slice(j * cap, (j + 1) * cap);
+        const n = j < pn - 1 ? cap : Math.min(cap, postiPer(kj.length, c));
+        const r = Math.ceil(n / c);
+        const cellD = Math.min(INT.D / r, SEDE[f][1] * SEDE[f][2]);
+        const g = vassoioNudo(ALZO(f));
+        const posti = blocco(f, g, kj, 0, n, c, cellD, -r * cellD / 2, Y);
+        chiudiVassoio(g, Y, posti);
+        stato.vassoi.push({fam: f, fams: [f], nome: nomeFam(f), gruppo: g, posti, ks: kj, ksPer: {[f]: kj},
+          piano: j, piani: pn, famTot: ks.length});
+      }
+    }
+  }
+
+  /* ── LE FILE DENTRO IL VASSOIO (A3) ─────────────────────────────
+     La finestra del vassoio è fissa: `vis` file, dal filo del rotolo al
+     filo della parete davanti. Il nastro scorre sotto, e una fila che
+     arriva al filo NON si taglia in piedi e non sfuma: SCENDE sotto il
+     piano del vassoio, come un nastro che gira su un rullo. Primo giro
+     (critica del 28/09 su `P2_orologi_fila_in_corsa`): il taglio sui
+     fili mostrava le sezioni dei cuscini, la sfumatura lasciava fantasmi
+     di cuscini e cinturini sul coperchio. Adesso quello che esce sta
+     sotto la fodera del vassoio o dietro le pareti, che sono opache;
+     i piani di taglio restano solo come rete, sulle facce interne delle
+     pareti della base. A riposo la finestra è sempre piena di file
+     intere e in piano — l'aggancio lo garantisce. */
+  const AFFONDA = +(par("affonda") || 0.045); // quanto scende una fila tutta fuori: sotto il filo delle pareti
+  function taglia(t){
+    const dietro = new THREE.Plane(new THREE.Vector3(0, 0, 1), -(DOVE.z - B.D / 2 + B.P + 0.0016));
+    const davanti = new THREE.Plane(new THREE.Vector3(0, 0, -1), DOVE.z + B.D / 2 - B.P - 0.0016);
+    const piani = [dietro, davanti];
+    t.tagli = piani;
+    const copie = new Map();
+    t.nastro.traverse(m => {
+      if(!m.isMesh || !m.material) return;
+      let pezzo = false;
+      for(let n = m; n; n = n.parent) if(CASA_PEZZO.has(n)){ pezzo = true; break; }
+      const mm = listaMat(m.material).map(x => {
+        if(pezzo) return x;                         // i materiali del pezzo sono già suoi
+        if(!copie.has(x)) copie.set(x, x.clone());
+        return copie.get(x);
+      });
+      for(const x of mm){ x.clippingPlanes = piani; x.clipShadows = true; x.needsUpdate = true; }
+      if(!pezzo) m.material = Array.isArray(m.material) ? mm : mm[0];
+    });
+  }
+  /* il nastro dove dice `fila` (in file, continua); una fila a cavallo
+     del filo affonda — ripida all'inizio, tutta giù (80 mm) quando ne è
+     uscito il 20 %, e lì si spegne. Al 60 % e al 30 % (giri precedenti)
+     le cime dei pezzi affondati spuntavano ancora sopra la fodera,
+     scure, accanto al rotolo. */
+  function mettiFila(t){
+    if(!t.nastro) return;
+    t.nastro.position.z = -t.fila * t.cellD;
+    for(let r = 0; r < t.file.length; r++){
+      const a = r - t.fila;                         // la fila occupa [a, a+1]; la finestra [0, vis]
+      const fuori = Math.max(0, Math.min(1, Math.max(-a, a + 1 - t.vis)));
+      t.file[r].visible = fuori < 0.999;
+      /* in proporzione alla parte fuori: la fila che entra sale COI SUOI
+         PEZZI mentre entra (a 0,84 di corsa è emersa per l'84 %), quella
+         che esce scende sotto il filo della parete e si taglia lì, sulla
+         faccia della parete — mai nel vuoto sopra la fodera */
+      t.file[r].position.y = -AFFONDA * fuori;
+      /* una fila che affonda non getta ombra (né quella della mappa né
+         quella dipinta): la sua ombra passava sotto il fondo e restava
+         sulla parete di fondo come tre macchie (critica del 28/09) */
+      /* a ogni passo, non solo al cambio: `ombre()` del banco rimette
+         `castShadow` ai pezzi, e una fila affondata tornava a gettarla */
+      /* IN CORSA NESSUNA FILA GETTA L'OMBRA DELLA MAPPA: la luce del vano
+         sta davanti e in alto, e una fila staccata dal fondo buttava le
+         ombre dei suoi pezzi sulla parete di fondo (tre macchie, critica
+         del 28/09). Restano le ombre DIPINTE sotto i pezzi; quelle vere
+         tornano all'aggancio. La fila che affonda perde anche la dipinta. */
+      const corsa = Math.abs(t.fila - Math.round(t.fila)) > 0.002;
+      const giu = fuori > 0, spenta = giu || corsa;
+      if(spenta || t.file[r].userData.giu !== undefined){
+        if(!spenta) delete t.file[r].userData.giu; else t.file[r].userData.giu = giu;
+        t.file[r].traverse(m => {
+          if(!m.isMesh) return;
+          if(m.userData.ombra){ m.visible = !giu; return; }
+          if(spenta){ if(m.userData.ombraPrima === undefined) m.userData.ombraPrima = m.castShadow; m.castShadow = false; }
+          else if(m.userData.ombraPrima !== undefined){ m.castShadow = m.userData.ombraPrima; delete m.userData.ombraPrima; }
+        });
+      }
+    }
+    /* e l'ombra segue la fila che scorre e affonda: ridisegnata a ogni
+       passo del nastro, non solo all'aggancio (critica del 28/09: le
+       ombre della fila già affondata restavano sulla parete di fondo) */
+    if(t.ultimaFila !== t.fila){ t.ultimaFila = t.fila; ombraDaRifare(); }
+    /* l'occlusione dipinta sui bordi della finestra sta SOTTO i cuscini:
+       a nastro fermo non si vede, in corsa scopriva una fascia scura sul
+       filo di fondo (misurato 28/09: luminanza 28 contro 190). In corsa
+       si spegne, all'aggancio torna. */
+    const oc = t.gruppo.userData.oc;
+    if(oc) oc.visible = Math.abs(t.fila - Math.round(t.fila)) < 0.002;
+    if(segna) muoviPollice(t);
+  }
+  const OLTRE_F = 0.30;
+  function gommaF(t, x){
+    const hi = Math.max(0, t.righe - t.vis);
+    if(x < 0){ const u = -x; return -OLTRE_F * (1 - 1 / (u / OLTRE_F + 1)); }
+    if(x > hi){ const u = x - hi; return hi + OLTRE_F * (1 - 1 / (u / OLTRE_F + 1)); }
+    return x;
+  }
+  /* quanti punti vale una fila a schermo: due centri di fila proiettati
+     col vassoio a riposo (la macchina non si muove mai al livello 0) */
+  function pxPerFila(t){
+    if(t.pxF) return t.pxF;
+    const a = new THREE.Vector3(0, t.Y, Z_VASS + t.z0 + t.cellD * 0.5).add(DOVE);
+    const b = new THREE.Vector3(0, t.Y, Z_VASS + t.z0 + t.cellD * 1.5).add(DOVE);
+    camera.updateMatrixWorld(true);
+    const ya = allo_schermo(a)[1], yb = allo_schermo(b)[1];
+    return (t.pxF = Math.max(20, Math.abs(yb - ya)));
+  }
+  const filaMuove = t => t.righe > t.vis && (Math.abs(t.fila - t.filaMeta) > 0.0008 || Math.abs(t.filaV) > 0.004);
+  const fileInMoto = () => stato.vassoi.some(filaMuove);
+  let filaScritta = "";
+  function segnaFila(forza){
+    const t = vistaCorrente();
+    const f = t && t.righe > t.vis ? t.fam + ":" + Math.round(t.filaMeta) : "";
+    if(!forza && f === filaScritta) return;
+    filaScritta = f;
+    if(stato.aperta && livello === 0){ scrittoI = -1; segnaVassoio(); }
+  }
+
+  /* ── LE SCRITTE E L'INDICE ──────────────────────────────────── */
+  /* ── LE CAPSULE-INDICE (A3) ─────────────────────────────────────
+     DOVE STANNO: in SOVRIMPRESSIONE, dentro la scena, a tutta larghezza
+     nella fascia che al livello 0 la marmotta ha già liberato — quella
+     della carta in cima (#alto), spenta qui — cioè subito SOPRA la riga
+     della pillola «Elenco». Non nel cromo della scocca: lì sarebbero una
+     fascia in più sopra la scena (la bocciatura del 17/09 contava proprio
+     tre fasce impilate) e la banda della marmotta si accorcerebbe di 44
+     punti. Qui la scena non perde niente: il quadro B3 parte comunque
+     sotto «Elenco» (vedi `bandaMarmotta`) e rispetta la riga solo col
+     MARCHIO del cielo (vedi `misuraQuadroB3`).
+     Provata e scartata la riga ACCANTO a «Elenco»: ~270 punti, ci stanno
+     due capsule e mezza, e da «Anelli» «Orologi» resta fuori: due gesti.
+     COME SI COMPORTANO: 5 capsule (~480 punti) non stanno in 393. La
+     fila scorre col dito; la capsula ATTIVA è sempre intera in vista, e
+     fra le posizioni che la tengono intera si prende quella che mostra
+     intere PIÙ capsule, a parità quella con più capsule DOPO l'attiva
+     (vedi `mostraAttiva`). I
+     bordi dove c'è altro sfumano. Il conteggio sta nella capsula
+     («Orologi 10»). Il bersaglio è il <button> alto 44, la capsula che si
+     vede è lo <span> da 34, come «Elenco». */
+  let chips = null, segna = null, indiceFatto = "", indiceAtt = null, pollice = null;
+  function studioDom(){
+    if(chips) return;
+    const st = document.createElement("style");
+    st.textContent = `
+      #mm-indice{position:fixed;left:0;top:0;z-index:30;display:flex;align-items:center;gap:6px;
+        height:44px;padding:0 16px;box-sizing:border-box;overflow-x:auto;overflow-y:hidden;
+        overscroll-behavior-x:contain;scrollbar-width:none;touch-action:pan-x;
+        --fs:0px;--fd:0px;
+        -webkit-mask-image:linear-gradient(to right,transparent 0,#000 var(--fs),#000 calc(100% - var(--fd)),transparent 100%);
+        mask-image:linear-gradient(to right,transparent 0,#000 var(--fs),#000 calc(100% - var(--fd)),transparent 100%)}
+      #mm-indice::-webkit-scrollbar{display:none}
+      #mm-indice.fa-sx{--fs:32px} #mm-indice.fa-dx{--fd:32px}
+      #mm-indice button{flex:0 0 auto;display:flex;align-items:center;height:44px;min-width:44px;margin:0;padding:0;
+        border:0;background:none;cursor:pointer;color:var(--testo);font:400 13px/18px Inter,system-ui,sans-serif;
+        -webkit-tap-highlight-color:transparent;transition:transform .12s cubic-bezier(.2,.8,.2,1)}
+      #mm-indice button span{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 13px;
+        border-radius:9999px;white-space:nowrap;
+        /* VETRO SCURO sulla scena, come il selettore «Anni · Mesi · Giorni»
+           di Foto sopra le immagini: distingue la fila dell'indice dalla
+           pillola chiara di «Elenco» (critica del 28/09: stessa superficie,
+           si leggevano come due righe di chip) */
+        color:var(--carta);
+        background:rgb(26 22 20/.46);
+        -webkit-backdrop-filter:saturate(160%) blur(20px);backdrop-filter:saturate(160%) blur(20px);
+        box-shadow:inset 0 0 0 1px rgb(250 248 245/.14);
+        transition:background-color .2s ease,color .2s ease,box-shadow .2s ease}
+      #mm-indice button b{font-weight:400;color:rgb(250 248 245/.70);font-feature-settings:"lnum","tnum"}
+      #mm-indice button[aria-current="true"] span{background:var(--firma);color:var(--carta);
+        box-shadow:0 1px 2px rgb(20 17 14/.10)}
+      #mm-indice button[aria-current="true"] b{color:color-mix(in srgb,var(--carta) 80%,transparent)}
+      #mm-indice button:active{transform:scale(.97)}
+      #mm-indice button:focus-visible{outline:none}
+      #mm-indice button:focus-visible span{outline:2px solid var(--firma);outline-offset:2px}
+      html:not([data-liv="0"]) #mm-indice,html:not([data-liv="0"]) #mm-segna{display:none !important}
+      html.mm-indice #gesto{visibility:hidden}
+      #mm-segna{position:fixed;right:10px;top:0;width:5px;z-index:30;pointer-events:none;border-radius:3px;
+        background:color-mix(in srgb,var(--carta) 78%,transparent);
+        box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tenue) 40%,transparent)}
+      #mm-segna i{position:absolute;left:0;top:0;width:5px;border-radius:3px;background:var(--firma);will-change:transform}
+      @media (prefers-reduced-motion: reduce){#mm-indice button,#mm-indice button span{transition:none}}
+      /* A2 (studio): le capsule sopra il cartellino */
+      #s2s-indice{position:fixed;left:0;right:0;display:flex;gap:6px;padding:0 16px;overflow-x:auto;
+        scrollbar-width:none;z-index:30;pointer-events:auto}
+      #s2s-indice::-webkit-scrollbar{display:none}
+      #s2s-indice button{flex:0 0 auto;font:500 13px/1 Inter,sans-serif;color:var(--voce);
+        background:rgba(250,248,245,.94);border:1px solid var(--filo);border-radius:999px;padding:9px 13px}
+      #s2s-indice button b{font-weight:500;color:var(--tenue);margin-left:5px}
+      #s2s-indice button[aria-current="true"]{background:var(--firma);border-color:var(--firma);color:#fff}`;
+    document.head.appendChild(st);
+    chips = document.createElement("nav");
+    chips.id = STUDIO === "A3" ? "mm-indice" : "s2s-indice";
+    chips.setAttribute("aria-label", "Famiglie del cofanetto");
+    chips.hidden = true;
+    chips.addEventListener("scroll", sfuma, {passive: true});
+    segna = document.createElement("div"); segna.id = "mm-segna"; segna.hidden = true;
+    segna.setAttribute("aria-hidden", "true");
+    pollice = document.createElement("i"); segna.appendChild(pollice);
+    document.body.append(chips, segna);
+  }
+  const usaIndice = () => STUDIO === "A2" || STUDIO === "A3";
+  function famiglieInScena(){
+    const out = [];
+    for(const t of stato.vassoi) for(const f of t.fams) if(!out.includes(f)) out.push(f);
+    return out;
+  }
+  function vistaCorrente(){ return stato.vassoi[indiceReale(Math.round(stato.pos))] || null; }
+  const contaFam = f => stato.vassoi.reduce((a, v) => a + ((v.ksPer && v.ksPer[f]) || []).length, 0);
+  function sfuma(){
+    if(!chips) return;
+    const L = chips.scrollLeft, M = chips.scrollWidth - chips.clientWidth;
+    chips.classList.toggle("fa-sx", L > 1);
+    chips.classList.toggle("fa-dx", L < M - 1);
+  }
+  /* la riga dell'«Elenco»: stessa altezza, fino al suo bordo sinistro */
+  function posaRiga(){
+    let top = 12, dx = innerWidth;
+    try {
+      const c = window.parent !== window && window.parent.document.getElementById("cap-elenco");
+      const f = window.frameElement;
+      /* 44 di riga + 6: le due capsule visibili (34) restano a 16 punti */
+      if(c && f){ const r = c.getBoundingClientRect(), rf = f.getBoundingClientRect();
+        if(r.height) top = Math.max(0, r.top - rf.top - 50); }
+    } catch(_) {}
+    chips.style.top = top.toFixed(1) + "px";
+    chips.style.width = dx.toFixed(1) + "px";
+    stato.indice = {top: +top.toFixed(1), largo: +dx.toFixed(1)};
+  }
+  function faiIndice(){
+    const fams = famiglieInScena();
+    const chiave = fams.map(f => f + ":" + contaFam(f)).join("|") + "|" + chips.id;
+    if(chiave === indiceFatto) return;
+    indiceFatto = chiave; indiceAtt = null;
+    chips.innerHTML = fams.map(f => {
+      const n = contaFam(f);
+      return `<button type="button" data-fam="${f}" aria-current="false" aria-label="${nomeFam(f)}, ${n} ${n === 1 ? "pezzo" : "pezzi"}">`
+        + (chips.id === "mm-indice" ? `<span>${nomeFam(f)} <b>${n}</b></span>` : `${nomeFam(f)}<b>${n}</b>`) + `</button>`;
+    }).join("");
+    for(const b of chips.children) b.onclick = e => {
+      e.stopPropagation();
+      tocco();
+      const i = stato.vassoi.findIndex(t => t.fams.includes(b.dataset.fam));
+      if(i >= 0){ stato.salti = (stato.salti || 0) + 1; vai_(i); }
+    };
+  }
+  /* la capsula attiva è quella del vassoio dove si VA (la meta), non di
+     quello che sta passando: al tocco si accende subito */
+  function segnaIndice(){
+    if(!chips || chips.hidden) return;
+    const t = STUDIO === "A3" ? stato.vassoi[Math.round(stato.meta)] : vistaCorrente();
+    const f = t ? t.fam : null;
+    if(f === indiceAtt) return;
+    indiceAtt = f;
+    for(const b of chips.children) b.setAttribute("aria-current", String(!!t && t.fams.includes(b.dataset.fam)));
+    mostraAttiva(indiceFatto !== "" );
+  }
+  const SFUMA = 32;
+  /* intera = fuori dalle sfumature (che ci sono solo dove c'è altro) */
+  function intera(b, L, W, M){
+    const a = L > 1 ? SFUMA : 0, z = L < M - 1 ? SFUMA : 0;
+    return b.offsetLeft >= L + a - 0.5 && b.offsetLeft + b.offsetWidth <= L + W - z + 0.5;
+  }
+  function mostraAttiva(liscio){
+    const b = chips.querySelector('[aria-current="true"]');
+    if(!b) return;
+    const L = chips.scrollLeft, W = chips.clientWidth, M = Math.max(0, chips.scrollWidth - W);
+    const tutte = [...chips.children];
+    /* le posizioni candidate: ogni capsula col bordo sinistro sulla
+       sfumatura, o col destro, più i due capi */
+    const cand = new Set([0, M]);
+    for(const c of tutte){
+      cand.add(Math.max(0, Math.min(M, c.offsetLeft - SFUMA)));
+      cand.add(Math.max(0, Math.min(M, c.offsetLeft + c.offsetWidth + SFUMA - W)));
+    }
+    /* il voto: quante capsule intere; a parità, quante DOPO l'attiva (la
+       famiglia prima è comunque a uno swipe di lato: è la scorciatoia che
+       resta); a parità ancora, la posizione più vicina. Deterministico:
+       da «Anelli» si vedono sempre «Bracciali» e «Orologi». */
+    const ia = tutte.indexOf(b);
+    let meta = L, voto = -Infinity;
+    for(const x of cand){
+      if(!intera(b, x, W, M)) continue;
+      const vis = tutte.map(c => intera(c, x, W, M));
+      const n = vis.filter(Boolean).length, dopo = vis.slice(ia + 1).filter(Boolean).length;
+      const v = n * 10000 + dopo * 100 - Math.abs(x - L) / 1000;
+      if(v > voto){ voto = v; meta = x; }
+    }
+    if(Math.abs(meta - L) > 0.5) chips.scrollTo({left: meta, behavior: liscio && !ridotto ? "smooth" : "auto"});
+    stato.indiceScorre = +meta.toFixed(1);
+  }
+  /* la barra delle file, a destra: la corsa è il nastro, il pollice la
+     finestra; si muove CON il nastro, non a scatti */
+  let segnaT = null;
+  function posaSegna(){
+    const t = STUDIO === "A3" ? vistaCorrente() : null;
+    const vedi = !!t && t.righe > t.vis && stato.aperta && livello === 0;
+    segna.hidden = !vedi;
+    if(!vedi){ segnaT = null; return; }
+    const alto = Math.min(84, 16 * t.righe);
+    const c = new THREE.Vector3(0, t.Y, Z_VASS).add(DOVE);
+    camera.updateMatrixWorld(true);
+    const y = allo_schermo(c)[1];
+    segna.style.height = alto + "px";
+    segna.style.top = (y - alto / 2).toFixed(1) + "px";
+    pollice.style.height = (alto * t.vis / t.righe).toFixed(1) + "px";
+    segnaT = t; muoviPollice(t);
+  }
+  function muoviPollice(t){
+    if(t !== segnaT) return;
+    const alto = parseFloat(segna.style.height) || 0;
+    const f = Math.max(-0.3, Math.min(t.righe - t.vis + 0.3, t.fila));
+    pollice.style.transform = "translateY(" + (alto * f / t.righe).toFixed(2) + "px)";
+  }
+  function posaIndice(){
+    studioDom();
+    const fams = famiglieInScena();
+    const vedi = usaIndice() && fams.length > 1 && stato.aperta;
+    /* in A3 la riga del gesto (la freccia ↔) non serve più a marmotta
+       aperta: le famiglie le dicono le capsule, le file la barra a destra
+       e il «file 1–3 di 4» del cartellino; chiusa, dice «tocca per aprire» */
+    document.documentElement.classList.toggle("mm-indice", STUDIO === "A3" && stato.aperta);
+    document.documentElement.classList.toggle("s2s-indice", vedi && STUDIO === "A2");
+    chips.hidden = !vedi;
+    if(vedi){
+      faiIndice();
+      if(STUDIO === "A3") posaRiga();
+      else { const cart = document.getElementById("cartello");
+             chips.style.top = ((cart ? cart.getBoundingClientRect().top : innerHeight - 200) - 44) + "px"; }
+      segnaIndice(); sfuma();
+    }
+    posaSegna();
+  }
+  /* solo A2 (studio) tiene le capsule sopra il cartellino; in A3 stanno
+     in alto, in sovrimpressione, e la banda non perde niente */
+  function studioBanda(b){
+    if(STUDIO !== "A2") return;
+    studioDom();
+    if(famiglieInScena().length > 1) b.y1 = b.cartellino = b.y1 - 52;
+  }
+  function scritteStudio(){
+    const t = vistaCorrente();
+    if(!t){ scritte("Il tuo cofanetto", "", "", ""); return; }
+    const liberi = t.posti.filter(p => p.k === null).length;
+    const fams = famiglieInScena();
+    if(STUDIO === "A1"){
+      const fi = fams.indexOf(t.fam);
+      const tot = t.famTot || t.ks.length;
+      scritte(t.nome, t.piani > 1 ? "piano " + (t.piano + 1) + " di " + t.piani
+                                  : (fams.length > 1 ? (fi + 1) + " di " + fams.length : ""),
+        tot + (tot === 1 ? " pezzo" : " pezzi") + (t.piani > 1 ? " · " + t.ks.length + " su questo piano" : "")
+          + " · " + liberi + (liberi === 1 ? " posto libero" : " posti liberi"),
+        [fams.length > 1 ? "di lato: famiglia" : "", t.piani > 1 ? "in su: piano" : "", "tocca un pezzo"].filter(Boolean).slice(0, 2).join(" · "));
+    } else if(STUDIO === "A2"){
+      scritte(t.nome, t.piani > 1 ? "piano " + (t.piano + 1) + " di " + t.piani : "",
+        t.ks.length + (t.ks.length === 1 ? " pezzo" : " pezzi") + " · " + liberi
+          + (liberi === 1 ? " posto libero" : " posti liberi") + " · marmotta " + studioInfo.formato,
+        (t.piani > 1 ? "scorri in su: piano · " : "") + "tocca un pezzo");
+    } else {
+      const f0 = Math.round(t.filaMeta || 0), lib = t.postiTot - t.ks.length;
+      const file = !(t.righe > t.vis) ? ""
+        : t.vis === 1 ? "fila " + (f0 + 1) + " di " + t.righe
+        : "file " + (f0 + 1) + "–" + (f0 + t.vis) + " di " + t.righe;
+      scritte(t.nome, file,
+        t.ks.length + (t.ks.length === 1 ? " pezzo" : " pezzi") + " · " + lib
+          + (lib === 1 ? " posto libero" : " posti liberi"),
+        (t.righe > t.vis ? "scorri in su per le altre file · " : "") + "tocca un pezzo");
+    }
+    posaIndice();
+  }
+  /* il quadro delle inquadrature B */
+  function scatolaStudio(){
+    const q = INQ_ ? INQ_.quadro : "tutto";
+    if(q === "fondo") return new THREE.Box3(
+      new THREE.Vector3(DOVE.x - B.W / 2 - 0.002, 0, DOVE.z - B.D / 2 - 0.004),
+      new THREE.Vector3(DOVE.x + B.W / 2 + 0.002, B.H + 0.004, DOVE.z + B.D / 2 + 0.006));
+    if(q === "vassoio") return new THREE.Box3(
+      new THREE.Vector3(DOVE.x - B.W / 2, B.F, DOVE.z + Z_VASS - V.D / 2 - 0.002),
+      new THREE.Vector3(DOVE.x + B.W / 2, B.H + 0.004, DOVE.z + B.D / 2 + 0.004));
+    return scatolaAperta();
+  }
+
+  /* ── LA NAVIGAZIONE DELLO STUDIO (e i gesti contati) ─────────── */
+  function vaiA(i){
+    stato.pos = stato.meta = Math.max(0, Math.min(stato.n - 1, i)); stato.v = 0;
+    disponiVassoi(); scrittoI = -1; segnaVassoio(); posaIndice(); ombraDaRifare(); sveglia();
+  }
+  const studio = {
+    info: studioInfo,
+    viste: () => stato.vassoi.map((t, i) => ({i, nome: t.nome, fams: t.fams, pezzi: t.ks.length,
+      posti: t.posti.length, piano: t.piano, piani: t.piani, righe: t.righe, vis: t.vis, off: t.off})),
+    vai(fam){ const i = stato.vassoi.findIndex(t => t.fams.includes(fam)); if(i >= 0) vaiA(i); return i; },
+    /* il tocco sulla capsula, come lo fa il dito (con il ponte) */
+    salta(fam){ const b = chips && [...chips.children].find(x => x.dataset.fam === fam); if(b) b.click(); return !!b; },
+    vista: i => vaiA(i),
+    fila(fam, off, liscio){
+      const t = stato.vassoi.find(x => x.fam === fam); if(!t || !(t.righe > t.vis)) return false;
+      const o = Math.max(0, Math.min(t.righe - t.vis, off));
+      if(liscio){ t.filaMeta = o; t.filaV = 0; }
+      else { t.fila = t.filaMeta = o; t.filaV = 0; mettiFila(t); }
+      segnaFila(true); sveglia(); return o;
+    },
+    indice: () => chips && !chips.hidden ? {riga: stato.indice, scorre: chips.scrollLeft, largo: chips.clientWidth,
+      pieno: chips.scrollWidth, sfuma: [chips.classList.contains("fa-sx"), chips.classList.contains("fa-dx")],
+      capsule: [...chips.children].map(b => { const r = b.getBoundingClientRect(), sp = b.firstElementChild.getBoundingClientRect();
+        return {fam: b.dataset.fam, testo: b.textContent.replace(/\s+/g, " ").trim(), attiva: b.getAttribute("aria-current") === "true",
+          x0: +r.left.toFixed(1), x1: +r.right.toFixed(1), y0: +r.top.toFixed(1), h: +r.height.toFixed(1), w: +r.width.toFixed(1),
+          visibile: +sp.height.toFixed(1)}; })} : null,
+    /* I GESTI DA «a» A «b», contati sulla lista vera delle viste:
+       · swipe = passo di famiglia (A1/A3: ← →) o di piano (A2: ↑ ↓)
+       · indice = un tocco sulla capsula (A2/A3) */
+    gesti(a, b){
+      const V_ = stato.vassoi;
+      const ia = V_.findIndex(t => t.fams.includes(a)), ib = V_.findIndex(t => t.fams.includes(b));
+      if(ia < 0 || ib < 0) return null;
+      if(STUDIO === "A2"){
+        const swipe = Math.abs(V_[ib].piano - V_[ia].piano);
+        return {swipe, indice: swipe ? 1 : 0, migliore: swipe ? 1 : 0};
+      }
+      /* famiglia per famiglia: si salta alla prima vista della famiglia dopo */
+      const fams = famiglieInScena();
+      let i = fams.indexOf(a), n = 0;
+      while(fams[i] !== b && n < 20){ i += Math.sign(fams.indexOf(b) - fams.indexOf(a)); n++; }
+      if(STUDIO === "A1") return {swipe: n, indice: null, migliore: n};
+      return {swipe: n, indice: n ? 1 : 0, migliore: n ? 1 : 0};
+    },
+    misure(){
+      scena.updateMatrixWorld(true);
+      const H = innerHeight, band = quadro.banda || {y0: 0, y1: H};
+      const t = vistaCorrente();
+      const prj = v => { const w = v.clone().project(camera); return [(w.x * 0.5 + 0.5) * innerWidth, (-w.y * 0.5 + 0.5) * H]; };
+      const acceso = o => { for(let n = o; n; n = n.parent) if(!n.visible) return false; return true; };
+      function spigoli(rif, filtro){
+        rif.updateWorldMatrix(true, true);
+        const inv = new THREE.Matrix4().copy(rif.matrixWorld).invert(), M4 = new THREE.Matrix4();
+        const bx = new THREE.Box3(), v = new THREE.Vector3();
+        rif.traverse(o => {
+          if(!o.isMesh || o.userData.ombra || !acceso(o) || (filtro && !filtro(o))) return;
+          if(!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+          const bb = o.geometry.boundingBox; M4.multiplyMatrices(inv, o.matrixWorld);
+          for(let i = 0; i < 8; i++) bx.expandByPoint(v.set(i & 1 ? bb.max.x : bb.min.x,
+            i & 2 ? bb.max.y : bb.min.y, i & 4 ? bb.max.z : bb.min.z).applyMatrix4(M4));
+        });
+        if(bx.isEmpty()) return null;
+        let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+        for(let i = 0; i < 8; i++){ const [sx, sy] = prj(new THREE.Vector3(i & 1 ? bx.max.x : bx.min.x,
+          i & 2 ? bx.max.y : bx.min.y, i & 4 ? bx.max.z : bx.min.z).applyMatrix4(rif.matrixWorld));
+          x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy); }
+        return {x0, y0, x1, y1};
+      }
+      const vis = r => r ? +Math.max(0, Math.min(r.y1, band.y1) - Math.max(r.y0, 0)).toFixed(1) : 0;
+      const pezzo = o => CASA_PEZZO.has(o) || (o.parent && CASA_PEZZO.has(o.parent));
+      const rC = spigoli(perno), rV = t ? spigoli(t.gruppo, o => { for(let n = o; n; n = n.parent) if(CASA_PEZZO.has(n)) return false; return true; }) : null;
+      const rT = spigoli(radice);
+      const pezzi = [];
+      if(t) for(const p of t.posti){
+        if(p.k === null) continue;
+        if(p.gr && !p.gr.visible) continue;       // una fila fuori finestra non è in vista
+        const o = sogg(p.fam, p.k); if(!o) continue;
+        const b = new THREE.Box3().setFromObject(o, true);
+        let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+        for(let i = 0; i < 8; i++){ const [sx, sy] = prj(new THREE.Vector3(i & 1 ? b.max.x : b.min.x,
+          i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z));
+          x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy); }
+        pezzi.push({fam: p.fam, k: p.k, nome: ((RIPIANI[p.fam] || [])[p.k] || [""])[0],
+          w: +(x1 - x0).toFixed(1), h: +(y1 - y0).toFixed(1), lato: +Math.max(x1 - x0, y1 - y0).toFixed(1),
+          dentro: x0 >= 0 && x1 <= innerWidth && y0 >= band.y0 - 40 && y1 <= band.y1});
+      }
+      pezzi.sort((a, b) => a.lato - b.lato);
+      void pezzo;
+      return {studio: STUDIO, profilo: PROFILO, inq: INQ, formato: studioInfo.formato,
+        marmotta_mm: [Math.round(B.W * 1000), Math.round(B.D * 1000)],
+        vista: t ? {nome: t.nome, fams: t.fams, piano: t.piano, piani: t.piani, righe: t.righe, vis: t.vis, off: t.off,
+                    pezzi: t.ks.length, posti: t.posti.length} : null,
+        banda: band,
+        coperchio_pt: rC ? +(rC.y1 - rC.y0).toFixed(1) : 0, coperchio_visibile_pt: vis(rC),
+        vassoio_pt: rV ? +(rV.y1 - rV.y0).toFixed(1) : 0, vassoio_visibile_pt: vis(rV),
+        marmotta_px: rT ? [Math.round(rT.x0), Math.round(rT.y0), Math.round(rT.x1), Math.round(rT.y1)] : null,
+        marmotta_intera: !!rT && rT.x0 >= 0 && rT.x1 <= innerWidth && rT.y0 >= 0 && rT.y1 <= band.y1 + 2,
+        pezzo_minimo: pezzi[0] || null,
+        anello_minimo_pt: (pezzi.find(p => p.fam === "anelli") || {}).lato || null,
+        pezzi_in_vista: pezzi.length, pezzi_fuori: pezzi.filter(p => !p.dentro).length};
+    }
+  };
+
   const api = {
+    studio,
     stato, B, C, V, quadro,
     costruisci, prepara, parti, apparecchiaLetto,
     aggiorna: () => { if(pronta) apparecchiaLetto(); },
@@ -13580,9 +14658,11 @@ MM = (function creaMarmotta(){
     }),
     pronta: () => pronta,
     fermaA, salta: () => { if(saltaCerimonia){ saltaCerimonia(); passoRiti(); } },
-    occupata: () => !!saltaCerimonia || trascina || Math.abs(stato.pos - stato.meta) > 0.001,
-    vivo: () => !!vm || trascina || Math.abs(stato.pos - stato.meta) > 0.0008 || Math.abs(stato.v) > 0.004,
-    inMoto: () => !!vm || Math.abs(stato.pos - stato.meta) > 0.004 || Math.abs(stato.v) > 0.02,
+    occupata: () => !!saltaCerimonia || trascina || Math.abs(stato.pos - stato.meta) > 0.001 || fileInMoto(),
+    vivo: () => !!vm || trascina || Math.abs(stato.pos - stato.meta) > 0.0008 || Math.abs(stato.v) > 0.004
+                || !!stato.ponte || fileInMoto(),
+    inMoto: () => !!vm || Math.abs(stato.pos - stato.meta) > 0.004 || Math.abs(stato.v) > 0.02
+                || stato.vassoi.some(t => t.righe > t.vis && (Math.abs(t.fila - t.filaMeta) > 0.004 || Math.abs(t.filaV) > 0.02)),
     /* per le sonde */
     misure(){
       scena.updateMatrixWorld(true);
@@ -13647,7 +14727,7 @@ MM = (function creaMarmotta(){
         return out;
       }
       const dentroA = (o, a) => { for(let n = o; n; n = n.parent) if(n === a) return true; return false; };
-      const tv = stato.vassoi[Math.round(stato.pos)];
+      const tv = vistaCorrente();
       const sV = tv ? spigoliIn(tv.gruppo) : [];
       const sC = spigoliIn(perno);
       const sB = spigoliIn(radice, o => !dentroA(o, perno) && !dentroA(o, letto));

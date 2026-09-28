@@ -125,8 +125,11 @@ function faIlBanco(V){
      della scena — l'unico fotogramma lungo rimasto, e non era della
      scena. Chi sta aprendo il suo astuccio non sta guardando il banco:
      il banco si monta quando la porta si chiude. */
-  let rimandato = false, occhio = null;
-  const portaAperta = () => document.body.dataset.ingresso === "1";
+  let rimandato = false, occhio = null, unGiro = 0, voluto = false;
+  /* E NEMMENO SOTTO LA PAGINA DEL REGALO, che ha una regia sua in tre
+     dimensioni (28/09). */
+  const portaAperta = () => document.body.dataset.ingresso === "1"
+                         || document.body.dataset.carta === "1";
   function quandoLaPortaSiChiude(){
     if(occhio) return;
     occhio = new MutationObserver(() => {
@@ -134,12 +137,29 @@ function faIlBanco(V){
       occhio.disconnect(); occhio = null;
       if(rimandato){ rimandato = false; vaiAlBanco(true); }
     });
-    occhio.observe(document.body, {attributes: true, attributeFilter: ["data-ingresso"]});
+    occhio.observe(document.body, {attributes: true, attributeFilter: ["data-ingresso", "data-carta"]});
   }
   function vaiAlBanco(dentro){
-    if(!dentro){ rimandato = false; if(telaio) diAlBanco("banco/sospendi"); return; }
+    if(!dentro){ rimandato = false; voluto = false; if(telaio) diAlBanco("banco/sospendi"); return; }
     if(telaio){ diAlBanco("banco/riprendi"); return; }
     if(portaAperta()){ rimandato = true; quandoLaPortaSiChiude(); return; }
+    /* LA DOMANDA SI FA UN GIRO DOPO. `avviaRotta` chiama qui PRIMA che
+       la porta si monti (la porta si monta dopo il navigatore, vedi
+       `avviaApp`): chiesto subito, «la porta è aperta?» rispondeva no, e
+       il banco scendeva — dieci mega e i suoi lavori d'ozio — proprio
+       durante la cerimonia. Misurato il 28/09 (`costruzione-ingresso-2`):
+       `spazio.html` montato a S1, un suo messaggio da 413 ms e quattro
+       `provinoOzio` da 70-80 ms dentro la cerimonia. */
+    voluto = true;
+    if(unGiro) return;
+    unGiro = setTimeout(() => {
+      unGiro = 0;
+      if(telaio || !voluto) return;
+      if(portaAperta()){ rimandato = true; quandoLaPortaSiChiude(); return; }
+      montaIlBanco();
+    }, 0);
+  }
+  function montaIlBanco(){
     telaio = document.createElement("iframe");
     telaio.id = "banco";
     telaio.src = "spazio.html?v=" + V;

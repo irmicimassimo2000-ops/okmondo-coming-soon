@@ -53,6 +53,7 @@ import { diAlBanco, quandoIlBancoDice } from "app/canale3d.js";
 import { storiaDi } from "app/stato.js";
 import { NEGOZIO, waNegozio, mappeNegozio } from "app/dati/negozio.js";
 import { telaioAstuccio } from "app/tre/telaio.js";
+import { fermoRegalo } from "app/tre/fermi.js";
 
 /* ── IL FOGLIO DI STILE SE LO PORTA LA VISTA ───────────────────────
    Col timbro di versione del modulo, come fanno vetrina.js e perte.js:
@@ -1061,23 +1062,55 @@ export function monta(store){
       fodera: ((leggi().preferenze || {}).fodera) || "avorio",
       codice: es.codice || null, aria: 1.62, scorre: true,
       provino: haModello ? null : src,
-      classe: "az-r-astuccio", titolo: "Il tuo astuccio"
+      classe: "az-r-astuccio", titolo: "Il tuo astuccio",
+      /* REGIA A · SOLO L'ASTUCCIO (28/09): qui la regia è già lunga
+         (1,7 s + 1,6 s), e la sovrascatola della consegna sarebbero
+         altri 700 ms. Il quadro parte centrato sull'astuccio chiuso. */
+      opzione: "A"
     });
-    /* il ripiego, se la scheda grafica non dà il contesto: la stessa
-       fotografia di prima, che non è sbagliata — è soltanto meno */
+    /* ── L'ASTUCCIO C'È DAL PRIMO ISTANTE ──────────────────────────
+       Fino al 28/09 qui, prima del 3D, c'era la FOTOGRAFIA del pezzo:
+       poi si dissolveva in una scatola. Adesso dal primo istante c'è
+       l'astuccio stesso, in immagine ferma resa dalla stessa scena allo
+       stesso quadro (`app/tre/fermi.js`): quando il 3D arriva non
+       cambia niente a vista, e alla battuta del pezzo si apre.
+       IL RIPIEGO DICHIARATO: se il 3D non arriva entro il tetto (4 s)
+       o il telaio dice «guasto», chi riceve deve vedere il suo regalo —
+       l'astuccio chiuso lascia il posto, in dissolvenza da 200, alla
+       fotografia del pezzo. Un 3D arrivato DOPO quella dissolvenza non
+       rientra: la pagina non cambia due volte oggetto. */
+    const fermo = e("img", {class:"az-r-fermo", src: fermoRegalo(famBanco),
+      alt:"", decoding:"async", draggable:"false"});
     const fig = src
-      ? e("img", {class:"az-r-fig", src, alt:"", decoding:"async"})
-      : e("div", {class:"az-r-fig redatto"}, [e("span", {testo:nomeDi(es)})]);
-    const scena = e("div", {class:"az-r-fig az-r-scena"}, [telaio.nodo]);
-    let inTre = false;
-    telaio.pronto.then((ok) => {
-      inTre = !!ok;
-      if(ok){ fig.hidden = true; scena.dataset.pronto = "1"; }
-      else scena.hidden = true;
+      ? e("img", {class:"az-r-fermo az-r-foto", src, alt:"", decoding:"async", hidden:true})
+      : null;
+    const scena = e("div", {class:"az-r-fig az-r-scena"}, [fermo, fig, telaio.nodo].filter(Boolean));
+    let inTre = false, ripiegato = false, vuoleAprirsi = false;
+    function mostra3d(secco){
+      if(inTre || ripiegato) return;
+      inTre = true;
+      if(secco) scena.dataset.secco = "1";
+      scena.dataset.pronto = "1";
+      if(secco) fermo.hidden = true;
+      else setTimeout(() => { fermo.hidden = true; }, 220);
+    }
+    telaio.pronto.then(() => {
+      /* la battuta del pezzo è già passata ad aspettarlo: entra secco e
+         si apre adesso */
+      if(vuoleAprirsi){ mostra3d(true); if(inTre) telaio.suona(); }
+      else mostra3d(false);
+    });
+    telaio.tetto.then((scaduto) => {
+      if(!scaduto || inTre) return;
+      ripiegato = true;
+      if(!fig) return;                     /* nessuna foto: resta l'astuccio */
+      fig.hidden = false;
+      fig.animate([{opacity:0},{opacity:1}], {duration:200, easing:"linear", fill:"both"});
+      fermo.animate([{opacity:1},{opacity:0}], {duration:200, easing:"linear", fill:"forwards"});
     });
     telaioVivo = telaio;
     const nome = e("p", {class:"az-r-nome", testo:nomeDi(es)});
-    const pezzo = e("div", {class:"az-r-pezzo"}, [scena, fig, nome]);
+    const pezzo = e("div", {class:"az-r-pezzo"}, [scena, nome]);
     const dedica = e("p", {class:"az-r-dedica", testo: ded || ""});
 
     const metti = tasto("Metti nel cofanetto", {tipo:"primario", largo:true,
@@ -1131,6 +1164,10 @@ export function monta(store){
       for(const k in parti) parti[k].classList.add("az-in");
       coda.classList.add("az-in");
       dentro.animate([{opacity:0},{opacity:1}], {duration:200, easing:"linear"});
+      /* la scatola, a movimento ridotto, si apre in dissolvenza da 200
+         appena c'è (la dissolvenza la fa la scena) */
+      vuoleAprirsi = true;
+      if(inTre) telaio.suona();
       for(const b of REGIA) tempi[b.chi] = 0;
       tempi.inizio = 0; tempi.fine = 200;
       annuncia("Un regalo da " + mittente + ": " + nomeDi(es) + ".");
@@ -1159,7 +1196,7 @@ export function monta(store){
        la scena parte lo stesso e il posto resta redatto.
        `decode()` non c'è su tutti i browser: il `catch` tratta
        l'immagine come già pronta, che è il caso peggiore accettabile. */
-    const figure = [marchio, fig].filter(x => x && x.tagName === "IMG");
+    const figure = [marchio, fermo].filter(x => x && x.tagName === "IMG");
     const pronte = Promise.all([
       ...figure.map(x => {
         try{ return x.decode().catch(() => {}); }catch(_){ return Promise.resolve(); }
@@ -1216,6 +1253,8 @@ export function monta(store){
          tutta per un giro. */
       if(!suonata && st.pezzo && !dentro.classList.contains("az-preroll")){
         suonata = true;
+        vuoleAprirsi = true;
+        /* se la scena non c'è ancora, si apre quando arriva (vedi sopra) */
         if(inTre) telaio.suona();
       }
     }
@@ -1329,6 +1368,11 @@ export function monta(store){
      frammento originale va letto all'importazione e rimesso dopo. È
      esattamente cio' che vetrina.js fa per `#/l/<token>`. */
   const dirittoAllaCarta = /^#\/c\/([^/]+)$/.exec(INDIRIZZO_0);
+  /* LA CARTA SI DICHIARA SUBITO, anche se si apre fra 80 ms: il banco
+     (`avvio.js`, `portaAperta`) non deve scendere sotto una pagina del
+     regalo che sta per aprirsi — dieci mega e i suoi lavori dentro la
+     regia di 1,7 s (misurato il 28/09: la battuta dei 400 arrivava a 921). */
+  if(dirittoAllaCarta) document.body.dataset.carta = "1";
   if(dirittoAllaCarta) setTimeout(() => {
     try{ history.replaceState(null, "", INDIRIZZO_0); }catch(_){ /* niente */ }
     apriCarta(decodeURIComponent(dirittoAllaCarta[1]));

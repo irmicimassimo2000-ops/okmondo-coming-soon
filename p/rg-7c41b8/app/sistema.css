@@ -1224,6 +1224,45 @@ body[data-ingresso] .cap-elenco{visibility:hidden}
 .f1-scena3d{position:absolute;inset:0 0 132px;z-index:0;pointer-events:auto;
   opacity:0;transition:opacity .2s linear}
 .f1-scena3d[data-pronto]{opacity:1}
+/* una tela invisibile non prende tocchi: prima del 3D il tocco non ha niente da girare */
+.f1-scena3d:not([data-pronto]){pointer-events:none}
+/* lo scambio SECCO: quando la cerimonia parte nello stesso istante in
+   cui il 3D entra, una dissolvenza fra una scena che si muove e la sua
+   immagine ferma sarebbe un fantasma */
+.f1-scena3d[data-secco]{transition:none}
+
+/* ── S1 · LA SOVRASCATOLA IN IMMAGINE FERMA (28/09) ───────────────
+   Prima del 3D si vede la sovrascatola resa dalla STESSA scena
+   (`app/tre/fermi.js`): stesso rettangolo della scena (sopra i 132
+   punti del fondo), e dentro il quadrato di lato corto, centrato — è
+   così che la scena mette l'astuccio chiuso sul telefono: su uno
+   schermo verticale il quadro lo detta la larghezza, e il centro
+   dell'astuccio sta al centro della tela. Sta SOTTO la scena (prima nel
+   documento, stesso z-index): il 3D ci entra sopra. */
+.f1-sov{position:absolute;inset:0 0 132px;z-index:0;pointer-events:none;
+  container-type:size}
+.f1-sov-q{position:absolute;left:50%;top:50%;width:100vw;width:100cqmin;
+  aspect-ratio:1;transform:translate(-50%,-50%)}
+.f1-sov-img{position:absolute;inset:0;width:100%;height:100%;display:block;
+  -webkit-user-select:none;user-select:none;-webkit-user-drag:none}
+.f1-sov-sotto{visibility:hidden}
+.f1-sov[hidden],.f1-sov-img[hidden]{display:none}
+
+/* IL SEGNO D'ATTESA sul tasto: un anello sottile al posto della parola,
+   del colore del testo. A movimento ridotto non gira: resta la parola
+   («Un momento»), che la vista scrive da sé. */
+.tasto .f1-attesa{display:none}
+.tasto[aria-busy="true"]{position:relative}
+.tasto[aria-busy="true"] > span{opacity:0}
+.tasto[aria-busy="true"] > .f1-attesa{display:block;position:absolute;
+  left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;
+  border-radius:50%;border:2px solid color-mix(in srgb,currentColor 28%,transparent);
+  border-top-color:currentColor;animation:f1-gira .8s linear infinite}
+@keyframes f1-gira{to{transform:rotate(1turn)}}
+@media (prefers-reduced-motion: reduce){
+  .tasto[aria-busy="true"] > span{opacity:1}
+  .tasto[aria-busy="true"] > .f1-attesa{display:none}
+}
 .f1-astuccio{display:block;width:100%;height:100%;border:0;
   background:transparent}
 /* il titolo e l'occhiello restano sopra la scena: sono in flusso, la
@@ -1236,6 +1275,8 @@ body[data-ingresso] .cap-elenco{visibility:hidden}
   display:flex;flex-direction:column;align-items:center;gap:4px;
   padding:0 var(--margine);text-align:center;opacity:0}
 .f1-pezzo-nome{color:var(--testo)}
+/* la riga che dichiara il ripiego definitivo (28/09): sotto il nome, piccola */
+.f1-pezzo-nota{max-width:30em;margin-top:4px}
 
 /* ── S2 · LE DUE DOMANDE ─────────────────────────────────────────── */
 .f1-gruppo{margin-top:26px}
@@ -1338,7 +1379,8 @@ body[data-ingresso] .cap-elenco{visibility:hidden}
 /* ── CHI HA CHIESTO MENO MOVIMENTO ───────────────────────────────── */
 @media (prefers-reduced-motion:reduce){
   .f1-fondo-tastiera{transition-duration:150ms;transition-timing-function:linear}
-  .f1-pezzo-testi{opacity:1}
+  /* il nome del pezzo NON è scritto da subito nemmeno qui: arriva con la
+     dissolvenza da 200 della scena aperta (web-critic, 28/09) */
 }
 
 /* ═══════════════════════════════════════════════════════════════════

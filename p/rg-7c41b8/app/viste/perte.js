@@ -42,11 +42,10 @@
 import { e, annuncia } from "app/ui/dom.js";
 import { segno } from "app/ui/segni.js";
 import { tasto, vestiTasto } from "app/ui/tasto.js";
-import { cella, lista } from "app/ui/cella.js";
 import { schermo } from "app/ui/barra-nav.js";
 import { toast } from "app/ui/toast.js";
 import { spingi, registraSchermo, torna, vaiA, tabCorrente } from "app/rotta.js";
-import { conTransizione, RIDOTTO, lineare } from "app/moto.js";
+import { conTransizione, RIDOTTO, lineare, molla } from "app/moto.js";
 import { osso } from "app/ui/scheletro.js";
 import { vuoto } from "app/ui/vuoto.js";
 /* IL TITOLARE, per la riga del pin del negozio («Stefano ha pensato a
@@ -386,7 +385,7 @@ export function proposte(stato = {}){
       regola: "chiude_collezione", collezione: chiudibile.id,
       occhiello: "Ti chiude la collezione " + chiudibile.nome,
       articolo: m.articolo, nome: m.nome, foto: m.foto, prezzo: m.prezzo,
-      riga: "Ne hai " + chiudibile.ha + " su " + chiudibile.totale +
+      riga: "Ne hai " + chiudibile.ha + " di " + chiudibile.totale +
             (chiudibile.chiude ? " · con questo ricevi " + chiudibile.chiude.nome
                                : " · con questo la chiudi"),
       perche: chiudibile.frase
@@ -686,14 +685,41 @@ const ETICHETTE_GENERICHE = {
   materia: "SI ABBINA AI TUOI", misura: "DELLA TUA MISURA",
   famiglia_mancante: "TI MANCA ANCORA"
 };
-function etichettaMotivo(g, s){
+/* esportata: F6 (28/09) — «Dal negozio» (`perte-negozio.js`, caricata a
+   richiesta) la riusa per la riga E05-B di «Anche per te»: la stessa
+   traduzione motore→etichetta, non una seconda. */
+export function etichettaMotivo(g, s){
   const chiave = g.chiave || g.regola;
-  if(chiave === "chiude_collezione" || chiave === "collezione"){
+  /* CORREZIONE (coordinatore, 28/09) — «L'ULTIMO DI …» SOLO A UN
+     PEZZO DALLA CHIUSURA. Prima il ramo copriva ANCHE `chiave ===
+     "collezione"` (una collezione a 2, 3 o 4 dalla chiusura): un fatto
+     falso mostrato alla cliente («l'ultimo» quando gliene mancano
+     ancora 3), causato da una chiave sbagliata nel motore — corretta
+     alla radice in `app/motore/proposte.js`. Qui la riga resta di
+     guardia: la tabella etichette-motivo di `SCELTE-MASSIMO.md`
+     (21/09) non ha MAI avuto una voce per «appartiene a una collezione
+     ma non è l'ultimo pezzo» — quindi quella regola non porta ancora
+     nessuna etichetta-motivo lockata. */
+  if(chiave === "chiude_collezione"){
     const nome = String(campoDati(g, "collezione") || "");
     const lunga = "L’ULTIMO DI " + nome.toUpperCase();
     return lunga.length <= 26
       ? {etichetta: lunga, sotto: "Ti manca solo questo"}
       : {etichetta: "L’ULTIMO DELLA COLLEZIONE", sotto: "Ti manca solo " + nome};
+  }
+  if(chiave === "collezione"){
+    /* CORREZIONE DEL COORDINATORE (28/09, secondo giro): l'eyebrow di
+       `ASSIEME_SCOPERTA_B` — «✦ DELLA TUA COLLEZIONE X» — è vera anche
+       qui (la collezione È sua, solo non all'ultimo pezzo); sotto il
+       conteggio per esteso, non la frase generica del motore. */
+    const nome = String(campoDati(g, "collezione") || "");
+    const posseduti = campoDati(g, "posseduti");
+    const totale = campoDati(g, "totale");
+    const manca = campoDati(g, "manca");
+    const sotto = (posseduti != null && totale != null)
+      ? posseduti + " di " + totale + (manca > 1 ? " · te ne mancano " + manca : "")
+      : g.frase;
+    return {etichetta: "DELLA TUA COLLEZIONE " + nome.toUpperCase(), sotto};
   }
   if(chiave === "data_vicina"){
     const r = ((s && s.ricorrenze) || []).find((x) => x.id === g.gruppo);
@@ -770,143 +796,137 @@ export function cardProposta(d, suClick, opz = {}){
 function vestiPrincipale(t){ t.classList.add("azione-principale"); return t; }
 function vestiSecondaria(t){ t.classList.add("azione-secondaria"); return t; }
 
-/* IL FATTO IN PIÙ DELLA CELLA SENZA FOTO — MAI IL NOME (critic 20/09):
-   il nome sta già sotto la card una volta sola (`.card-rail-nome»).
-   Nel rail PER MATERIA il titolo dice già la materia: la cella porta
-   allora la FAMIGLIA (anello, creola…), che è il fatto in più (critic
-   20/09, seconda verifica). Negli altri rail resta la materia. */
-function testoRail(p, r){
-  const perMateria = r && /materia/.test(String(r.regola || ""));
-  return perMateria ? (p.tipo || p.famiglia_nome || p.materia) : p.materia;
+/* ══════════════════════════════════════════════════════════════════
+   F6 (28/09) · «SCOPRI» — IL MAZZO A SCHERMO INTERO, IL GESTO TINDER.
+   Ancore: `tavole-perte-2` E02 (carta edge-to-edge) / E03 (gesto e
+   affordance) / E04 (dove va il pezzo) / E06 (fine del mazzo),
+   `ASSIEME_SCOPERTA_B`. La FORMA è di Regina (la carta, la capsula dei
+   due tasti); il MECCANISMO del gesto — soglie, rotazione, timbro,
+   lancio — è preso da Tinder/Hinge, mai la pelle (canone 21/09).
+
+   IL MAZZO NON È UNA SECONDA SELEZIONE (`SCOPERTA-MOTORE.md` §0-1):
+   `motoreProposte.mazzoScopri(m)` appiattisce grande+rail e tiene solo
+   chi ha un'immagine vera. Qui si mostra quella sequenza, una carta
+   alla volta, mai rimescolata — un puntatore locale avanza a ogni
+   gesto, «Annulla» lo riporta indietro di uno. ═══════════════════════ */
+
+const SOGLIA_DISTANZA = 0.3;    /* 30% della larghezza della carta */
+const SOGLIA_VELOCITA = 0.5;    /* px/ms */
+const ROTAZIONE_MAX = 12;       /* gradi, come dichiarato dal brief */
+
+/* LA CARTA — edge-to-edge: immagine, scrim, motivo, corpo. Ogni pezzo
+   del mazzo ha già un'immagine per costruzione (`mazzoScopri`, §0). */
+function cartaScopriDom(g, pos, leggi, soldi){
+  const mot = etichettaMotivo(g, leggi());
+  const fig = figura(g.articolo, "pt-carta-img", {muto: true});
+  if(fig.tagName === "IMG") fig.style.backgroundColor = PROVINO_FONDO;
+  return e("div", {class: "pt-carta", "data-pos": String(pos), "data-id": g.id}, [
+    fig,
+    e("div", {class: "pt-carta-scrim", "aria-hidden": "true"}),
+    /* CORREZIONE (coordinatore, 28/09): niente pillola quando la regola
+       non ne ha una lockata (`etichettaMotivo` torna `etichetta: null`
+       per «collezione», non l'ultimo pezzo) — mai una capsula vuota. */
+    mot.etichetta ? e("div", {class: "pt-carta-motivo"}, [segno("stella", {misura: 14}),
+      e("span", {testo: mot.etichetta})]) : null,
+    pos === 0 ? e("div", {class: "pt-timbro si", "aria-hidden": "true", testo: "Mi interessa"}) : null,
+    pos === 0 ? e("div", {class: "pt-timbro no", "aria-hidden": "true", testo: "Non fa per me"}) : null,
+    e("div", {class: "pt-carta-corpo"}, [
+      e("span", {class: "pt-carta-nome", testo: g.articolo.nome}),
+      e("span", {class: "pt-carta-prezzo", testo: soldi(g.articolo.prezzo)}),
+      mot.sotto ? e("span", {class: "pt-carta-ragione", testo: mot.sotto}) : null
+    ].filter(Boolean))
+  ].filter(Boolean));
 }
 
-/* ── LA CELLA SENZA FOTO — TEXTURE, MAI UN RIQUADRO MUTO ────────────
-   E11-C, verdetto di Massimo (21/09), corretto dal coordinatore lo
-   stesso giorno: il fatto in più (materia/famiglia) NON scende più in
-   una terza riga sotto il nome — sfalsava la griglia contro le celle
-   fotografate, che ne hanno due. Vive DENTRO la texture, in piccolo,
-   come una didascalia posata sulla superficie (`.rail-fig-eti`,
-   perte.css): la cella resta a due righe (nome, prezzo) sempre. */
-function figuraRail(p, r){
-  const eti = testoRail(p, r);
-  const vuoto = () => e("div", {class: "redatto rail-fig"},
-    eti ? [e("span", {class: "rail-fig-eti", testo: eti})] : []);
-  if(!p.foto) return vuoto();
-  const img = e("img", {class: "rail-fig", src: p.foto, alt: "", loading: "lazy", decoding: "async"});
-  img.addEventListener("error", () => { img.replaceWith(vuoto()); }, {once: true});
-  return img;
+/* I TIMBRI, IN PROPORZIONE ALLA DISTANZA (brief): `t` va da -1 (tutto a
+   sinistra) a 1 (tutto a destra) — l'opacità segue `|t|`, mai un salto
+   a scatti fra 0 e 1. */
+function aggiornaTimbri(cartaEl, t){
+  const si = cartaEl.querySelector(".pt-timbro.si");
+  const no = cartaEl.querySelector(".pt-timbro.no");
+  const a = Math.max(0, Math.min(1, Math.abs(t))).toFixed(3);
+  if(si) si.style.opacity = t > 0 ? a : "0";
+  if(no) no.style.opacity = t < 0 ? a : "0";
+}
+/* SOLO TRANSFORM/OPACITY, MAI IL LAYOUT (brief, 60 fps): una
+   `translate` più una `rotate` in una riga sola di `style.transform`,
+   la rotazione in proporzione a `dx`, tetto a ±12°. */
+function applicaTrascina(cartaEl, dx, dy, larghezza){
+  const rot = Math.max(-ROTAZIONE_MAX, Math.min(ROTAZIONE_MAX,
+    (dx / larghezza) * ROTAZIONE_MAX * 2.2));
+  cartaEl.style.transform = "translate(" + dx.toFixed(1) + "px," + dy.toFixed(1) +
+    "px) rotate(" + rot.toFixed(2) + "deg)";
+  aggiornaTimbri(cartaEl, dx / (larghezza * SOGLIA_DISTANZA));
 }
 
-/* ── IL CUORE DELLA CELLA DEL RAIL (E10-B, verdetto di Massimo) ─────
-   Comando FRATELLO della cella, come in Vetrina (`viste/vetrina-corpo.js`,
-   `tastoCuore`): un cuore dentro il tasto che apre la scheda non
-   esiste. Stesso evento `preferito/alterna`, stesso ramo `s.preferiti`
-   — non una seconda lista di preferiti, la STESSA, letta da qui. Solo
-   sulle celle fotografate: la texture di E11 non lo porta. */
-function ePreferitoRail(id, leggi){ return ((leggi().preferiti) || []).includes(id); }
-function vestiCuoreRail(b, p, leggi){
-  const si = ePreferitoRail(p.id, leggi);
-  b.setAttribute("aria-pressed", String(si));
-  b.setAttribute("aria-label", (si ? "Togli dai preferiti: " : "Aggiungi ai preferiti: ") + p.nome);
-  const s = b.querySelector(".segno-filo");
-  if(s) s.classList.toggle("rail-cuore-pieno", si);
-}
-function cuoreRail(p, leggi, invia){
-  /* stessa anatomia del cuore di Vetrina (`vetrina-corpo.js`,
-     `tastoCuore`): un disco separato dentro il tasto, non la misura
-     dell'icona forzata — `.segno-filo` porta già le sue quattro
-     classi di misura (sistema.css) e qui non se ne inventa una nuova. */
-  const b = e("button", {type: "button", class: "card-rail-cuore",
-    suClick: (ev) => {
-      ev.stopPropagation();
-      invia("preferito/alterna", {id: p.id});
-      vestiCuoreRail(b, p, leggi);
-      annuncia(p.nome + (ePreferitoRail(p.id, leggi) ? ", nei preferiti." : ", tolto dai preferiti."));
-    }
-  }, [e("span", {class: "card-rail-cuore-disco"}, [segno("cuore", {misura: 20})])]);
-  b.dataset.cuorePerte = p.id;
-  vestiCuoreRail(b, p, leggi);
-  return b;
+/* LA MOLLA DI RITORNO (sotto soglia): due `molla()` in parallelo, una
+   per asse — `moto.js` già rispetta `RIDOTTO` da sola (salta dritta al
+   bersaglio sotto movimento ridotto), quindi qui non si ripete il
+   controllo. */
+function tornaAlCentro(cartaEl, dx0, dy0, vx, vy){
+  const larghezza = () => cartaEl.getBoundingClientRect().width || 361;
+  let dyCorrente = dy0;
+  molla(dy0, 0, {v0: vy, passo: (v) => { dyCorrente = v; }, fine: () => { dyCorrente = 0; }});
+  molla(dx0, 0, {v0: vx,
+    passo: (v) => applicaTrascina(cartaEl, v, dyCorrente, larghezza()),
+    fine: () => { cartaEl.style.transform = ""; aggiornaTimbri(cartaEl, 0); }});
 }
 
-/* ── IL RAIL — card 160 × 200, passo 172 ──────────────────────────── */
-function railDom(r, suPezzo, soldi, leggi, invia){
-  /* CORREZIONE (coordinatore, 21/09): i pezzi CON foto vengono prima —
-     ordinamento stabile, non tocca quale regola ha scelto quali pezzi,
-     solo l'ordine di presentazione. Con ≥ 2 fotografati nelle prime
-     tre visibili non cade mai più di UNA cella a texture: è una
-     conseguenza dell'ordine, non una regola a parte da mantenere. */
-  const pezzi = r.pezzi.map((p, i) => ({p, i}))
-    .sort((a, b) => (b.p.foto ? 1 : 0) - (a.p.foto ? 1 : 0) || a.i - b.i)
-    .map((x) => x.p);
-  const conFotoN = pezzi.filter((p) => p.foto).length;
-
-  const testa = [
-    /* E09-B (verdetto di Massimo): sans semibold, come Apple Music —
-       non più Bodoni 22: il rail è uno SCAFFALE dentro la pagina, non
-       un titolo di sezione a sé. */
-    e("h2", {class: "t-head rail-testa", testo: r.titolo}),
-    r.sotto ? e("p", {class: "t-foot tenue rail-sotto", testo: r.sotto}) : null
-  ].filter(Boolean);
-
-  /* MENO DI DUE PEZZI FOTOGRAFATI: uno scaffale orizzontale non ha il
-     peso visivo per reggersi — diventa una lista compatta di righe
-     (nome · materia · prezzo, 44-60 pt, senza riquadro), lo stesso
-     componente della lista raggruppata (`app/ui/cella.js`). */
-  if(conFotoN < 2){
-    const righe = pezzi.map((p) => {
-      const eti = testoRail(p, r);
-      return cella({
-        titolo: p.nome, sotto: eti || null, coda: soldi(p.prezzo),
-        etichetta: p.nome + (eti ? ", " + eti : "") + ", " + soldi(p.prezzo),
-        suClick: () => suPezzo(p.id)
-      });
-    });
-    return e("section", {class: "rail-blocco", "data-rail": r.regola}, [
-      ...testa,
-      e("div", {class: "lista rail-compatta", role: "list"},
-        righe.map((n) => { n.setAttribute("role", "listitem"); return n; }))
-    ]);
+/* IL LANCIO OLTRE SOGLIA — WAAPI diretta (non `molla()`: qui la meta è
+   fuori schermo, non un punto di riposo). Movimento ridotto = semplice
+   dissolvenza (brief), mai la traiettoria. */
+function volaFuori(cartaEl, direzione, dyIniziale){
+  if(RIDOTTO.matches){
+    cartaEl.animate([{opacity: 1}, {opacity: 0}], {duration: 150, easing: "linear", fill: "forwards"});
+    return;
   }
-
-  const carte = pezzi.map((p) => {
-    const conFoto = !!p.foto;
-    const eti = testoRail(p, r);
-    const apri = e("button", {
-      type: "button", class: "card-rail-apri", "data-pezzo": p.id,
-      "aria-label": p.nome + (!conFoto && eti ? ", " + eti : "") + ", " + soldi(p.prezzo),
-      suClick: () => suPezzo(p.id)
-    }, [
-      e("span", {class: "card-rail-foto"}, [figuraRail(p, r)]),
-      e("b", {class: "t-foot card-rail-nome", testo: p.nome}),
-      e("span", {class: "t-foot tenue cifra", testo: soldi(p.prezzo)})
-    ]);
-    return e("div", {class: "card-rail", role: "listitem"},
-      conFoto ? [apri, cuoreRail(p, leggi, invia)] : [apri]);
-  });
-  /* NIENTE SCORRIMENTO INFINITO (NN/g): l'elenco è finito e lo dice.
-     L'ultima card è una frase, non un'esca. */
-  if(r.altri > 0) carte.push(e("div", {class: "card-rail coda-rail", role: "listitem"},
-    [e("span", {class: "t-foot tenue", testo:
-      "In negozio ce ne sono altri " + r.altri + "."})]));
-  return e("section", {class: "rail-blocco", "data-rail": r.regola}, [
-    ...testa,
-    e("div", {class: "rail", role: "list", "aria-label": r.titolo}, carte)
-  ]);
+  const larghezza = cartaEl.getBoundingClientRect().width || 361;
+  const via = (direzione === "destra" ? 1 : -1) * larghezza * 1.6;
+  const rot = direzione === "destra" ? 22 : -22;
+  cartaEl.animate([
+    {transform: cartaEl.style.transform || "translate(0,0) rotate(0deg)", opacity: 1},
+    {transform: "translate(" + via.toFixed(0) + "px," + ((dyIniziale || 0) + 70).toFixed(0) +
+      "px) rotate(" + rot + "deg)", opacity: 0}
+  ], {duration: 260, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards"});
 }
 
-/* ── LO SCHELETRO DEL BLOCCO, MENTRE IL MOTORE ARRIVA ──────────────
-   Monocromo e fermo (niente shimmer — regola 5): occupa già il posto
-   che avrà il nome, la frase e i due comandi, così quando il motore
-   arriva non salta niente. Niente rail finché non c'è: un rail è una
-   proposta, e non si propone col catalogo mezzo scaricato. */
-function scheletroBlocco(){
-  return e("div", {class: "blocco-scheletro", "aria-hidden": "true"}, [
-    osso("42%", "11px", {raggio: "3px"}),
-    osso("72%", "28px", {su: "8px", raggio: "5px"}),
-    osso("90%", "15px", {su: "8px", raggio: "3px"}),
-    osso("22%", "13px", {su: "8px", raggio: "3px"})
-  ]);
+/* IL GESTO — pointer events con cattura (brief): il dito è nostro dal
+   primo tocco, `setPointerCapture` tiene il tracciamento anche se il
+   dito esce dai bordi della carta. Solo la carta in cima (`data-pos=0`)
+   lo riceve. */
+function armaTrascinamento(cartaEl, onDecisione){
+  let attivo = false, id = -1, x0 = 0, y0 = 0, ultimoX = 0, ultimoY = 0, ultimoT = 0, vel = 0;
+  cartaEl.addEventListener("pointerdown", (ev) => {
+    if(!ev.isPrimary || attivo) return;
+    attivo = true; id = ev.pointerId;
+    x0 = ev.clientX; y0 = ev.clientY;
+    ultimoX = x0; ultimoY = y0; ultimoT = ev.timeStamp || performance.now(); vel = 0;
+    cartaEl.classList.add("in-trascinamento");
+    try{ cartaEl.setPointerCapture(id); }catch(_){}
+  });
+  cartaEl.addEventListener("pointermove", (ev) => {
+    if(!attivo || ev.pointerId !== id) return;
+    const t = ev.timeStamp || performance.now();
+    const dt = t - ultimoT;
+    if(dt > 0) vel = (ev.clientX - ultimoX) / dt;   /* px/ms */
+    ultimoX = ev.clientX; ultimoY = ev.clientY; ultimoT = t;
+    applicaTrascina(cartaEl, ev.clientX - x0, ev.clientY - y0,
+      cartaEl.getBoundingClientRect().width || 361);
+  });
+  const fine = (ev) => {
+    if(!attivo || (ev && ev.pointerId !== id)) return;
+    attivo = false;
+    cartaEl.classList.remove("in-trascinamento");
+    try{ cartaEl.releasePointerCapture(id); }catch(_){}
+    const larghezza = cartaEl.getBoundingClientRect().width || 361;
+    const dx = ultimoX - x0, dy = ultimoY - y0;
+    const oltreSoglia = Math.abs(dx) >= larghezza * SOGLIA_DISTANZA ||
+      Math.abs(vel) >= SOGLIA_VELOCITA;
+    if(oltreSoglia) onDecisione(dx >= 0 ? "destra" : "sinistra", {dx, dy, vel: vel * 1000});
+    else tornaAlCentro(cartaEl, dx, dy, vel * 1000, 0);
+  };
+  cartaEl.addEventListener("pointerup", fine);
+  cartaEl.addEventListener("pointercancel", fine);
 }
 
 /* ── P4 · LA CARD A RIGHE FISSE (promo · compleanno · arrivo) ──────
@@ -1012,6 +1032,31 @@ export function monta(el, store){
     collezioni: store.collezioni || {}, oggi: OGGI
   });
 
+  /* ══ F6 (28/09) · «PER TE» A DUE INTERFACCE ═══════════════════════
+     La MODALITÀ non è persistita: si riapre sempre su «Scopri» (E01-A
+     — è il motore personale, la ragione del nome «Per te»). Stato
+     locale al montaggio, come `OGGI` e `SESSIONE` qui sopra. */
+  let modo = "scopri";
+
+  /* IL MAZZO DI «SCOPRI» — uno snapshot fisso per la sessione
+     (`SCOPERTA-MOTORE.md` §1: «non è una lista nuova», e non si
+     rimescola a ogni tocco). `null` finché il motore non è arrivato. */
+  let mazzoScopriArr = null;
+  let posizioneScopri = 0;
+  let contDaParteScopri = 0;
+  let ultimaAzioneScopri = null;            /* {direzione, g} — «Annulla» */
+  let animaSwipeAlProssimoDisegno = null;   /* {direzione, dx, dy} */
+  let swipeInCorso = false;                 /* vedi l'ascolto dello store */
+
+  /* «DAL NEGOZIO» — CARICATA A RICHIESTA, stessa via del motore e
+     delle collezioni (bilancio JS: si apre su «Scopri», questa non
+     deve pesare sull'avvio). */
+  let negozioPromessa = null;
+  function caricaNegozio(){
+    if(!negozioPromessa) negozioPromessa = import("app/viste/perte-negozio.js");
+    return negozioPromessa;
+  }
+
   /* F5b — IL BLOCCO GRANDE E I RAIL, DAL MOTORE — SE È ARRIVATO. Stesso
      `OGGI` della vista (mai `new Date()`), catalogo e collezioni già
      innestati — il motore legge `articolo.foto` che `app/innesto.js` ha
@@ -1037,71 +1082,76 @@ export function monta(el, store){
     caricaMotore().then((mod) => { if(mod) disegna(); });
   }
 
-  /* ── RISPOSTA AL TOCCO SUL RIFIUTO (critic 20/09) ───────────────────
-     «La card cambia a scatto» — non più: `nonFaPerMe` cattura il nodo
-     vecchio PRIMA di mandare l'evento (fra un giro e l'altro lo stato
-     cambia SINCRONO, vedi `invia`, e `disegna()` lo distrugge súbito
-     dopo), e `disegna()` lo consegna ad `animaCambioBlocco` appena il
-     nuovo è in pagina. Il vecchio si sovrappone (overlay `fixed`, perché
-     il resto della schermata intorno può essersi mosso) al nuovo e i
-     due sfumano insieme — durata e curva sono `--d-alert` e `--ios`
-     (sistema.css): 200 ms, «linear» sotto movimento ridotto perché
-     quelle due variabili CAMBIANO SOLE sotto quel media query — 150 ms.
-     Mai zero: un cambio di candidato senza nessun segno è indistinguibile
-     da un errore. */
-  /* IMPORTANTE: si cattura il nodo vecchio PRIMA che `schermo(el, …)`
-     svuoti il contenitore (è la prima riga di `disegna()`) — dopo, quel
-     nodo è già stato staccato dal documento, e animarlo staccato non fa
-     niente. Per questo `nonFaPerMe` non cattura il nodo lei stessa: alza
-     solo una bandiera, e la cattura vera è in cima a `disegna()`. */
-  let animaBloccoAlProssimoDisegno = false;
-  const valoreCSS = (nome) => getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
-  function animaCambioBlocco(vecchio, nuovo){
-    if(!vecchio || !nuovo) return;
-    const durata = parseFloat(valoreCSS("--d-alert")) || 200;
-    const curva = valoreCSS("--ios") || "ease";
-    const r = vecchio.getBoundingClientRect();
-    vecchio.style.position = "fixed";
-    vecchio.style.left = r.left + "px";
-    vecchio.style.top = r.top + "px";
-    vecchio.style.width = r.width + "px";
-    vecchio.style.margin = "0";
-    vecchio.style.zIndex = "5";
-    vecchio.style.pointerEvents = "none";
-    document.body.appendChild(vecchio);
-    nuovo.style.opacity = "0";
-    const via = vecchio.animate([{opacity: 1}, {opacity: 0}], {duration: durata, easing: curva, fill: "forwards"});
-    const entra = nuovo.animate([{opacity: 0}, {opacity: 1}], {duration: durata, easing: curva, fill: "forwards"});
-    via.finished.catch(() => {}).then(() => vecchio.remove());
-    entra.finished.catch(() => {}).then(() => { nuovo.style.opacity = ""; });
+  /* ── E01-A · IL COMMUTATORE ─────────────────────────────────────── */
+  function cambiaModo(nuovo){
+    if(nuovo === modo) return;
+    modo = nuovo;
+    disegna();
+  }
+  function commutatoreDom(){
+    const voce = (id, testo) => e("button", {
+      type: "button", class: modo === id ? "attivo" : "",
+      role: "tab", "aria-selected": String(modo === id),
+      suClick: () => cambiaModo(id)
+    }, [e("span", {testo})]);
+    return e("div", {class: "pt-commutatore", role: "tablist",
+      "aria-label": "Modalità di «Per te»"},
+      [voce("scopri", "Scopri"), voce("negozio", "Dal negozio")]);
   }
 
-  /* ── LE DUE AZIONI DEL BLOCCO GRANDE ────────────────────────────────
-     Un rifiuto e una messa da parte sono entrambi un VERDETTO
-     (`proposta/verdetto`): il motore li conta nel registro della sua
-     regola, e un rifiuto esclude l'articolo per novanta giorni e spende
-     una delle due rigenerazioni della sessione — al secondo la sezione
-     si ferma da sola («Va bene, ci risentiamo lunedì», e stavolta è
-     vera anche a un ricarico: il motore la scrive nello stato, non nella
-     sessione), il motore lo decide, questa vista si limita a
-     ridisegnare. */
-  function nonFaPerMe(g){
-    animaBloccoAlProssimoDisegno = true;
-    invia("proposta/verdetto", {
-      articolo: g.id, esito: "rifiuto", regola: g.regola, oggi: OGGI, sessione: SESSIONE
-    });
-    annuncia(g.articolo.nome + ", non fa per te.");
+  /* ── E04 · LA DECISIONE — dove va il pezzo, e come lo si racconta ──
+     Destra = «Metti da parte» (lo STESSO evento del tasto di sempre,
+     nessun bucket nuovo, `SCOPERTA-MOTORE.md` §2). Sinistra = «Non fa
+     per me», il verdetto già lockato. Il puntatore locale avanza
+     SUBITO — la carta vola via a schermo, il motore la riscrive nel
+     suo registro in parallelo, non prima. */
+  function decidi(direzione, trascina){
+    if(!mazzoScopriArr || posizioneScopri >= mazzoScopriArr.length) return;
+    const g = mazzoScopriArr[posizioneScopri];
+    ultimaAzioneScopri = {direzione, g};
+    animaSwipeAlProssimoDisegno = {
+      direzione, dx: (trascina && trascina.dx) || 0, dy: (trascina && trascina.dy) || 0
+    };
+    posizioneScopri++;
+    if(direzione === "destra") contDaParteScopri++;
+    swipeInCorso = true;
+    if(direzione === "destra"){
+      const fino = isoPiu(OGGI, TENUTA_GIORNI_DAPARTE);
+      invia("daparte/aggiungi", {id: g.id, dal: OGGI, fino});
+      invia("proposta/verdetto", {
+        articolo: g.id, esito: "da_parte", regola: g.regola, oggi: OGGI, sessione: SESSIONE
+      });
+      /* NIENTE TOAST QUI (a differenza del tasto «Metti da parte» di
+         Vetrina): nel mazzo la risposta al tocco è già la carta che
+         vola via e il conto che avanza — un toast fisso in fondo allo
+         schermo si sovrapporrebbe ai due tasti, proprio dove sta il
+         prossimo gesto (misurato: copre `.blocco-azioni` per la sua
+         durata, bloccando un secondo tocco rapido). Resta l'annuncio
+         per chi ascolta. */
+      annuncia(g.articolo.nome + ", messo da parte, fino al " + giornoEMese(fino) + ".");
+    } else {
+      invia("proposta/verdetto", {
+        articolo: g.id, esito: "rifiuto", regola: g.regola, oggi: OGGI, sessione: SESSIONE
+      });
+      annuncia(g.articolo.nome + ", non fa per te.");
+    }
+    swipeInCorso = false;
   }
-  function metterlaDaParte(g){
-    const fino = isoPiu(OGGI, TENUTA_GIORNI_DAPARTE);
-    /* lo stesso evento di `viste/vetrina.js` (`mettiDaParte`): il pezzo
-       entra DAVVERO nella riserva, non solo nel registro del motore. */
-    invia("daparte/aggiungi", {id: g.id, dal: OGGI, fino});
-    invia("proposta/verdetto", {
-      articolo: g.id, esito: "da_parte", regola: g.regola, oggi: OGGI, sessione: SESSIONE
-    });
-    toast(g.articolo.nome + " messo da parte, fino al " + giornoEMese(fino) + ".");
-    annuncia(g.articolo.nome + ", messo da parte.");
+
+  /* ── E03-B · «ANNULLA» — capacità nuova, piccola, fuori dal motore
+     (`SCOPERTA-MOTORE.md` §2): ri-dispatcha l'evento inverso invece di
+     scrivere lo stato a mano da qui. */
+  function annullaScopri(){
+    if(!ultimaAzioneScopri) return;
+    const {direzione, g} = ultimaAzioneScopri;
+    ultimaAzioneScopri = null;
+    posizioneScopri = Math.max(0, posizioneScopri - 1);
+    if(direzione === "destra") contDaParteScopri = Math.max(0, contDaParteScopri - 1);
+    swipeInCorso = true;
+    if(direzione === "destra") invia("daparte/togli", {id: g.id});
+    else invia("proposta/annulla_rifiuto", {articolo: g.id, regola: g.regola});
+    swipeInCorso = false;
+    annuncia(g.articolo.nome + ", annullato.");
   }
 
   /* ── GLI SCHERMI CHE QUESTA VISTA APRE ─────────────────────────
@@ -1159,23 +1209,169 @@ export function monta(el, store){
 
   const vaiAlPezzo = (id) => spingi("pezzo/" + id);
 
-  /* ══ P0 · PER TE ═══════════════════════════════════════════════ */
+  /* IL VOLO — WAAPI diretta sulla carta che ha appena lasciato la
+     schermata (già spostata in `<body>` da `disegna()`, PRIMA che
+     `schermo()` svuoti il contenitore: un nodo staccato non si anima).
+     Durata e curva sono le stesse di `--d-ct-in`/`--ios` (sistema.css,
+     300 ms): scritte qui come `rotta.js` scrive già le sue — un
+     `getComputedStyle` per ogni volo costerebbe un layout in più
+     durante il gesto, che il brief vieta. Movimento ridotto = semplice
+     dissolvenza, mai la traiettoria. */
+  function volaFuori(cartaEl, direzione, dyIniziale){
+    if(RIDOTTO.matches){
+      cartaEl.animate([{opacity: 1}, {opacity: 0}], {duration: 150, easing: "linear", fill: "forwards"});
+      return;
+    }
+    const larghezza = cartaEl.getBoundingClientRect().width || 361;
+    const via = (direzione === "destra" ? 1 : -1) * larghezza * 1.6;
+    const rot = direzione === "destra" ? 22 : -22;
+    cartaEl.animate([
+      {transform: cartaEl.style.transform || "translate(0,0) rotate(0deg)", opacity: 1},
+      {transform: "translate(" + via.toFixed(0) + "px," + ((dyIniziale || 0) + 70).toFixed(0) +
+        "px) rotate(" + rot + "deg)", opacity: 0}
+    ], {duration: 300, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards"});
+  }
+
+  /* ── E03-B · LA RIGA DI CONTO ──────────────────────────────────── */
+  function rigaContoDom(){
+    const disabilitato = !ultimaAzioneScopri;
+    return e("div", {class: "pt-riga-conto"}, [
+      e("button", {type: "button", class: "pt-annulla",
+        "aria-disabled": disabilitato ? "true" : null,
+        suClick: () => { if(!disabilitato) annullaScopri(); }
+      }, [e("span", {testo: "← Annulla"})]),
+      e("span", {class: "pt-conto", testo: (posizioneScopri + 1) + " di " + mazzoScopriArr.length})
+    ]);
+  }
+
+  /* ── E08-C, RIUSATA · LA SESSIONE È CHIUSA (o «tutto suo») ────────── */
+  function fineCalmaDom(testo){
+    return e("div", {class: "pt-fine"}, [
+      segno("stella", {misura: 40}),
+      e("span", {class: "pt-fine-titolo t-2", testo})
+    ]);
+  }
+
+  /* ── E06-A · FINE DEL MAZZO, CON IL RIEPILOGO ─────────────────────── */
+  function fineMazzoDom(m){
+    return e("div", {class: "pt-fine"}, [
+      segno("stella", {misura: 40}),
+      e("span", {class: "pt-fine-titolo t-2", testo: (m && m.fine) || "Non c’è altro, per ora."}),
+      e("span", {class: "pt-fine-sotto", testo: "Hai visto tutte le proposte di oggi"}),
+      e("div", {class: "griglia-riepilogo"}, [
+        e("div", {class: "riepilogo-cella"}, [
+          e("span", {class: "num", testo: String(mazzoScopriArr.length)}),
+          e("span", {class: "et", testo: "pezzi visti"})]),
+        e("div", {class: "riepilogo-cella"}, [
+          e("span", {class: "num", testo: String(contDaParteScopri)}),
+          e("span", {class: "et", testo: "messi da parte"})])
+      ]),
+      tasto("Guarda le promozioni", {tipo: "primario", largo: true, suClick: () => cambiaModo("negozio")})
+    ]);
+  }
+
+  /* ── IL CORPO DI «SCOPRI» ──────────────────────────────────────── */
+  function disegnaScopri(pagina){
+    pagina.classList.add("pt-scopri-pagina");
+    chiediMotoreSeAttiva();
+
+    if(!motoreProposte){
+      /* in corso → lo scheletro, monocromo e fermo (niente shimmer).
+         Fallito (rete assente) → niente: nessun errore, solo silenzio. */
+      if(!motoreFallito) pagina.append(e("div", {class: "pt-scena", "aria-hidden": "true"},
+        [osso("100%", "100%", {raggio: "0px"})]));
+      return;
+    }
+    if(tBloccoDisegnato == null) tBloccoDisegnato = performance.now();
+    const m = motore();
+
+    if(m.sessione_chiusa){
+      /* E08-C: la data VERA, non «lunedì» da solo. */
+      const testoChiuso = m.chiusa_fino
+        ? "Va bene: torno a proporti qualcosa " + giornoBreve(m.chiusa_fino) + "."
+        : m.fine;
+      pagina.append(fineCalmaDom(testoChiuso));
+      return;
+    }
+    if(mazzoScopriArr == null) mazzoScopriArr = motoreProposte.mazzoScopri(m);
+
+    if(!mazzoScopriArr.length){
+      if(m.tutto_suo) pagina.append(fineCalmaDom(m.fine));
+      /* E15-A: persona senza dati — segno + Title2 + Body + un'azione. */
+      else pagina.append(vuoto({
+        segno: "collezione", titolo: "Non c’è ancora nulla qui",
+        testo: "Le tue proposte nascono dai pezzi che porti: comincia in negozio.",
+        azione: "Scopri la vetrina", suAzione: () => vaiA("vetrina")
+      }));
+      return;
+    }
+
+    if(posizioneScopri >= mazzoScopriArr.length){
+      pagina.append(fineMazzoDom(m));
+      return;
+    }
+
+    pagina.append(rigaContoDom());
+    const scena = e("div", {class: "pt-scena"});
+    pagina.append(scena);
+    /* fino a tre carte impilate: la in cima riceve il gesto, le altre
+       due «salgono in scala» sotto di lei (CSS, `data-pos`). */
+    mazzoScopriArr.slice(posizioneScopri, posizioneScopri + 3)
+      .forEach((g, i) => scena.append(cartaScopriDom(g, i, leggi, soldi)));
+    pagina.append(e("div", {class: "blocco-azioni"}, [
+      vestiSecondaria(tasto("Non fa per me", {tipo: "terziario", suClick: () => decidi("sinistra")})),
+      vestiPrincipale(tasto("Metti da parte", {tipo: "terziario", suClick: () => decidi("destra")}))
+    ]));
+    const cimaCarta = scena.querySelector('.pt-carta[data-pos="0"]');
+    if(cimaCarta) armaTrascinamento(cimaCarta, decidi);
+  }
+
+  /* ── IL CORPO DI «DAL NEGOZIO» — caricato a richiesta ─────────────── */
+  function disegnaNegozio(pagina){
+    chiediMotoreSeAttiva();
+    const cont = e("div", {class: "pt-negozio"});
+    pagina.append(cont);
+    caricaNegozio().then((mod) => {
+      if(modo !== "negozio" || !cont.isConnected) return;
+      mod.monta(cont, {
+        dati, soldi, invia, leggi, vaiAlPezzo,
+        oggi: OGGI, giornoEMese, giorniFra,
+        senzaFoto: () => motoreProposte ? motoreProposte.senzaFotoScopri(motore()) : []
+      });
+    }).catch((err) => { console.error(err); nonCaricato(cont); });
+  }
+
+  /* ══ P0 · PER TE — LA RADICE, DUE INTERFACCE ═══════════════════════
+     F6 (28/09, verdetto di Massimo): «Per te» diventa due schermate
+     diverse per meccanica dietro un commutatore (E01-A) — «Scopri», il
+     motore personale a swipe, e «Dal negozio», editoriale. Si apre
+     sempre su «Scopri». ═══════════════════════════════════════════ */
   function disegna(){
-    /* si cattura QUI, prima che `schermo()` svuoti il contenitore (vedi
-       la nota sopra `animaBloccoAlProssimoDisegno`). */
-    const vecchioPerAnimazione = animaBloccoAlProssimoDisegno
-      ? el.querySelector(".blocco") : null;
-    animaBloccoAlProssimoDisegno = false;
+    /* si cattura QUI, PRIMA che `schermo()` svuoti il contenitore: un
+       nodo staccato non si anima (`volaFuori` lo vuole ancora attaccato
+       per misurarlo). Si sposta SUBITO in `<body>`, fissato alla sua
+       posizione vera — sopravvive per davvero alla pulizia, non solo la
+       sua referenza JS. */
+    let vecchiaCartaVolante = null;
+    const animInfo = animaSwipeAlProssimoDisegno;
+    animaSwipeAlProssimoDisegno = null;
+    if(modo === "scopri" && animInfo){
+      const nodo = el.querySelector('.pt-carta[data-pos="0"]');
+      if(nodo){
+        const r = nodo.getBoundingClientRect();
+        nodo.style.position = "fixed";
+        nodo.style.left = r.left + "px"; nodo.style.top = r.top + "px";
+        nodo.style.width = r.width + "px"; nodo.style.height = r.height + "px";
+        nodo.style.margin = "0"; nodo.style.zIndex = "5"; nodo.style.pointerEvents = "none";
+        document.body.appendChild(nodo);
+        vecchiaCartaVolante = nodo;
+      }
+    }
 
     const d = dati();
     const pagina = schermo(el, {titolo: "Per te"});
 
-    /* 1 · IL TITOLO CON LE INIZIALI (E01-B, verdetto di Massimo 21/09):
-       niente occhiello sopra («Aggiornato oggi» — 18 pt di altezza in
-       più, per un fatto che la pagina già dimostra da sola), un cerchio
-       «LS» sulla riga del titolo — conferma chi è loggata senza foto né
-       generazioni, tocca e apre il Profilo (ANCORA Apple, App Store
-       «Per te»: l'avatar vive sulla riga del Large Title). */
+    /* 1 · IL TITOLO CON LE INIZIALI (E01-B, verdetto di Massimo 21/09) */
     const testaPagina = pagina.querySelector(".testa-pagina");
     if(testaPagina){
       testaPagina.classList.add("f5-testa");
@@ -1189,202 +1385,24 @@ export function monta(el, store){
       }, [e("span", {"aria-hidden": "true", testo: iniziali})]));
     }
 
-    /* 2 · la riga del ritorno — solo se c'è un fatto. In --testo, non
-       --accento (critic 20/09): il turchese di questa schermata è già
-       preso da «Ricordamelo» (ACCENTI, un solo ruolo oltre al primario),
-       e quando il ritorno compare INSIEME al blocco erano due. */
+    /* 2 · la riga del ritorno — solo se c'è un fatto. */
     if(d.ritorno) pagina.append(e("p", {class: "t-sub riga-ritorno", testo: d.ritorno}));
 
-    /* 3 · IL BLOCCO GRANDE — F5b, dal motore, CARICATO A RICHIESTA
-       (banco prestazioni 20/09): `chiediMotoreSeAttiva()` lo chiede
-       solo quando questa tab è quella attiva, mai all'avvio per le
-       altre tre. Finché non arriva (o se non arriva mai: rete assente)
-       il posto resta lo scheletro — niente rail, niente errore.
-       SUBITO SOTTO IL TITOLO: è la risposta alla domanda della pagina
-       («cosa c'è per te oggi»), e vince il primo sguardo — le card P4
-       (compleanno, promo) sono vere ma non sono LA risposta, e scendono
-       più giù (misura 6). Il titolo-regola È LA FRASE della proposta
-       (accenti veri, ≤ 60 caratteri): non più un'etichetta SOPRA la
-       foto, ma la riga che spiega il pezzo, sotto il suo nome. Sotto la
-       card, le due azioni: «Metti da parte» (principale, --testo 600) e
-       «Non fa per me» (secondaria, --testo-2 400). */
-    chiediMotoreSeAttiva();
-    const m = motoreProposte ? motore() : null;
-    let nuovoBloccoNodo = null;
-    if(!m){
-      /* in corso → lo scheletro. Fallito (rete assente) → niente: il
-         resto della pagina (promo, collezioni, arrivi) resta com'è, e
-         qui non c'è nessun errore, solo silenzio. */
-      if(!motoreFallito){ nuovoBloccoNodo = scheletroBlocco(); pagina.append(nuovoBloccoNodo); }
-    } else if(m.sessione_chiusa){
-      /* E08-C (verdetto di Massimo, 21/09): la data VERA, non «lunedì»
-         da solo — un testo che non invecchia male se l'app si riapre
-         un altro giorno. `m.chiusa_fino` è il lunedì vero che il motore
-         ha già calcolato (`prossimoLunedi`, non toccato: qui si legge).
-         Allineata a sinistra (critic 20/09): oggi era l'unico testo
-         centrato della pagina. */
-      const testoChiuso = m.chiusa_fino
-        ? "Va bene: torno a proporti qualcosa " + giornoBreve(m.chiusa_fino) + "."
-        : m.fine;
-      nuovoBloccoNodo = e("p", {class: "t-sub tenue blocco-fine", testo: testoChiuso});
-      pagina.append(nuovoBloccoNodo);
-    } else if(m.grande){
-      const g = m.grande;
-      const suClick = () => {
-        invia("proposta/verdetto", {
-          articolo: g.id, esito: "aperto", regola: g.regola, oggi: OGGI, sessione: SESSIONE
-        });
-        vaiAlPezzo(g.id);
-      };
-      /* E02-B/E03-B/E07-C (verdetto di Massimo, 21/09): un'ossatura
-         sola con o senza foto — `cardProposta` decide da sé, mai un
-         riquadro vuoto quando la foto manca. L'etichetta-motivo prende
-         il posto dell'occhiello famiglia·materia: `etichettaMotivo`
-         traduce la regola vinta dal motore, e la riga sotto resta un
-         dato vero (`g.frase`, quando la tabella non ne ha uno più
-         specifico). */
-      const mot = etichettaMotivo(g, leggi());
-      const card = cardProposta({
-        nome: g.articolo.nome, foto: g.articolo.foto,
-        prezzo: soldi(g.articolo.prezzo),
-        etichetta: mot.etichetta, sotto: mot.sotto, chiave: g.chiave
-      }, suClick, {contain: true});
-      nuovoBloccoNodo = e("section", {class: "blocco", "data-regola": g.regola}, [
-        card,
-        /* E06-C (verdetto di Massimo): due capsule — «Metti da parte»
-           piena, «Non fa per me» in tono. Non due primari: il colore è
-           nella FORMA (piena vs in tono), non nel turchese — che resta
-           di «Ricordamelo» (ACCENTI, critic 20/09). */
-        e("div", {class: "blocco-azioni"}, [
-          vestiPrincipale(tasto("Metti da parte", {tipo: "terziario", suClick: () => metterlaDaParte(g)})),
-          vestiSecondaria(tasto("Non fa per me", {tipo: "terziario", suClick: () => nonFaPerMe(g)}))
-        ])
-      ]);
-      pagina.append(nuovoBloccoNodo);
-    } else if(m.tutto_suo){
-      /* «Hai tutto quello che c’è, per ora.» — mai un rail a punteggio
-         basso per non lasciare il posto vuoto: un «Per te» riempito con
-         pezzi deboli è peggio di un «Per te» che finisce (motore §8). */
-      nuovoBloccoNodo = e("p", {class: "t-sub tenue blocco-fine", testo: m.fine});
-      pagina.append(nuovoBloccoNodo);
-    }
-    /* 4 · UNO SCAFFALE SOLO — F6 (21/09, verdetto di Massimo: «la radice
-       è tornata piena»). Fino a ieri qui finivano fino a tre rail, uno
-       sotto l'altro; oggi ne resta UNO, il più pertinente alla proposta
-       appena mostrata — quello col punteggio più alto fra i rail che il
-       motore ha preparato. Gli altri due non spariscono: restano nel
-       motore (`m.rail`), pronti a diventare loro il rail scelto la
-       prossima volta che la regola grande cambia. Il punteggio di un
-       rail è il più alto fra i suoi pezzi (`p.punteggio`, scritto dal
-       motore): un rail con un solo pezzo fortissimo vince su uno con
-       tre pezzi mediocri, ed è la stessa logica che sceglie il blocco
-       grande. */
-    let railScelto = null;
-    if(m) for(const r of m.rail){
-      const punti = r.pezzi.reduce((mx, p) => Math.max(mx, p.punteggio || 0), 0);
-      if(!railScelto || punti > railScelto.punti) railScelto = {r, punti};
-    }
+    /* 3 · E01-A · IL COMMUTATORE, sotto il titolo. */
+    pagina.append(commutatoreDom());
 
-    /* 5 · UN GRUPPO DI LISTA, AL MASSIMO TRE RIGHE DI RIMANDO — la
-       stessa riga di tutta l'app (E07 variante B, `riferimenti/
-       APPLE-NATIVO.md` §3: valore in tenue prima del chevron). Tutto
-       ciò che fino a ieri riempiva la radice — l'elenco delle
-       collezioni, le card degli arrivi, le card di compleanno/promo —
-       non è sparito: vive nelle SUE pagine, e questa riga è la porta.
-       Una riga che non ha contenuto non compare: mai un rimando a
-       vuoto. */
-    const righe = [];
-    if(d.mie.length){
-      /* la collezione più vicina alla chiusura, non la prima della
-         lista: è il fatto che vale la pena scrivere sotto il numero. */
-      const primaAChiudere = d.mie.filter((c) => c.manca > 0)
-        .sort((a, b) => a.manca - b.manca)[0];
-      const sottoColl = primaAChiudere
-        ? primaAChiudere.nome + ": " + (primaAChiudere.manca === 1
-            ? "ti manca 1 pezzo" : "te ne mancano " + primaAChiudere.manca)
-        : null;
-      righe.push(cella({
-        titolo: "Le tue collezioni", coda: String(d.mie.length), sotto: sottoColl,
-        etichetta: "Le tue collezioni, " + d.mie.length + (sottoColl ? ", " + sottoColl : ""),
-        suClick: () => spingi("collezioni/tutte")
-      }));
-    }
-    if(d.arriviTutti.length){
-      /* il primo di `arriviTutti` è già il più recente (la stessa
-         regola che sceglieva le due card di prima, F5b): qui diventa
-         il fatto della riga, non solo il primo di un elenco troncato. */
-      const primo = d.arriviTutti[0];
-      const sottoArrivi = primo.nome + ", da " + giornoBreve(primo.data);
-      righe.push(cella({
-        titolo: "Arrivi", coda: String(d.arriviTutti.length), sotto: sottoArrivi,
-        etichetta: "Arrivi, " + d.arriviTutti.length + ", " + sottoArrivi,
-        suClick: () => spingi("arrivi/tutti")
-      }));
-    }
-    /* compleanno e promo sono le due sole forme di «promozione attiva
-       questo mese» che il motore conosce: quella più vicina a scadere
-       (`al`, ISO) vince la riga — non la prima trovata. */
-    const mese = [d.compleanno, d.promo].filter(Boolean)
-      .sort((a, b) => giorniFra(OGGI, a.al) - giorniFra(OGGI, b.al))[0];
-    if(mese){
-      const sottoMese = mese.titolo + ", fino al " + giornoEMese(mese.al);
-      righe.push(cella({
-        titolo: "Per te questo mese", sotto: sottoMese,
-        etichetta: "Per te questo mese, " + sottoMese,
-        suClick: () => spingi("mese/questo")
-      }));
-    }
+    /* 4 · il corpo, secondo la modalità. */
+    if(modo === "scopri") disegnaScopri(pagina);
+    else disegnaNegozio(pagina);
 
-    /* E15-A (verdetto di Massimo, 21/09): persona senza dati (nessun
-       candidato e non "tutto suo") — se la pagina non ha PROPRIO
-       NIENTE d'altro da dire (nessuno scaffale, nessuna riga di
-       rimando, nessun ritorno), lo stato vuoto del sistema prende il
-       posto del blocco: segno + Title2 + Body + un'azione, mai una
-       sezione muta. */
-    const emptyTotale = !!m && !m.grande && !m.sessione_chiusa && !m.tutto_suo &&
-      !railScelto && !righe.length && !d.ritorno;
-    if(emptyTotale){
-      nuovoBloccoNodo = vuoto({
-        segno: "collezione", titolo: "Non c’è ancora nulla qui",
-        testo: "Le tue proposte nascono dai pezzi che porti: comincia in negozio.",
-        azione: "Scopri la vetrina", suAzione: () => vaiA("vetrina")
-      });
-      pagina.append(nuovoBloccoNodo);
-    }
-
-    /* RISPOSTA AL TOCCO (critic 20/09): un rifiuto non sostituisce la
-       card a scatto. `vecchioPerAnimazione` è stato catturato in cima a
-       questa funzione, PRIMA che `schermo()` lo staccasse; appena il
-       nuovo è nel documento, i due sfumano insieme. */
-    if(vecchioPerAnimazione && nuovoBloccoNodo)
-      animaCambioBlocco(vecchioPerAnimazione, nuovoBloccoNodo);
-    if(motoreProposte && tBloccoDisegnato == null) tBloccoDisegnato = performance.now();
-
-    /* CORREZIONE (coordinatore, 21/09, ereditata): il titolo dello
-       scaffale «Si abbinano ai tuoi» non nomina più la materia fra
-       parentesi — il nome vero (un dato del cliente) scende nella riga
-       sotto, dove `rail-sotto` lo scrive già. Solo per la regola
-       «materia»: le altre hanno la frase già completa nel titolo. */
-    if(railScelto) pagina.append(railDom({
-      regola: railScelto.r.regola, titolo: railScelto.r.titolo,
-      sotto: (railScelto.r.regola === "materia" && railScelto.r.gruppo)
-        ? railScelto.r.gruppo.charAt(0).toUpperCase() + railScelto.r.gruppo.slice(1) : null,
-      altri: railScelto.r.altri,
-      pezzi: railScelto.r.pezzi.map((p) => ({
-        id: p.id, nome: p.articolo.nome, foto: p.articolo.foto, prezzo: p.articolo.prezzo,
-        materia: p.articolo.attributi && p.articolo.attributi.metallo,
-        tipo: p.articolo.tipo, famiglia_nome: p.articolo.famiglia_nome
-      }))
-    }, vaiAlPezzo, soldi, leggi, invia));
-
-    /* il gruppo di lista, in coda: massimo tre righe, mai «Non c'è
-       altro, per ora» sotto — la lista stessa chiude la pagina. */
-    if(righe.length){
-      /* critic 22/09: fra lo scaffale e il gruppo c'erano 7 pt, e i due
-         blocchi si leggevano incollati. 24, come fra i gruppi di Impostazioni. */
-      const gruppo = lista(null, righe);
-      gruppo.classList.add("pt-rimandi");
-      pagina.append(gruppo);
+    /* RISPOSTA AL TOCCO: la carta che ha lasciato la schermata vola
+       via SOPRA la pagina appena ridisegnata, mentre la prossima è già
+       in scena sotto di lei. */
+    if(vecchiaCartaVolante){
+      if(animInfo){
+        volaFuori(vecchiaCartaVolante, animInfo.direzione, animInfo.dy);
+        setTimeout(() => vecchiaCartaVolante.remove(), RIDOTTO.matches ? 170 : 320);
+      } else vecchiaCartaVolante.remove();
     }
   }
 
@@ -1410,13 +1428,13 @@ export function monta(el, store){
        la riga in più. */
     if(ev.tipo === "nav/tab" && ev.dato && ev.dato.tab === "perte") chiediMotoreSeAttiva();
     if(!prima) return;
-    /* F5b — UN RIFIUTO NON PASSA DA `conTransizione`: se lo facesse, la
-       View Transition nativa farebbe dissolvere TUTTA la pagina (un
-       crossfade che il critic non ha chiesto), sovrapposta alla
-       dissolvenza mirata che `animaCambioBlocco` fa già solo sul
-       blocco. `disegna()` diretto, e la risposta al tocco la fa lei. */
-    if(ev.tipo === "proposta/verdetto" && ev.dato && ev.dato.esito === "rifiuto" &&
-       s.proposte !== prima.proposte){ disegna(); return; }
+    /* F6 (28/09) — UN GESTO DEL MAZZO NON PASSA DA `conTransizione`: se
+       lo facesse, la View Transition nativa farebbe dissolvere TUTTA la
+       pagina (un crossfade che nessuno ha chiesto), sovrapposta al volo
+       mirato che `disegna()` fa già solo sulla carta. `swipeInCorso` è
+       alzata da `decidi()`/`annullaScopri()` per la durata dei loro
+       `invia()`: `disegna()` diretto, e la risposta al tocco la fa lei. */
+    if(swipeInCorso){ disegna(); return; }
     if(s.esemplari !== prima.esemplari || s.arrivi !== prima.arrivi ||
        s.ricorrenze !== prima.ricorrenze || s.promozioni !== prima.promozioni ||
        s.ritorno !== prima.ritorno || s.promemoria !== prima.promemoria ||
@@ -1447,6 +1465,13 @@ export function monta(el, store){
       if(c) spingi("chiusura/" + c.id);
     },
     promemoria: () => leggiPromemoria(leggi()),
+    /* F6 (28/09) — le due interfacce, per le sonde: non indovinare un
+       selettore quando basta chiedere allo stato. */
+    modo: () => modo,
+    vaiModo: (m) => cambiaModo(m),
+    mazzo: () => (mazzoScopriArr ? mazzoScopriArr.map((g) => g.id) : null),
+    posizioneScopri: () => posizioneScopri,
+    annullaScopri: () => annullaScopri(),
     /* F5b — per il banco prestazioni: il tempo fra l'attivazione della
        tab e il blocco grande disegnato. `null` finché l'uno o l'altro
        non è successo — la sonda aspetta sul valore, non su un timeout

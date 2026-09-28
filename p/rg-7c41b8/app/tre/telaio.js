@@ -45,6 +45,9 @@ export function indirizzoAstuccio(p){
   if(p.piano === undefined || p.piano === false) q.set("piano", "0");
   if(p.scorre) q.set("scorre", "1");
   if(p.codice) q.set("codice", p.codice);
+  /* la regia: "B" con la sovrascatola (consegna), "A" solo l'astuccio
+     (regalo). Vedi `PROLOGO` in `app/tre/astuccio.js`. */
+  if(p.opzione) q.set("opz", p.opzione);
   /* IL TIMBRO. La scocca e la scena hanno due cache: senza versione, una
      scocca aggiornata può servire un astuccio vecchio, ed è il difetto
      che si vede solo DOPO un aggiornamento — il peggiore da rincorrere. */
@@ -63,18 +66,29 @@ export function telaioAstuccio(p){
     scrolling: "no"
   });
   const ascolta = {fine: null, tocco: null, pronto: null};
-  let gia = false, dirlo = null;
+  /* DUE PROMESSE, E NON PIÙ UNA.
+     `pronto` si risolve quando il pezzo è in scena — a qualunque ora.
+     Fino al 28/09 si chiudeva su `false` allo scadere dei 4 secondi, e
+     un 3D arrivato al quinto restava nascosto per sempre anche se era
+     lì, pronto (misurato: `studio-ingresso/OGGI_arrivo.jpg`).
+     `tetto` dice invece quando smettere di ASPETTARLO: si risolve `true`
+     allo scadere dei 4 secondi (o subito, se il telaio grida «guasto»)
+     e `false` se la scena è arrivata prima. TETTO A 4 SECONDI, e non è
+     pessimismo: una scheda grafica che non dà il contesto non lo dice
+     con un errore, lo dice col silenzio. Chi ospita il telaio decide
+     cosa fare allo scadere — il ripiego — ma se la scena arriva dopo,
+     la prende. */
+  let gia = false, dirlo = null, basta = null, scaduto = false, guastato = false;
   const pronto = new Promise((ok) => { dirlo = ok; });
-  /* TETTO A 4 SECONDI, e non è pessimismo: una scheda grafica che non dà
-     il contesto non lo dice con un errore, lo dice col silenzio.
-     Scaduto il tetto si va avanti lo stesso col ripiego, che è sempre
-     meglio di un tasto che non risponde. */
-  const scade = setTimeout(() => { if(!gia){ gia = true; dirlo(false); } }, 4000);
+  const tetto = new Promise((ok) => { basta = ok; });
+  const scade = setTimeout(() => { if(!gia){ scaduto = true; basta(true); } }, p.tetto || 4000);
   function daLui(ev){
     if(!nodo.contentWindow || ev.source !== nodo.contentWindow) return;
     const m = ev.data;
     if(!m || m.da !== "astuccio") return;
-    if(m.t === "pronto" && !gia){ gia = true; clearTimeout(scade); dirlo(true); }
+    if(m.t === "pronto" && !gia){ gia = true; clearTimeout(scade); dirlo(true); basta(false); }
+    if(m.t === "guasto" && !gia){ guastato = true;
+      if(!scaduto){ scaduto = true; clearTimeout(scade); basta(true); } }
     const fn = ascolta[m.t];
     if(fn) fn(m.d || {});
   }
@@ -83,8 +97,16 @@ export function telaioAstuccio(p){
     try{ nodo.contentWindow.postMessage({t}, "*"); }catch(_){ /* niente */ }
   };
   return {
-    nodo, pronto, ascolta,
-    suona: () => di("suona"), salta: () => di("salta"), chiudi: () => di("chiudi"),
+    nodo, pronto, tetto, ascolta,
+    get arrivato(){ return gia; },
+    /* la scena NON arriverà (niente WebGL): chi ospita non aspetta oltre */
+    get guasto(){ return guastato; },
+    /* `da` in millisecondi: chi ha già suonato il prologo per conto suo
+       (il ripiego) fa partire la scena dal punto in cui è arrivato */
+    suona: (da) => {
+      try{ nodo.contentWindow.postMessage({t: "suona", da_ms: da || 0}, "*"); }catch(_){ /* niente */ }
+    },
+    salta: () => di("salta"), chiudi: () => di("chiudi"),
     /* la scena è sulla stessa origine: una sonda ci arriva dritta, senza
        passare per i messaggi e senza aspettare un giro */
     dentro: () => { try{ return nodo.contentWindow.__astuccio; }catch(_){ return null; } },

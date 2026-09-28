@@ -37,12 +37,15 @@
     &profilo=mobile|banco    &fuga=0..1     &aria=1.55   &piano=0|1
     &stato=chiuso|aperto     &auto=1        &scorre=1
     &codice=RJ-…
+    &opz=A|B            la regia: A solo l'astuccio, B con la sovrascatola
 
   PARLA COL SUO OSPITE a messaggi, su `postMessage` diretto al padre —
   non sul canale del banco: qui non c'è nessuno stato da condividere,
   c'è un telaio che ubbidisce a chi l'ha messo lì.
     ospite -> telaio : {t:"suona"|"salta"|"chiudi"|"smonta"}
-    telaio -> ospite : {da:"astuccio", t:"pronto"|"fine"|"tocco", d:{…}}
+    telaio -> ospite : {da:"astuccio", t:"pronto"|"fine"|"tocco"|"guasto", d:{…}}
+  «guasto» dice che la scena NON arriverà (niente WebGL, modulo che non
+  si carica): l'ospite passa subito al ripiego, senza aspettare il tetto.
 -->
 <style>
   html,body{margin:0;height:100%;background:transparent;overflow:hidden;
@@ -62,13 +65,22 @@ const q = new URLSearchParams(location.search);
    `?v=<versione>`; se il modulo si importasse a secco, una scocca
    aggiornata potrebbe servire un astuccio vecchio preso dalla cache —
    il difetto che si vede solo DOPO un aggiornamento, che è il peggiore
-   da rincorrere. Si gira il timbro anche a lui. */
-const { monta } = await import("./app/tre/astuccio.js" +
-  (q.get("v") ? "?v=" + encodeURIComponent(q.get("v")) : ""));
+   da rincorrere. Si gira il timbro anche a lui (vedi l'import, sotto). */
+const al = (t, d) => {
+  try{ parent && parent !== window && parent.postMessage({da:"astuccio", t, d: d || {}}, "*"); }
+  catch(_){ /* niente */ }
+};
 
 const n = (k, d) => q.has(k) ? +q.get(k) : d;
 
-const maniglia = monta(document.getElementById("dentro"), {
+/* UN TELAIO CHE NON PUÒ MONTARE LO DICE SUBITO. Senza WebGL il
+   costruttore del disegnatore lancia, e un telaio muto farebbe aspettare
+   la scocca fino al tetto con un segno d'attesa che non finisce mai. */
+let maniglia = null;
+try{
+  const { monta } = await import("./app/tre/astuccio.js" +
+    (q.get("v") ? "?v=" + encodeURIComponent(q.get("v")) : ""));
+  maniglia = monta(document.getElementById("dentro"), {
   fam: q.get("fam") || "anelli",
   k: n("k", 0),
   fodera: q.get("fodera") || "avorio",
@@ -82,15 +94,16 @@ const maniglia = monta(document.getElementById("dentro"), {
   stato: q.get("stato") || "chiuso",
   scorrimento: q.get("scorre") === "1",
   aptico: q.get("aptico") !== "0",
+  opzione: q.get("opz") || null,
 });
+}catch(err){
+  al("guasto", {errore: String((err && err.message) || err)});
+}
+if(maniglia){
 
 /* la maniglia della sonda, e dell'ospite che abbia accesso diretto */
 window.__astuccio = maniglia;
 
-const al = (t, d) => {
-  try{ parent && parent !== window && parent.postMessage({da:"astuccio", t, d: d || {}}, "*"); }
-  catch(_){ /* niente */ }
-};
 maniglia.quando((che, d) => al(che, d));
 
 addEventListener("message", (ev) => {
@@ -107,6 +120,8 @@ addEventListener("message", (ev) => {
    «pronto» per rispondere. */
 if(q.get("auto") === "1"){
   maniglia.quando((che) => { if(che === "pronto") maniglia.suona(0); });
+}
+
 }
 
 /* il telaio dice «ci sono» anche prima del pezzo: chi lo ha montato
