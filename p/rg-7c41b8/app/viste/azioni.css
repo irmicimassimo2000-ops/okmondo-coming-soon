@@ -226,7 +226,12 @@ body[data-carta] #barra{visibility:hidden}
   margin:0 auto;object-fit:contain;transform-origin:center top;
   transition:opacity 250ms var(--ios),transform 350ms var(--ios)}
 .az-regia > .az-r-marchio.az-su{transform:translateY(-40px) scale(.625)}
-.az-r-da{margin:0 0 4px;
+/* `.az-carta h1{margin:0 0 2px}` (sopra) ha specificità più alta di un
+   solo `.az-r-da` (classe+elemento contro classe sola): i 4px scritti
+   qui non vincevano mai, restava sempre 2 — griglia 4 rotta da un
+   sorpasso di cascata, non da una scelta. `.az-carta .az-r-da` pareggia
+   il conteggio delle classi e la regola giusta torna a vincere. */
+.az-carta .az-r-da{margin:0 0 4px;
   font:var(--t-1);letter-spacing:var(--ls-display);font-optical-sizing:auto}
 .az-r-pezzo{display:flex;flex-direction:column;align-items:center;gap:12px;
   margin-top:8px}
@@ -236,9 +241,9 @@ body[data-carta] #barra{visibility:hidden}
   font:var(--t-sub);color:var(--testo-2)}
 /* ── L'ASTUCCIO CHE SI APRE, AL POSTO DELLA FOTOGRAFIA ────────────
    Stesso riquadro della foto (240, quadrato), ma senza fondo e senza
-   raggio: la carta della scena e' gia' la carta della pagina, e un
+   raggio: la carta della scena è già la carta della pagina, e un
    raggio attorno farebbe di una scatola posata una figurina dentro una
-   cornice. `overflow:hidden` perche' il telaio non sbordi mentre la
+   cornice. `overflow:hidden` perché il telaio non sbordi mentre la
    battuta lo fa salire di dodici punti. */
 .az-r-scena{background:none;border-radius:0;overflow:hidden;
   aspect-ratio:1;position:relative}
@@ -246,7 +251,7 @@ body[data-carta] #barra{visibility:hidden}
   background:transparent}
 .az-r-nome{margin:0;
   font:var(--t-1);letter-spacing:var(--ls-display);font-optical-sizing:auto}
-.az-r-dedica{margin:14px 0 0;min-height:28px;
+.az-r-dedica{margin:16px 0 0;min-height:28px;   /* era 14, fuori griglia 4 */
   font:var(--t-2);font-style:italic;letter-spacing:var(--ls-display);
   font-optical-sizing:auto;color:var(--testo);overflow-wrap:break-word}
 /* senza dedica lo spazio NON si vede: il fronte resta pulito e l'invito

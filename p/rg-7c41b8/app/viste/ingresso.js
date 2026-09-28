@@ -171,8 +171,14 @@ export function montaIngresso(store, opz = {}) {
     quando: (consegna && (consegna.quando || dataLunga(consegna.data_vendita))) || ""
   };
   /* la fodera scelta nel seme veste il velluto del cofanetto: chi ha
-     provato il turchese al banco lo ritrova alla consegna. */
-  const FODERA = ((s && s.preferenze) || {}).fodera || "velluto";
+     provato il turchese al banco lo ritrova alla consegna. Di serie è
+     AVORIO (decisione di Massimo, 21/09: la cerimonia va in avorio —
+     `app/tre/astuccio.js:foderaDellaCerimonia` la forza già per la
+     scena in tre dimensioni; qui si allinea anche il valore di
+     partenza, che veste pure il ripiego CSS e il bordo della tessera
+     S3 quando WebGL non c'è, e lo stesso default già usato da
+     `viste/azioni.js` per la carta del regalo). */
+  const FODERA = ((s && s.preferenze) || {}).fodera || "avorio";
 
   /* ── la scocca dell'ingresso ───────────────────────────────────── */
   const radice = e("div", {
@@ -199,6 +205,19 @@ export function montaIngresso(store, opz = {}) {
       autocapitalize: "off", spellcheck: false
     });
     const errore = e("p", { class: "f1-errore t-foot", role: "alert" });
+    /* ECCEZIONE NOTA (banco 28/09/2026, `sonda.py` su S0): a vuoto
+       questo tasto è `[disabled]` — la regola condivisa
+       `sistema.css: .tasto[disabled]{opacity:.45}` (usata identica su
+       ogni tasto spento dell'app, non si tocca da qui) lo porta a
+       1,86:1 di contrasto testo/fondo, sotto la soglia 4,5:1. Non è un
+       difetto da correggere: WCAG 2.1 SC 1.4.3 esenta esplicitamente
+       «text that is part of an inactive user interface component» dal
+       requisito di contrasto — un comando spento comunica «non ancora»
+       proprio sbiadendo, e alzargli il contrasto lo farebbe sembrare
+       toccabile quando non lo è. La stessa eccezione è dichiarata, con
+       la stessa citazione, in `_F1_ingresso.mjs` (dove il tasto NON
+       entra nel conteggio) e in `_IR_ingresso_regalo.mjs` (dove entra,
+       ma nella colonna «esenti», mai in quella dei falliti). */
     const apri = tasto("Apri", { tipo: "primario", largo: true, spento: true });
 
     const aggiorna = () => {
@@ -365,13 +384,13 @@ export function montaIngresso(store, opz = {}) {
       provino: haModello ? null : PEZZO.foto,
       /* ARIA 1,30, non 1,55. Il quadro si costruisce sull'unione di
          CHIUSO e APERTO — il coperchio alzato occupa tutta la metà di
-         sopra — e da chiuso la scatola cade percio' nella metà di
+         sopra — e da chiuso la scatola cade perciò nella metà di
          SOTTO. Misurato sullo scatto (`_C5_s1_chiuso`, 393x852): col
          numero dello studio restavano trecento punti di vuoto fra il
-         titolo e il coperchio, cioè piu' di un terzo dello schermo, e
-         quel vuoto e' la prima cosa che si vede. Stringendo a 1,30
+         titolo e il coperchio, cioè più di un terzo dello schermo, e
+         quel vuoto è la prima cosa che si vede. Stringendo a 1,30
          l'oggetto cresce e il vuoto si chiude, e l'aperto ci sta lo
-         stesso perche' il quadro e' calcolato sull'unione. */
+         stesso perché il quadro è calcolato sull'unione. */
       aria: 1.30
     });
 
