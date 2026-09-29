@@ -1304,12 +1304,26 @@ export function monta(el, opz = {}){
      `INT` lo riempie la riga qui sopra: dichiararlo inline vorrebbe
      dire scrivere le stesse tre misure due volte */
   function costruisciCuscinoFesso(){
+    /* chiamato DUE volte: senza pezzo (la luce di catalogo) e dopo la
+       posa, con la luce misurata sull'anello vero — la seconda sostituisce */
+    if(INT.fesso){ for(const m of INT.fesso){ base.remove(m); } }
     const W = V_LA - 0.0008, D = V_PR - 0.0008;
     const H = INT.cresta - H_FONDO;
-    const SM = 0.0016;                    /* il labbro, tondo come nelle foto */
+    /* il labbro, tondo come nelle foto: 1,0 e non 1,6 da quando il foro si
+       allarga dello smusso (vedi sotto) — con 1,6 la bocca della fenditura
+       arrivava a 8 mm e si leggeva come una trincea */
+    const SM = 0.0010;
     const sh = rettangoloTondo(W, D, 0.0026);
-    sh.holes.push(pathStadio(0, 0, 0, INT.fenditura_lunga, INT.fenditura));
-    const g = new THREE.ExtrudeGeometry(sh, {depth: H - SM, bevelEnabled: true,
+    /* LA LUCE SI MISURA AL NETTO DELLO SMUSSO (29/09, sonda `compenetra`).
+       Lo smusso di un'estrusione allarga il profilo di SM verso l'esterno,
+       e per un foro «verso l'esterno» vuol dire DENTRO il foro: una
+       fenditura disegnata da 4,2 era larga 1,0 sotto il labbro, e
+       l'anello ci stava dentro il velluto per 10,6 mm. Il foro si disegna
+       di SM più largo per lato; e la sua larghezza e il suo centro non
+       sono più di catalogo ma quelli della parte d'anello che entra. */
+    const CZ = INT.fenditura_z || 0;
+    sh.holes.push(pathStadio(0, -CZ, 0, INT.fenditura_lunga + 2 * SM, INT.fenditura + 2 * SM));
+    const g = new THREE.ExtrudeGeometry(sh, {depth: H - 2 * SM, bevelEnabled: true,
       bevelThickness: SM, bevelSize: SM, bevelOffset: 0,
       bevelSegments: SEG.smusso, curveSegments: SEG.angolo});
     g.rotateX(-Math.PI / 2); g.translate(0, SM, 0);
@@ -1330,7 +1344,7 @@ export function monta(el, opz = {}){
         const y = pos.getY(i);
         if(y < H - 0.0030) continue;                 /* solo la faccia di sopra */
         const z = pos.getZ(i), x = pos.getX(i);
-        const fz = Math.min(1, Math.max(0, (Math.abs(z) - BORDO) / Math.max(1e-6, D2 - BORDO)));
+        const fz = Math.min(1, Math.max(0, (Math.abs(z - CZ) - BORDO) / Math.max(1e-6, D2 - BORDO)));
         const fx = Math.min(1, Math.abs(x) / W2);
         pos.setY(i, y + ALZA * Math.sin(Math.PI * fz) * Math.cos(Math.PI * 0.5 * fx));
       }
@@ -1349,9 +1363,12 @@ export function monta(el, opz = {}){
     const ff = new THREE.Mesh(
       tieni(new THREE.BoxGeometry(INT.fenditura_lunga + 0.0020, 0.0002,
                                   INT.fenditura + 0.0016)),
-      tieni(new THREE.MeshBasicMaterial({color: 0x0A0806, toneMapped: false})));
-    ff.position.y = INT.cresta - 0.0030;
+      tieni(new THREE.MeshBasicMaterial({color: 0x1C1712, toneMapped: false})));
+    /* più giù e meno nero da quando la fenditura è larga quanto l'anello:
+       a 3 mm, nero pieno, la bocca da 5 mm diventava una striscia nera */
+    ff.position.set(0, INT.cresta - 0.0055, CZ);
     base.add(ff);
+    INT.fesso = [pad, ff];
     INT.cuscino = {largo_mm: mm(W), lungo_mm: mm(D), alto_mm: mm(H),
                    fenditura_lunga_mm: mm(INT.fenditura_lunga),
                    fenditura_luce_mm: mm(INT.fenditura),
@@ -1542,7 +1559,12 @@ export function monta(el, opz = {}){
       sh.holes.push(pathStadio(f.x, -f.z, -f.ang, L, W));
       fondelli.push({x: f.x, z: f.z, ang: f.ang, L, W});
     }
-    const g = new THREE.ExtrudeGeometry(sh, {depth: INT.padH, bevelEnabled: true,
+    /* LA CIMA DEL CUSCINO È `padSu`, E NON 2,4 MM PIÙ SU (29/09, sonda
+       `compenetra.mjs`). Lo smusso di un'estrusione si AGGIUNGE sopra e
+       sotto la profondità: con `depth: padH` la faccia usciva a padSu +
+       2,4 mm, e il bracciale (e i suoi elastici) posati su padSu ci
+       affondavano di 3 mm. Lo smusso si toglie dalla profondità. */
+    const g = new THREE.ExtrudeGeometry(sh, {depth: Math.max(0.0008, INT.padH - 2 * ASOLA.smusso), bevelEnabled: true,
       bevelThickness: ASOLA.smusso, bevelSize: ASOLA.smusso, bevelOffset: 0,
       bevelSegments: SEG.smusso, curveSegments: SEG.angolo});
     g.rotateX(-Math.PI / 2); g.translate(0, ASOLA.smusso, 0); g.computeVertexNormals();
@@ -1884,6 +1906,24 @@ export function monta(el, opz = {}){
     involucro.position.z -= cc.z;
     involucro.position.y += (INT.cresta - affondo) - b.min.y;
     involucro.updateMatrixWorld(true);
+    /* LA FENDITURA SI TAGLIA SULL'ANELLO (29/09): quanto è largo e dove
+       sta, in profondità, il tratto d'anello sotto la cresta — la fascia
+       inclinata di 10 gradi entra obliqua — più 0,4 mm di gioco per
+       lato. Mai più stretta della luce di catalogo. */
+    {
+      let z0 = Infinity, z1 = -Infinity, x0 = Infinity, x1 = -Infinity;
+      const v = new THREE.Vector3();
+      involucro.traverse(o => { if(!o.isMesh) return; const pp = o.geometry.getAttribute("position");
+        for(let i = 0; i < pp.count; i++){ v.fromBufferAttribute(pp, i).applyMatrix4(o.matrixWorld);
+          if(v.y > INT.cresta + 0.0002) continue;
+          z0 = Math.min(z0, v.z); z1 = Math.max(z1, v.z); x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); } });
+      if(z1 > z0){
+        INT.fenditura = Math.max(FESSURA.W, (z1 - z0) + 0.0008);
+        INT.fenditura_z = (z0 + z1) / 2;
+        INT.fenditura_lunga = Math.min(V_LA - 0.010, Math.max(INT.fenditura_lunga, (x1 - x0) + 0.0020));
+        costruisciCuscinoFesso();
+      }
+    }
     const b2 = new THREE.Box3().setFromObject(involucro, true);
     volo.add(involucro);
     dati.pezzo = {
@@ -2112,10 +2152,21 @@ export function monta(el, opz = {}){
     /* ── IL CUSCINO, LA FESSURA DIETRO, LE DUE LINGUETTE ───────────── */
     const GAP = Math.max(0.0035, 2 * hB + 0.0012);
     INT.padH = 0.0045; INT.padSu = H_FONDO + INT.padH;
-    const zMuro = -V_PR / 2, zPad0 = zMuro + GAP, zPad1 = V_PR / 2 - 0.0005;
+    /* IL MURO VERO NON È A V_PR/2 (29/09, sonda `compenetra.mjs`). La
+       sponda è un'estrusione smussata di RAG, e lo smusso gonfia il
+       profilo anche verso l'interno: sotto il labbro la parete sta RAG
+       più avanti del filo disegnato. La catena che attraversa dietro, a
+       3,9 mm dal filo, stava dentro la sponda per 9 mm. La fessura si
+       misura dalla parete com'è. */
+    const zMuro = -V_PR / 2 + RAG, zPad0 = zMuro + GAP, zPad1 = V_PR / 2 - 0.0005;
     {
       const W = V_LA - 0.0010, D = zPad1 - zPad0, SM = 0.0010;
-      const g = new THREE.ExtrudeGeometry(rettangoloTondo(W, D, 0.0030), {depth: INT.padH - SM,
+      /* lo smusso sta DENTRO l'altezza (29/09): con `padH - SM` la cima
+         usciva a padSu + 1 mm, e la catena posata su padSu ci affondava */
+      /* e anche di lato: lo smusso allarga il profilo di SM, quindi il
+         profilo si disegna di SM più stretto per lato — se no il bordo di
+         dietro sporgeva 1 mm dentro la fessura della catena */
+      const g = new THREE.ExtrudeGeometry(rettangoloTondo(W - 2 * SM, D - 2 * SM, 0.0030), {depth: INT.padH - 2 * SM,
         bevelEnabled: true, bevelThickness: SM, bevelSize: SM, bevelOffset: 0,
         bevelSegments: SEG.smusso, curveSegments: SEG.angolo});
       g.rotateX(-Math.PI / 2); g.translate(0, SM, 0); g.computeVertexNormals();
@@ -2211,6 +2262,7 @@ export function monta(el, opz = {}){
       g.rotateZ(Math.PI / 2); g.scale(1, 0.92, 1);
       const rullo = new THREE.Mesh(uvScatola(g, CELLA), vellutoMondo());
       rullo.position.set(0, H_FONDO + R * 0.32, zMuro + R * 0.78);
+      rullo.userData.rullo = true;   /* la catena ci passa sotto DI PROPOSITO: la sonda lo conta a parte */
       rullo.castShadow = !MOBILE; rullo.receiveShadow = true;
       base.add(rullo);
       INT.rullo = {raggio_mm: mm(R)};
@@ -2218,17 +2270,26 @@ export function monta(el, opz = {}){
     /* ── LE LINGUETTE: una fascetta di velluto ad arco sopra la catena,
        ancorata al cuscino dalle due parti. La catena ci passa sotto. */
     for(const sx of [-1, 1]){
-      const ri = Math.max(hN, hB) + 0.0026, ro = ri + 0.0013;   /* 2,6 mm di luce: con 1 le maglie in curva bucavano la fascetta */
+      /* LA LUCE SI MISURA SULLA SEZIONE VERA DELLA CATENA (29/09, sonda
+         `compenetra.mjs`): un cerchio schiacciato a 0,9 e centrato sul
+         cuscino lasciava sopra la catena 1,5 mm in meno di quanti ne
+         servivano, e le maglie bucavano la fascetta di 1,1 mm. L'arco è
+         un'ELLISSE: di lato abbraccia la maglia (mezza larghezza + 1,5),
+         in alto passa sopra la catena posata (dal piede sul cuscino alla
+         cima della catena, + 0,8); più i 0,4 mm che lo smusso toglie
+         alla luce. */
+      const SMB = 0.0004, SP = 0.0013;
+      const rx = hN + 0.0015 + SMB, ry = (y0 + hB) - (INT.padSu - 0.0004) + 0.0008 + SMB;
       const pr = new THREE.Shape();
       const A0 = -0.12, A1 = Math.PI + 0.12, NS = 18;
       for(let i = 0; i <= NS; i++){ const f = A0 + (A1 - A0) * i / NS;
-        const x = Math.cos(f) * ro, y = Math.sin(f) * ro * 0.9;
+        const x = Math.cos(f) * (rx + SP), y = Math.sin(f) * (ry + SP);
         if(i === 0) pr.moveTo(x, y); else pr.lineTo(x, y); }
       for(let i = NS; i >= 0; i--){ const f = A0 + (A1 - A0) * i / NS;
-        pr.lineTo(Math.cos(f) * ri, Math.sin(f) * ri * 0.9); }
+        pr.lineTo(Math.cos(f) * rx, Math.sin(f) * ry); }
       pr.closePath();
       const g = new THREE.ExtrudeGeometry(pr, {depth: 0.0090, bevelEnabled: true,
-        bevelThickness: 0.0005, bevelSize: 0.0004, bevelSegments: 3, curveSegments: 4});
+        bevelThickness: 0.0005, bevelSize: SMB, bevelSegments: 3, curveSegments: 4});
       g.translate(0, 0, -0.0045);
       /* IL VELO SPENTO: sulla curva stretta della fascetta il velo del
          velluto (sheen 0,92) prende tutta la luce radente e la faceva
@@ -2309,7 +2370,7 @@ export function monta(el, opz = {}){
     const dd = b.getSize(new THREE.Vector3()), cc = b.getCenter(new THREE.Vector3());
     involucro.position.x -= cc.x;
     involucro.position.z -= cc.z;
-    involucro.position.y += INT.padSu - b.min.y - 0.0006;
+    involucro.position.y += INT.padSu - b.min.y - 0.0002;   /* 0,2 nel velluto: sotto la tolleranza di 0,3 */
     involucro.updateMatrixWorld(true);
     volo.add(involucro);
     /* gli elastici si mettono dove il pezzo è DAVVERO, alle sue due
@@ -3039,6 +3100,10 @@ export function monta(el, opz = {}){
     },
     get dati(){ return dati; },
     get fine(){ return FINE; },
+    /* SOLO PER LE SONDE (`costruzione-ingresso-2/banco/compenetra.mjs`):
+       la scena e i suoi gruppi, per misurare se il pezzo affonda nei
+       solidi d'appoggio. Nessuna vista la usa. */
+    get sonda(){ return {THREE, scena, astuccio, base, perno, volo, manicotto, INT}; },
     get prologo(){ return PRO; },
     /* SOLO PER IL BANCO DELLE IMMAGINI FERME (`costruzione-ingresso-2/
        banco/fermi.mjs`): «manicotto» lascia in scena la sola
