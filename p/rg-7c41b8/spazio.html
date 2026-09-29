@@ -3149,7 +3149,7 @@ function scostaDiLato(d, giro){
    richiesta di `scarica` se lo porta dietro, perché il telaio mette il
    `?v=` solo sulla PAGINA — e un modello vecchio rimasto in cache
    accanto a una pagina nuova è una correzione che non arriva. */
-const VERSIONE = "2026-09-28c";
+const VERSIONE = "2026-09-29a";
 /* `vivo` STA QUI, non giu' col disegnatore. La stanza si veste durante la
    valutazione del modulo e chiama `sveglia()`: un `let` letto prima della
    sua riga non è zero, è un ReferenceError, e un ReferenceError lì
@@ -12670,7 +12670,12 @@ MM = (function creaMarmotta(){
       let Nx = q[5], Nz = -q[3];
       const Nl = Math.hypot(Nx, Nz);
       if(Nl < 1e-4){ Nx = 1; Nz = 0; } else { Nx /= Nl; Nz /= Nl; }
-      pos.setXYZ(i, q[0] + dn * Nx, q[1] + y, q[2] + dn * Nz);
+      /* sul tratto IN VISTA (il percorso sta sulla faccia) nessun
+         vertice scende sotto la faccia: dove la maglia si piega sull'arco
+         stretto della U qualche vertice andava 1 mm dentro (29/09,
+         `_S2C_compenetra`). Si appiattisce solo il sotto della maglia. */
+      const yy = q[1] >= ov.t / 2 - 1e-6 ? Math.max(0.0001, q[1] + y) : q[1] + y;
+      pos.setXYZ(i, q[0] + dn * Nx, yy, q[2] + dn * Nz);
     }
     pos.needsUpdate = true;
     g.computeVertexNormals();
@@ -12692,10 +12697,18 @@ MM = (function creaMarmotta(){
      guarda, e il resto della catena dentro la scheda (non si vede, ma
      c'è: la lunghezza è quella del pezzo). Coordinate della scheda:
      x a destra, z verso chi guarda, y sopra la faccia. */
+  const SCHEDA_H = 0.0075;
   function sullaScheda(ov, larga, fonda){
     const r = Math.min(0.017, larga * 0.32), zT = -fonda / 2 + 0.010;
     const h = ov.t / 2;               // la catena poggia: la linea media sta a mezza maglia
-    const giu = -0.0036 - h;          // dentro la scheda
+    /* DENTRO LA SCHEDA, e tutta dentro (29/09): a -3,6 mm - h la catena
+       grossa usciva dal fondo della scheda di 1 mm e entrava nel vassoio
+       (verifica `_S2C_compenetra`). La linea media sta dove la maglia ha
+       almeno 1,2 mm di scheda sopra e 0,5 mm sotto; e la scheda sale da
+       5,5 a 7,5 mm, lo spessore delle schede in cartoncino imbottito. */
+    const SCH = SCHEDA_H;
+    const dm = Math.max(h + 0.0006, Math.min(SCH - 0.0005 - h, Math.max(h + 0.0012, SCH / 2)));
+    const giu = -dm;
     const Dv = Math.min(fonda - 0.026, 0.100);
     const pc = Percorso().da(r, h, zT)
       .a(r, h, zT + Dv - r, 40)
@@ -13919,37 +13932,101 @@ MM = (function creaMarmotta(){
     lg.rotateY(Math.PI / 2); lg.translate(-0.0006, 0, 0);
     return (_lingGeo = lg);
   }
-  let _oro = null;
-  function misuraOrologio(){
-    if(_oro) return _oro;
-    const o1 = merci.orologi[1] || merci.orologi[0];
-    o1.updateWorldMatrix(true, true);
-    const g1 = new THREE.Group(); scena.add(g1);
-    const tmp = o1.clone(true); tmp.position.set(0, 0, 0); tmp.rotation.set(0, 0, 0); g1.add(tmp);
-    const bb = scatolaIn(tmp, g1); scena.remove(g1);
-    const dz = bb.max.z - bb.min.z;
-    const rc = dz / 2 - 0.0032;
-    const cs = new THREE.Shape();
-    const E = 2.7, N = 48;
-    for(let j = 0; j <= N; j++){
-      const a = 2 * Math.PI * j / N, c = Math.cos(a), s = Math.sin(a);
-      const px = Math.sign(c) * Math.pow(Math.abs(c), 2 / E) * (rc * 1.02 - 0.0045);
-      const py = Math.sign(s) * Math.pow(Math.abs(s), 2 / E) * (rc * 0.98 - 0.0045);
-      j ? cs.lineTo(px, py) : cs.moveTo(px, py);
+  /* IL GUANCIALE DELL'OROLOGIO SI MISURA SUL CINTURINO (29/09).
+     Verdetto di Massimo (28c): «L'orologio risulta essere incastonato
+     dentro la fodera». Il guanciale era una superellisse dimensionata sul
+     diametro ESTERNO dell'orologio meno 3 mm: dentro al cinturino c'è
+     meno posto di così (la cassa è alta 10 mm e il cinturino ha il suo
+     spessore), e la fodera attraversava cassa e cinturino fino a 9,2 mm
+     (verifica `_S2C_compenetra`). Come nella realtà, il guanciale sta
+     DENTRO il cinturino chiuso e ne prende la forma: si legge il profilo
+     interno del cinturino lungo l'asse del polso (x), settore per
+     settore, dai vertici E dai baricentri dei triangoli; il centro è il
+     baricentro del foro (tre passate); il guanciale è quel profilo meno
+     GIOCO, eroso e addolcito ma mai oltre il profilo. La cassa resta
+     appoggiata sopra il guanciale, e il cinturino lo abbraccia. */
+  const GIOCO_OR = 0.0004, SETTORI_OR = 96, SMUSSO_OR = 0.0015;
+  const _oro = new Map();
+  function guancialeDi(o){
+    let chiave = null;
+    o.traverse(m => { if(!chiave && m.isMesh) chiave = m.geometry.uuid; });
+    if(_oro.has(chiave)) return _oro.get(chiave);
+    o.updateWorldMatrix(true, true);
+    const inv = new THREE.Matrix4().copy(o.matrixWorld).invert(), M4 = new THREE.Matrix4();
+    const pts = [], bb = new THREE.Box3(), a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+    o.traverse(m => {
+      if(!m.isMesh || !m.geometry) return;
+      M4.multiplyMatrices(inv, m.matrixWorld);
+      const pos = m.geometry.getAttribute("position"), idx = m.geometry.index;
+      const n = idx ? idx.count : pos.count;
+      for(let i = 0; i < pos.count; i++){ a.fromBufferAttribute(pos, i).applyMatrix4(M4); bb.expandByPoint(a); pts.push(a.y, a.z); }
+      for(let t = 0; t + 2 < n; t += 3){            // baricentri e mezzerie: le facce larghe non restano vuote
+        const i0 = idx ? idx.getX(t) : t, i1 = idx ? idx.getX(t + 1) : t + 1, i2 = idx ? idx.getX(t + 2) : t + 2;
+        a.fromBufferAttribute(pos, i0).applyMatrix4(M4); b.fromBufferAttribute(pos, i1).applyMatrix4(M4); c.fromBufferAttribute(pos, i2).applyMatrix4(M4);
+        pts.push((a.y + b.y + c.y) / 3, (a.z + b.z + c.z) / 3, (a.y + b.y) / 2, (a.z + b.z) / 2,
+                 (b.y + c.y) / 2, (b.z + c.z) / 2, (a.y + c.y) / 2, (a.z + c.z) / 2);
+      }
+    });
+    let cy = (bb.min.y + bb.max.y) / 2, cz = (bb.min.z + bb.max.z) / 2, r = null;
+    for(let passo = 0; passo < 4; passo++){
+      r = new Float64Array(SETTORI_OR).fill(1);
+      for(let i = 0; i < pts.length; i += 2){
+        const y = pts[i] - cy, z = pts[i + 1] - cz, rr = Math.hypot(y, z);
+        const s = Math.floor(((Math.atan2(y, z) + 2 * Math.PI) % (2 * Math.PI)) / (2 * Math.PI) * SETTORI_OR) % SETTORI_OR;
+        if(rr < r[s]) r[s] = rr;
+      }
+      /* il nuovo centro: il baricentro del profilo interno */
+      let sy = 0, sz = 0;
+      for(let s = 0; s < SETTORI_OR; s++){ const th = (s + 0.5) / SETTORI_OR * 2 * Math.PI; sy += r[s] * Math.sin(th); sz += r[s] * Math.cos(th); }
+      cy += sy / SETTORI_OR; cz += sz / SETTORI_OR;
     }
-    const cg = new THREE.ExtrudeGeometry(cs, {depth: 0.040, bevelEnabled: true,
-      bevelThickness: 0.007, bevelSize: 0.0045, bevelSegments: 5, curveSegments: 8});
-    cg.rotateY(Math.PI / 2); cg.translate(-0.020, 0, 0);
-    return (_oro = {cz: (bb.min.z + bb.max.z) / 2, cy: bb.min.y + dz / 2, cx: (bb.min.x + bb.max.x) / 2, cg});
+    /* erosione (±2 settori), poi media (±2), mai oltre il profilo vero */
+    const er = Array.from(r, (_, s) => Math.min(...[-2, -1, 0, 1, 2].map(j => r[(s + j + SETTORI_OR) % SETTORI_OR])));
+    const R = er.map((_, s) => Math.min(r[s], [-2, -1, 0, 1, 2].reduce((x, j) => x + er[(s + j + SETTORI_OR) % SETTORI_OR], 0) / 5)
+                            - GIOCO_OR - SMUSSO_OR);
+    const cs = new THREE.Shape();
+    for(let s = 0; s < SETTORI_OR; s++){
+      /* settore s: angolo verso +z a 0, verso +y a 90°. Nella forma x = −z (dopo rotateY), y = y */
+      const th = (s + 0.5) / SETTORI_OR * 2 * Math.PI, rr = Math.max(0.004, R[s]);
+      const px = -rr * Math.cos(th), py = rr * Math.sin(th);
+      s ? cs.lineTo(px, py) : cs.moveTo(px, py);
+    }
+    cs.closePath();
+    const LARGO = 0.040;
+    const cg = new THREE.ExtrudeGeometry(cs, {depth: LARGO - 2 * 0.004, bevelEnabled: true,
+      bevelThickness: 0.004, bevelSize: SMUSSO_OR, bevelSegments: 4, curveSegments: 4});
+    cg.rotateY(Math.PI / 2); cg.translate(-(LARGO / 2 - 0.004), 0, 0);
+    const out = {cg, cx: (bb.min.x + bb.max.x) / 2, cy, cz,
+      foro_mm: [+(Math.min(...r) * 2000).toFixed(1), +(Math.max(...r) * 2000).toFixed(1)]};
+    _oro.set(chiave, out);
+    return out;
+  }
+  /* la scatola della sola parte di `o` che sta SOTTO la quota `y` (nel
+     riferimento `rif`): serve a misurare la fessura sull'arco vero */
+  function scatolaSotto(o, rif, y){
+    rif.updateWorldMatrix(true, true); o.updateWorldMatrix(true, true);
+    const inv = new THREE.Matrix4().copy(rif.matrixWorld).invert(), M4 = new THREE.Matrix4();
+    const bx = new THREE.Box3(), v = new THREE.Vector3();
+    o.traverse(m => {
+      if(!m.isMesh || !m.geometry) return;
+      M4.multiplyMatrices(inv, m.matrixWorld);
+      const pos = m.geometry.getAttribute("position");
+      for(let i = 0; i < pos.count; i++){ v.fromBufferAttribute(pos, i).applyMatrix4(M4); if(v.y < y) bx.expandByPoint(v); }
+    });
+    return bx.isEmpty() ? null : bx;
   }
   function sede(fam, v, x, z, w, d, k, Y){
     if(fam === "anelli"){
       const h = 0.007;
       const cu = mesh(lastra(w - 0.0014, d - 0.002, h, 0.005, 0.0030), M.cuscino, false);
       cu.position.set(x, Y, z); v.add(cu);
-      const tg = taglio(0.0028, Math.min(0.024, d * 0.5)); tg.position.set(x, Y + h + 0.0002, z); v.add(tg);
-      const li = mesh(linguettaGeo(), M.fodera, false);
-      li.position.set(x, Y + h - 0.001, z); v.add(li);
+      /* la FESSURA corre di lato, nel piano dell'anello (29/09): l'arco
+         basso dell'anello entra lì, come nei riquadri a fessura veri. Correva
+         avanti-indietro, di traverso all'anello: l'arco fuori dai suoi
+         2,8 mm stava dentro l'imbottitura fino a 2,6 mm */
+      /* la fessura si misura sull'arco dell'anello che ci entra: larga
+         quanto il gambo (più 0,3 mm per parte), lunga quanto la corda */
+      let fw = Math.min(0.026, w - 0.008), fd = 0.0034, fz = z;
       if(k !== null){
         const o = merci.anelli[k];
         const h0 = new THREE.Group(); h0.position.set(x, Y + h, z); v.add(h0);
@@ -13957,8 +14034,14 @@ MM = (function creaMarmotta(){
         posa(o, h0);
         const b = scatolaIn(o, h0);
         o.position.set(-(b.min.x + b.max.x) / 2, -b.min.y - 0.0034, -(b.min.z + b.max.z) / 2);
+        const sb = scatolaSotto(o, v, Y + h + 0.0002);
+        if(sb){ fw = Math.max(0.006, sb.max.x - sb.min.x + 0.0012); fd = Math.max(0.0028, sb.max.z - sb.min.z + 0.0006);
+                fz = (sb.min.z + sb.max.z) / 2; }
         const om = ombraPiana(0.026, 0.012, 0.30); om.position.set(x, Y + h + 0.0003, z + 0.002); v.add(om);
       }
+      const tg = taglio(fw, fd); tg.position.set(x, Y + h + 0.0002, fz); v.add(tg);
+      const li = mesh(linguettaGeo(), M.fodera, false);
+      li.position.set(x, Y + h - 0.001, z); v.add(li);
       return {fam, x, z, y: Y + h, w, d, k, faccia: Y + h};
     }
     if(fam === "orecchini"){
@@ -13996,9 +14079,10 @@ MM = (function creaMarmotta(){
       return {fam, x, z, y: Y + alto * 0.6, w: bw, d: bd, k, faccia: Y + alto};
     }
     if(fam === "busto"){
-      const sw = w - 0.0016, sd = d - 0.002, st = 0.0055;
+      const sw = w - 0.0016, sd = d - 0.002, st = SCHEDA_H;   // 7,5 mm (29/09): il resto della catena ci sta tutto dentro
       const sc = mesh(lastra(sw, sd, st, 0.004, 0.0024), M.cuscino, false);
       sc.position.set(x, Y, z); v.add(sc);
+      sc.userData.scheda = true;          // per la verifica: il resto della catena passa QUI dentro, voluto
       const r = Math.min(0.017, sw * 0.32), zT = z - sd / 2 + 0.010;
       for(const s of [-1, 1]){
         const tg = taglio(0.0024, 0.007); tg.position.set(x + s * r, Y + st + 0.0002, zT - 0.001); v.add(tg);
@@ -14017,42 +14101,57 @@ MM = (function creaMarmotta(){
       return {fam, x, z, y: Y + st, w: sw, d: sd, k, faccia: Y + st};
     }
     if(fam === "rampa"){
-      const h = 0.0105, S = 48, pts = [[z - d / 2, -0.001]];
-      for(let j = 0; j <= S; j++){
-        const u = j / S;
-        pts.push([z - d / 2 + d * u, h * Math.pow(Math.abs(Math.cos(Math.PI * u)), 5)]);
-      }
-      pts.push([z + d / 2, -0.001]); pts.push([z - d / 2, -0.001]);
-      const cn = mesh(profilo(pts.map(([zz, y]) => [zz, y + 0.0012]), w - 0.001, 0), M.cuscino, false);
-      cn.position.set(x, Y, 0); v.add(cn);
+      /* IL CANALE HA IL FONDO PIATTO LARGO QUANTO IL BRACCIALE (29/09).
+         Il colmo era un cos⁵ su tutta la cella: i bordi del bracciale steso
+         salivano sul colmo e ci entravano fino a 4 mm (verifica
+         `_S2C_compenetra`). Adesso prima si posa il bracciale, se ne misura
+         la mezza larghezza vera, e il colmo parte 0,6 mm oltre. */
+      const h = 0.0105, S = 64;
+      let mezza = 0.0105 + 0.0035;
+      let o = null;
       if(k !== null){
-        const o = pose.rampa[k];
+        o = pose.rampa[k];
         cuoci(o); pieno(o, "rampa", k);
         o.traverse(m => { if(m.isMesh) m.geometry = geometriaStesa("rampa", m.userData.cottaPiena || m.userData.cotta || m.geometry); });
         o.position.set(x, Y + 0.0012, z); o.rotation.set(0, 0, 0);
         posa(o, v);
+        const bo = scatolaIn(o, v);
+        mezza = Math.max(Math.abs(bo.max.z - z), Math.abs(z - bo.min.z));
+      }
+      const fz = Math.min(d / 2 - 0.0015, mezza + 0.0006);
+      const pts = [[z - d / 2, -0.001]];
+      for(let j = 0; j <= S; j++){
+        const zz = z - d / 2 + d * j / S, a = Math.abs(zz - z);
+        const u = Math.max(0, Math.min(1, (a - fz) / Math.max(1e-4, d / 2 - fz)));
+        pts.push([zz, h * u * u * (3 - 2 * u)]);
+      }
+      pts.push([z + d / 2, -0.001]); pts.push([z - d / 2, -0.001]);
+      const cn = mesh(profilo(pts.map(([zz, y]) => [zz, y + 0.0012]), w - 0.001, 0), M.cuscino, false);
+      cn.position.set(x, Y, 0); v.add(cn);
+      if(o){
         const om = ombraPiana(0.13, 0.034, 0.26); om.position.set(x, Y + 0.0016, z); v.add(om);
       }
       return {fam, x, z, y: Y + 0.0012, w, d, k, faccia: Y + 0.0012};
     }
-    /* orologi: la buca col cuscino, l'orologio allacciato */
-    const mo = misuraOrologio();
+    /* orologi: la buca, il guanciale DENTRO il cinturino, la cassa sopra */
     const al = mesh(lastra(w - 0.0014, d - 0.002, 0.006, 0.005, 0.0028), M.cuscino, false);
     al.position.set(x, Y, z); v.add(al);
     const h0 = new THREE.Group(); v.add(h0);
     h0.rotation.x = 52 * Math.PI / 180;
-    h0.add(mesh(mo.cg, M.cuscino, false));
+    const o = merci.orologi[k !== null ? k : (merci.orologi[1] ? 1 : 0)];
+    if(k !== null){ o.position.set(0, 0, 0); o.rotation.set(0, 0, 0); o.scale.set(1, 1, 1); }
+    /* il guanciale si misura sul modello di QUESTO posto (ogni Swatch
+       sta in un punto diverso del .glb); un posto libero usa il n.1 */
+    const gu = guancialeDi(o);
+    h0.add(mesh(gu.cg, M.cuscino, false));
     if(k !== null){
-      /* ogni modello ha il SUO centro: i tre Swatch stanno in punti
-         diversi del .glb, e il centro del n.1 portava fuori gli altri */
-      const o = merci.orologi[k];
-      o.position.set(0, 0, 0); o.rotation.set(0, 0, 0); o.scale.set(1, 1, 1);
       posa(o, h0);
-      const bo = scatolaIn(o, h0), dzo = bo.max.z - bo.min.z;
-      o.position.set(-(bo.min.x + bo.max.x) / 2, -(bo.min.y + dzo / 2), -(bo.min.z + bo.max.z) / 2);
+      o.position.set(-gu.cx, -gu.cy, -gu.cz);       // il centro del foro del cinturino sul guanciale
     }
     const b = scatolaIn(h0, v);
-    h0.position.set(x, Y + 0.006 - b.min.y - 0.001, z - (b.min.z + b.max.z) / 2 + 0.004);
+    /* il punto più basso (il cinturino sotto il guanciale) POGGIA sulla
+       buca: 0,1 mm, non 1 mm dentro */
+    h0.position.set(x, Y + 0.006 - b.min.y - 0.0001, z - (b.min.z + b.max.z) / 2 + 0.004);
     const om = ombraPiana(0.07, 0.07, 0.30); om.position.set(x, Y + 0.0064, z + 0.004); v.add(om);
     return {fam, x, z: z + 0.004, y: Y + 0.02, w, d, k, faccia: Y + 0.03};
   }
