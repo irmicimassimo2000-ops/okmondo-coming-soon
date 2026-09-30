@@ -1,0 +1,214 @@
+/* FUTURA · schede prodotto · componenti. Solo valori dai token (_tokens.css). */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scrollbar-gutter: stable; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: var(--t-m); line-height: var(--lh-body); font-synthesis: none; }
+img, video { display: block; max-width: 100%; height: auto; }
+h1, h2, h3, p { margin: 0; font-weight: 400; text-wrap: balance; }
+p { text-wrap: pretty; }
+button { font: inherit; color: inherit; }
+a { color: inherit; }
+:focus-visible { outline: var(--bordo-forte) solid var(--text); outline-offset: var(--bordo-forte); }
+.caps { font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; }
+.muted { color: var(--text-muted); }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+[hidden] { display: none !important; }
+
+/* ---------- testata: le tre colonne del deck ---------- */
+.testata { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--s-3); align-items: center; padding: 0 var(--gutter); min-height: var(--tap); }
+.testata > :nth-child(2) { text-align: center; }
+.testata > :last-child { text-align: right; }
+.testata a { text-decoration: none; min-height: var(--tap); display: inline-flex; align-items: center; transition: color var(--dur-1) var(--ease-out); }
+@media (hover: hover) { .testata a:hover { color: var(--text-muted); } }
+
+/* ---------- tavola e piede ---------- */
+.tavola { position: relative; }
+.piede { display: flex; justify-content: space-between; gap: var(--s-4); padding: var(--s-3) var(--gutter); color: var(--text-muted); border-top: var(--bordo) solid var(--line); }
+.corpo { padding: var(--s-8) var(--gutter); display: grid; gap: var(--s-6); }
+.corpo h2 { font-size: var(--t-xl); line-height: var(--lh-tight); letter-spacing: var(--track-display); }
+.corpo h2.caps { font-size: var(--t-xs); line-height: var(--lh-body); letter-spacing: var(--track-caps); }
+.corpo .intro { color: var(--text-muted); max-width: 44ch; margin-top: var(--s-3); }
+
+/* ---------- prima tavola: una cosa sola in vista ---------- */
+.prima { min-height: 100svh; display: grid; grid-template-rows: auto 1fr auto auto 1fr auto; }
+.prima .testata { grid-row: 1; } .prima .oggetto { grid-row: 3; } .prima .conto { grid-row: 4; } .prima .fascia { grid-row: 6; }
+.oggetto { display: grid; align-content: start; padding: 0; }
+.oggetto .quota, .oggetto .ingombro { padding-left: var(--gutter); padding-right: var(--gutter); }
+
+/* media: attesa (superficie nel formato vero), pieno, errore */
+.media { margin: 0; position: relative; background: var(--surface); aspect-ratio: var(--ratio, 16 / 9); overflow: hidden; }
+.media img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 48%; transition: opacity var(--dur-3) var(--ease-out); }
+.js .media:not(.pronta) img { opacity: 0; }   /* la dissolvenza d'arrivo solo se il JS c'è: senza JS le foto si vedono comunque */
+.media .errore-media { position: absolute; inset: 0; display: none; place-items: center; color: var(--text-muted); font-size: var(--t-s); padding: var(--s-4); text-align: center; }
+.media.rotta .errore-media { display: grid; }
+.media.rotta img { display: none; }
+.oggetto .media.pronta { background: transparent; }   /* il fondo d'attesa sparisce: la foto si riduce sul nero, senza riquadro */
+.oggetto .media img { transform: scale(var(--scala-schermo, 1)); transition: opacity var(--dur-3) var(--ease-out), transform var(--dur-2) var(--ease-out); }
+
+/* quota: la misura si sceglie toccando il numero sulla linea di quota */
+.quota { display: grid; grid-template-columns: auto 1fr auto 1fr auto; align-items: center; gap: var(--s-2); margin-top: var(--s-3); }
+.quota i { height: var(--bordo); background: var(--line-strong); }
+.quota > b { width: var(--bordo); height: var(--s-4); background: var(--line-strong); }
+.misure { display: flex; gap: var(--s-1); }
+.misure button { background: none; border: 0; padding: 0 var(--s-2); min-width: var(--tap); min-height: var(--tap); cursor: pointer; color: var(--text-muted); font-size: var(--t-l); font-variant-numeric: tabular-nums; text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: var(--bordo-forte); text-underline-offset: var(--sottolinea); transition: color var(--dur-1) var(--ease-out), text-decoration-color var(--dur-1) var(--ease-out); }
+.misure button[aria-pressed="true"] { color: var(--text); text-decoration-color: var(--accent); }
+.misure button:active { transform: scale(var(--prema)); }
+@media (hover: hover) { .misure button:hover { color: var(--text); } }
+.ingombro { text-align: center; color: var(--text-muted); }
+
+.conto { padding: var(--s-4) var(--gutter); display: grid; gap: var(--s-3); align-content: start; }
+.conto h1 { font-size: var(--t-s); color: var(--text-muted); letter-spacing: var(--track-caps); text-transform: uppercase; }
+.prezzo { font-size: var(--t-xxl); line-height: var(--lh-tight); letter-spacing: var(--track-display); font-variant-numeric: tabular-nums; }
+.prezzo-nota { color: var(--text-muted); font-size: var(--t-s); }
+
+/* scelta a segmenti (frontale, luce): riposo, hover, focus, premuto, scelto, spento */
+.scelta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); color: var(--text-muted); font-size: var(--t-s); }
+.scelta .etichetta { min-width: var(--etichetta-w); }
+.scelta button { background: none; border: var(--bordo) solid var(--line-strong); border-radius: var(--r); padding: 0 var(--s-3); min-height: var(--ctl-h); cursor: pointer; font-size: var(--t-s); color: var(--text-muted); transition: color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out), background-color var(--dur-1) var(--ease-out); }
+.scelta button[aria-pressed="true"] { color: var(--text); border-color: var(--text); }
+.scelta button:active { transform: scale(var(--prema)); }
+.scelta button:disabled { opacity: 0.4; cursor: not-allowed; }
+@media (hover: hover) { .scelta button:not(:disabled):hover { color: var(--text); } }
+
+/* interruttore (telecomandino): spento, acceso, focus, premuto */
+.interruttore { display: flex; align-items: center; gap: var(--s-3); background: none; border: var(--bordo) solid var(--line-strong); border-radius: var(--r); min-height: var(--tap); padding: 0 var(--s-3); cursor: pointer; color: var(--text-muted); font-size: var(--t-s); text-align: left; transition: border-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out); }
+.interruttore .leva { flex: 0 0 auto; width: var(--leva-w); height: var(--leva-h); border: var(--bordo) solid var(--line-strong); position: relative; transition: background-color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out); }
+.interruttore .leva::after { content: ""; position: absolute; top: var(--leva-gioco); left: var(--leva-gioco); width: var(--leva-pomo); height: var(--leva-pomo); background: var(--text-muted); transition: transform var(--dur-2) var(--ease-out), background-color var(--dur-1) var(--ease-out); }
+.interruttore[aria-checked="true"] { color: var(--text); border-color: var(--text); }
+.interruttore[aria-checked="true"] .leva { background: var(--accent); border-color: var(--accent); }
+.interruttore[aria-checked="true"] .leva::after { transform: translateX(var(--leva-h)); background: var(--accent-text); }
+.interruttore:active { transform: scale(var(--prema-largo)); }
+@media (hover: hover) { .interruttore:hover { color: var(--text); } }
+
+/* fascia: la fascia rossa del deck è l'azione */
+.fascia { display: flex; justify-content: space-between; align-items: center; gap: var(--s-4); min-height: var(--bar-h); padding: 0 var(--gutter) env(safe-area-inset-bottom); background: var(--accent); color: var(--accent-text); text-decoration: none; transition: background-color var(--dur-1) var(--ease-out); }
+.fascia:hover { background: var(--accent-hover); }
+.fascia:active { background: var(--accent-press); }
+.fascia:focus-visible { outline-offset: calc(-1 * var(--s-1)); outline-color: var(--accent-text); }
+.fascia .verbo { font-size: var(--t-m); letter-spacing: var(--track-caps); text-transform: uppercase; }
+
+/* tasti e link */
+.tasto { display: inline-flex; align-items: center; justify-content: center; min-height: calc(var(--s-7) + var(--s-2)); padding: 0 var(--s-6); background: var(--paper); color: var(--bg); text-decoration: none; border: 0; border-radius: var(--r); cursor: pointer; font-size: var(--t-m); transition: background-color var(--dur-1) var(--ease-out); justify-self: start; }
+@media (hover: hover) { .tasto:hover { background: var(--paper-hover); } }
+.tasto:active { transform: scale(var(--prema-largo)); }
+.tasto:focus-visible { outline-color: var(--paper); outline-offset: var(--s-1); }
+.link { display: inline-flex; align-items: center; min-height: var(--s-6); padding: var(--s-1) 0; font-size: var(--t-s); text-decoration: underline; text-underline-offset: var(--sottolinea-link); background: none; border: 0; cursor: pointer; justify-self: start; }
+.link[aria-disabled="true"] { text-decoration: none; cursor: default; pointer-events: none; }   /* spento: lo dice il testo, non la trasparenza (contrasto pieno) */
+@media (hover: hover) { .link:hover { text-decoration-thickness: var(--bordo-forte); } }
+
+/* ---------- sulla parete: il simbolo vero, in scala ---------- */
+.parete { display: grid; grid-template-columns: 120fr 140fr 160fr; gap: var(--s-4); align-items: end; }
+.parete button { background: none; border: 0; padding: var(--s-2) 0; cursor: pointer; display: grid; gap: var(--s-3); text-align: left; min-height: var(--tap); }
+.parete img { width: 100%; opacity: 0.3; transition: opacity var(--dur-2) var(--ease-out); }
+.parete button[aria-pressed="true"] img { opacity: 1; }
+.parete button:active img { opacity: 0.8; }
+@media (hover: hover) { .parete button:hover img { opacity: 0.65; } .parete button[aria-pressed="true"]:hover img { opacity: 1; } }
+.parete .q { border-top: var(--bordo) solid var(--line-strong); padding-top: var(--s-2); font-size: var(--t-s); font-variant-numeric: tabular-nums; }
+.parete button[aria-pressed="true"] .q { border-top: var(--bordo-forte) solid var(--accent); }
+.metro { display: grid; gap: var(--s-2); margin-top: var(--s-4); color: var(--text-muted); font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; }
+.metro i { display: block; width: calc((100% - 2 * var(--s-4)) * 100 / 420); height: var(--s-2); border: var(--bordo) solid var(--line-strong); border-top: 0; }
+.parete .q span { display: block; color: var(--text-muted); font-size: var(--t-xs); }
+
+/* ---------- elenco tecnico (maiuscolo, materiale e numero) ---------- */
+.elenco { list-style: none; margin: 0; padding: 0; font-size: var(--t-s); letter-spacing: var(--track-elenco); text-transform: uppercase; }
+.elenco li { display: grid; grid-template-columns: var(--s-7) 1fr auto; gap: var(--s-2); padding: var(--s-3) 0; border-bottom: var(--bordo) solid var(--line); }
+.elenco.prezzi li { grid-template-columns: var(--s-7) 1fr auto auto; column-gap: var(--s-4); }
+.elenco.prezzi em:nth-last-child(-n+2) { text-align: right; }
+.elenco .testa { color: var(--text-muted); font-size: var(--t-xs); letter-spacing: var(--track-caps); padding-bottom: var(--s-2); }
+.elenco em { font-style: normal; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.esploso { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-2); }
+.esploso figure { margin: 0; }
+.esploso .media { --ratio: 1 / 1; }
+.esploso .media img { object-position: 42% 50%; }
+.esploso figcaption { margin-top: var(--s-2); color: var(--text-muted); }
+
+/* ---------- slot video: visibile solo se il file esiste; pronto, errore ---------- */
+.slot { display: grid; gap: var(--s-2); max-width: var(--col-video); }
+.slot .schermo { position: relative; aspect-ratio: 9 / 16; background: var(--surface); overflow: hidden; }
+.slot video { width: 100%; height: 100%; object-fit: cover; }
+.slot .errore { color: var(--danger); font-size: var(--t-s); }
+
+/* ---------- tavola bianca (la sola rottura) e tavola rossa ---------- */
+.bianca { background: var(--paper); color: var(--accent); }
+.bianca .piede { border-color: var(--paper-line); color: var(--accent); }
+.bianca p { color: var(--paper-text); max-width: 42ch; }
+.bianca .bianca .bianca .slot .caps { color: var(--accent); }
+.effetto { display: grid; gap: var(--s-2); max-width: var(--col-video); width: 100%; }
+.effetti { font-size: var(--t-xl); line-height: var(--lh-display); letter-spacing: var(--track-display); color: var(--accent); }
+.bianca .interruttore { color: var(--paper-text); border-color: var(--paper-line); }
+.bianca .interruttore .leva { border-color: var(--paper-text); }
+.bianca .interruttore .leva::after { background: var(--paper-text); }
+.bianca .interruttore[aria-checked="true"] { color: var(--accent); border-color: var(--accent); }
+.bianca .interruttore[aria-checked="true"] .leva { border-color: var(--accent); }
+.bianca .interruttore[aria-checked="true"] .leva::after { background: var(--accent-text); }
+.bianca .elenco li { border-color: var(--paper-line); color: var(--paper-text); }
+.bianca .elenco em { color: var(--accent); }
+.verticale { display: none; }
+.rossa { background: var(--accent); color: var(--accent-text); }
+.rossa .piede { border-color: var(--on-accent-line); color: var(--accent-text); }
+.rossa .corpo { gap: var(--s-4); }
+.rossa h2 { font-size: var(--t-xl); line-height: var(--lh-display); margin-bottom: var(--s-3); }
+.rossa .riepilogo { font-size: var(--t-l); line-height: var(--lh-tight); }
+.rossa .stato { font-size: var(--t-s); min-height: var(--s-5); }
+
+/* ---------- le soluzioni ---------- */
+.tre { display: grid; gap: var(--s-6); }
+.tre article { display: grid; gap: var(--s-2); border-top: var(--bordo) solid var(--line-strong); padding-top: var(--s-3); align-content: start; }
+.tre article.cur { border-top: var(--bordo-forte) solid var(--accent); }
+.tre .media { --ratio: 3 / 2; }
+.tre h3 { font-size: var(--t-l); }
+.tre p { font-size: var(--t-s); color: var(--text-muted); }
+.tre .da { color: var(--text); font-variant-numeric: tabular-nums; }
+.tab { max-width: 100%; }
+/* confronto: sotto i 1024 px tre blocchi impilati, uno per soluzione; sopra, la tabella. Mai scorrimento orizzontale. */
+.tab table { display: none; }
+.pile { display: grid; gap: var(--s-7); }
+.pila { display: grid; gap: var(--s-3); border-top: var(--bordo-forte) solid var(--accent); padding-top: var(--s-3); }
+.pila h3 { font-size: var(--t-l); }
+.pila dl { margin: 0; font-size: var(--t-s); }
+.pila dl div { display: grid; grid-template-columns: var(--s-9) 1fr; gap: var(--s-3); padding: var(--s-2) 0; border-bottom: var(--bordo) solid var(--line); }
+.pila dt { color: var(--text-muted); }
+.pila dd { margin: 0; }
+table { border-collapse: collapse; width: 100%; min-width: var(--tab-min); font-size: var(--t-s); }
+th, td { text-align: left; vertical-align: top; padding: var(--s-3) var(--s-4) var(--s-3) 0; border-bottom: var(--bordo) solid var(--line); }
+thead th { font-size: var(--t-m); }
+tbody th { color: var(--text-muted); font-weight: 400; }
+
+/* ---------- bozza e firma ---------- */
+.bozza { color: var(--text-muted); font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; }
+.rossa .bozza { color: var(--accent-text); }
+.firma { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-5) var(--gutter); color: var(--text-muted); font-size: var(--t-xs); }
+.firma img { width: var(--s-6); height: var(--s-6); }
+
+/* ---------- telefoni bassi: cedono l'altezza della foto e il corpo del prezzo, mai l'azione ---------- */
+@media (max-width: 1023px) and (max-height: 720px) {
+  .oggetto { padding-top: 0; }
+  .oggetto .media { --ratio: 2 / 1 !important; }
+  .quota { margin-top: var(--s-1); }
+  .conto { padding-top: var(--s-3); gap: var(--s-2); }
+  .prezzo { font-size: var(--t-xl); }
+}
+
+/* ---------- 1440 ---------- */
+@media (min-width: 1024px) {
+  :root { --scala-schermo: var(--scala, 0.875); }   /* la foto segue la misura solo a schermo largo; sul telefono resta a tutta larghezza */
+  .prima { grid-template-columns: 7fr 5fr; grid-template-rows: auto 1fr auto 1fr auto; }
+  .prima .testata, .prima .fascia { grid-column: 1 / -1; }
+  .prima .oggetto { grid-row: 3; grid-column: 1; padding: 0 var(--gutter); }
+  .prima .conto { grid-row: 3; grid-column: 2; padding: 0 var(--gutter) 0 0; }
+  .prima .fascia { grid-row: 5; }
+  .oggetto .quota, .oggetto .ingombro { padding-left: 0; padding-right: 0; }
+  .corpo { padding: var(--s-9) var(--gutter); grid-template-columns: 5fr 7fr; gap: var(--s-9); align-items: start; }
+  .corpo.largo { grid-template-columns: 1fr; gap: var(--s-6); }
+  .effetti { font-size: var(--t-xxl); }
+  .bianca .corpo { grid-template-columns: 6fr 4fr 2fr; }
+  .verticale { display: block; justify-self: end; width: var(--verticale-w); height: var(--verticale-h); position: relative; }
+  .verticale img { position: absolute; top: 0; left: var(--verticale-w); width: var(--verticale-h); max-width: none; height: auto; transform: rotate(90deg); transform-origin: 0 0; }
+  .rossa h2 { font-size: var(--t-xxl); }
+  .tre { grid-template-columns: repeat(3, 1fr); }
+  .tab table { display: table; }
+  .pile { display: none; }
+  .tre.due { grid-template-columns: repeat(2, 1fr); }
+  .esploso { grid-template-columns: repeat(4, 1fr); }
+}

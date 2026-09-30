@@ -1,0 +1,68 @@
+/* FUTURA · schede prodotto · DESIGN SYSTEM LOCK del 30/09/2026 (direzione C «La tavola»).
+   Ogni valore visivo del sito viene da qui. Documento: ../../DS-LOCK.md
+   Derivato dal deck FUTURA «CONCEPT #001» (NMS STUDIO): rosso #BE1622, nero, bianco, Power Grotesk. */
+
+@font-face {
+  font-family: "FUTURA Testo";
+  src: url("font/power-grotesk-regular.woff2?v=20260930b") format("woff2");
+  font-weight: 100 900; font-style: normal; font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* ---- CARATTERE: un solo token, per sostituirlo se la licenza web non arriva ---- */
+  --font: "FUTURA Testo", "Helvetica Neue", Arial, sans-serif;
+
+  /* ---- COLORE PER RUOLO (OKLCH) ---- */
+  --bg:           oklch(0.145 0.006 20);        /* nero FUTURA, tinto verso il rosso */
+  --surface:      oklch(0.19 0.008 20);         /* attesa delle foto, riquadri */
+  --line:         oklch(0.97 0.004 20 / 0.14);
+  --line-strong:  oklch(0.97 0.004 20 / 0.34);
+  --text:         oklch(0.955 0.004 20);
+  --text-muted:   oklch(0.74 0.01 20);
+  --accent:       oklch(0.505 0.19 23);         /* #BE1622, il rosso del marchio */
+  --accent-hover: oklch(0.56 0.2 23);
+  --accent-press: oklch(0.45 0.18 23);
+  --accent-text:  oklch(0.985 0 0);
+  --accent-ink:   oklch(0.68 0.19 23);          /* rosso come TESTO su nero (contrasto ≥4.5) */
+  --paper:        oklch(0.985 0 0);             /* la tavola bianca del deck */
+  --paper-hover:  oklch(0.9 0.004 20);
+  --paper-text:   oklch(0.3 0.02 20);
+  --paper-line:   oklch(0.505 0.19 23 / 0.25);
+  --on-accent-line: oklch(0.985 0 0 / 0.3);
+  --danger:       oklch(0.78 0.14 60);          /* errore: ambra, per non confondersi col rosso del marchio */
+  --success:      oklch(0.8 0.12 150);
+  --scrim:        oklch(0.145 0.006 20 / 0.82);
+
+  /* ---- SCALA TIPOGRAFICA FISSA (1.333), 6 passi ---- */
+  --t-xs: 12px; --t-s: 15px; --t-m: 17px; --t-l: 24px; --t-xl: 40px; --t-xxl: 72px;
+  --lh-tight: 1.02; --lh-display: 0.95; --lh-body: 1.5;
+  --track-caps: 0.08em; --track-display: -0.02em;
+
+  /* ---- SPAZIO 4/8 ---- */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px;
+  --gutter: var(--s-4);
+  --tap: 44px;
+
+  /* ---- FORMA: il marchio è a lame, niente raggi ---- */
+  --r: 0;
+  /* ---- ELEVAZIONE: nessuna ombra; i livelli si fanno con superfici e linee ---- */
+  --bar-h: 64px;
+
+  /* ---- GEOMETRIE DEI COMPONENTI ---- */
+  --ctl-h: 40px;            /* segmenti (frontale, luce) */
+  --etichetta-w: 72px;      /* etichetta dei segmenti */
+  --leva-w: 32px; --leva-h: 16px; --leva-pomo: 10px; --leva-gioco: 2px;
+  --bordo: 1px; --bordo-forte: 2px; --sottolinea: 6px; --sottolinea-link: 3px;
+  --col-video: 360px; --tab-min: 600px;
+  --verticale-w: 120px; --verticale-h: 640px;
+  --track-elenco: 0.02em;
+  --prema: 0.97; --prema-largo: 0.98;
+
+  /* ---- MOVIMENTO ---- */
+  --dur-1: 120ms; --dur-2: 200ms; --dur-3: 320ms;
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+}
+@media (min-width: 1024px) { :root { --gutter: var(--s-7); --bar-h: 72px; } }
+@media (prefers-reduced-motion: reduce) { :root { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; } }

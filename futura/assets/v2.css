@@ -1,0 +1,106 @@
+/* FUTURA · schede v2 · componenti nuovi. Solo token del LOCK (_tokens.css). */
+:root { --tasto-r: 999px; --tele-w: 340px; --barra-h: 72px; }   /* --tasto-r: SOLO per il telecomando disegnato, che riproduce l'oggetto fisico */
+
+/* ---------- corsa: la prima schermata è l'insegna montata; lo scroll la smonta e la riaccende ---------- */
+.corsa { position: relative; height: 330svh; }
+.fermo { position: sticky; top: 0; height: 100svh; min-height: 560px; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
+.fermo .eroe { position: absolute; inset: 0; }
+.fermo > :not(.eroe) { position: relative; z-index: 2; }
+.tappa { grid-row: 3; padding: var(--s-6) var(--gutter) calc(var(--barra-h) + var(--s-3)); display: grid; gap: var(--s-3); background: linear-gradient(to top, var(--scrim) 62%, transparent); }
+.tappa .nome { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-4); }
+.tappa h1, .tappa h2 { font-size: var(--t-l); line-height: var(--lh-tight); }
+.tappa .prezzo { font-size: var(--t-l); white-space: nowrap; }
+.riga-comandi { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); align-items: center; }
+.tacche { position: absolute; right: var(--gutter); top: 40%; z-index: 2; display: grid; gap: var(--s-2); }
+.tacche i { display: block; width: var(--bordo-forte); height: var(--s-5); background: var(--line-strong); }
+.tacche i.su { background: var(--accent); }
+
+/* ---------- eroe 3D: foto d'attesa, barra sui byte, tela ---------- */
+.eroe { position: relative; overflow: hidden; background: var(--bg); }
+.eroe .tela { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; opacity: 0; transition: opacity var(--dur-3) var(--ease-out); cursor: grab; }
+.velo { position: absolute; inset: 0; }
+.velo img { width: 100%; height: 100%; object-fit: contain; object-position: 50% 30%; background: var(--bg); transition: opacity var(--dur-3) var(--ease-out); }
+.velo .barra { position: absolute; left: 0; right: 0; top: 0; height: var(--bordo-forte); background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); }
+.velo .msg { position: absolute; left: var(--gutter); top: calc(var(--tap) + var(--s-4)); color: var(--text-muted); font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; }
+.velo[data-stato="pronto"] img, .velo[data-stato="pronto"] .barra { opacity: 0; }
+.eroe:has(.velo[data-stato="pronto"]) .tela { opacity: 1; }
+.velo[data-stato="statico"] .barra, .velo[data-stato="errore"] .barra { display: none; }
+.ancore { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.ancora { position: absolute; left: 0; top: 0; max-width: 46vw; font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--text); opacity: 0; transition: opacity var(--dur-2) var(--ease-out); }
+.fili { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity var(--dur-2) var(--ease-out); }
+.fili line { stroke: var(--line-strong); stroke-width: var(--bordo); }
+.fili circle { fill: var(--accent); }
+.ancora.verso-sinistra { text-align: right; }
+.ancora.verso-sinistra::before { display: none; }
+.ancora.verso-sinistra::after { content: ""; display: inline-block; width: var(--s-5); height: var(--bordo); background: var(--accent); vertical-align: middle; margin-left: var(--s-2); }
+.etichetta-asta { position: absolute; left: 0; top: 0; z-index: 1; opacity: 0; pointer-events: none; color: var(--text-muted); font-size: var(--t-xs); letter-spacing: var(--track-caps); }
+.legenda { margin: 0; padding-left: var(--s-5); font-size: var(--t-s); color: var(--text-muted); display: none; gap: var(--s-1); }
+@media (max-width: 599px) { .ancora .lungo { display: none; } .legenda { display: grid; } }
+@media (min-width: 600px) { .ancora .corto { display: none; } }
+
+/* ---------- opzioni a richiesta (telefono); a 1440 sempre in vista ---------- */
+.apri-opzioni { justify-self: start; }
+.opzioni { display: none; gap: var(--s-3); }
+.opzioni.aperto { display: grid; }
+
+/* ---------- cursore ---------- */
+.cursore { display: grid; gap: var(--s-1); font-size: var(--t-s); color: var(--text-muted); min-width: 0; }
+.cursore b { font-weight: 400; color: var(--text); }
+.cursore input { -webkit-appearance: none; appearance: none; width: 100%; height: var(--tap); background: transparent; margin: 0; cursor: pointer; }
+.cursore input::-webkit-slider-runnable-track { height: var(--bordo); background: var(--line-strong); }
+.cursore input::-moz-range-track { height: var(--bordo); background: var(--line-strong); }
+.cursore input::-webkit-slider-thumb { -webkit-appearance: none; width: var(--s-4); height: var(--s-4); margin-top: calc(var(--s-4) / -2); background: var(--accent); border: 0; border-radius: var(--r); }
+.cursore input::-moz-range-thumb { width: var(--s-4); height: var(--s-4); background: var(--accent); border: 0; border-radius: var(--r); }
+.cursore input:focus-visible { outline: var(--bordo-forte) solid var(--text); outline-offset: var(--bordo-forte); }
+
+/* ---------- il telecomando RF disegnato: 14 tasti, ogni tasto comanda l'insegna 3D ---------- */
+.telecomando { background: var(--surface); color: var(--text); border: var(--bordo) solid var(--line-strong); padding: var(--s-3); display: grid; gap: var(--s-2); width: 100%; max-width: var(--tele-w); }
+.telecomando .testa { display: flex; justify-content: space-between; align-items: center; font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--text-muted); }
+.telecomando .led { width: var(--s-2); height: var(--s-2); border-radius: var(--tasto-r); background: var(--accent); }
+.telecomando .led.lampo { animation: lampo var(--dur-3) var(--ease-out); }
+@keyframes lampo { 0% { box-shadow: 0 0 0 var(--s-1) var(--accent-hover); } 100% { box-shadow: 0 0 0 0 transparent; } }
+.tasti { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-2); }
+.tasti button { min-height: var(--tap); border: var(--bordo) solid var(--line-strong); border-radius: var(--tasto-r); background: var(--bg); color: var(--text); font-size: var(--t-xs); letter-spacing: 0.04em; cursor: pointer; transition: background-color var(--dur-1) var(--ease-out), transform var(--dur-1) var(--ease-out); }
+.tasti button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 var(--bordo) var(--accent); }
+.tasti button:active { transform: scale(var(--prema)); }
+.tasti button:focus-visible { outline: var(--bordo-forte) solid var(--accent); outline-offset: var(--bordo-forte); }
+.tasti .rosso { color: var(--accent-ink); }
+@media (hover: hover) { .tasti button:hover { background: var(--line-strong); } }
+.tasti svg { width: var(--s-4); height: var(--s-4); vertical-align: middle; }
+
+/* ---------- l'app di controllo, generica ---------- */
+.app { background: var(--surface); border: var(--bordo) solid var(--line-strong); padding: var(--s-3); display: grid; gap: var(--s-3); width: 100%; max-width: var(--tele-w); }
+.app .testa { display: flex; justify-content: space-between; align-items: center; font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--text-muted); }
+.effetti-app { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-2); }
+.effetti-app button { min-height: var(--tap); background: var(--bg); border: var(--bordo) solid var(--line-strong); color: var(--text-muted); font-size: var(--t-s); cursor: pointer; transition: border-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out); }
+.effetti-app button[aria-pressed="true"] { border-color: var(--accent); color: var(--text); box-shadow: inset 0 0 0 var(--bordo) var(--accent); }
+.effetti-app button:active { transform: scale(var(--prema)); }
+@media (hover: hover) { .effetti-app button:hover { color: var(--text); } }
+
+/* ---------- barra fissa: prezzo e «Scegli questa» sempre sotto il pollice ---------- */
+.barra-fissa { position: fixed; z-index: 10; left: 0; right: 0; bottom: 0; min-height: var(--barra-h); padding: var(--s-2) var(--gutter) calc(var(--s-2) + env(safe-area-inset-bottom)); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-3); align-items: center; background: var(--bg); border-top: var(--bordo) solid var(--line); transition: transform var(--dur-2) var(--ease-out); }
+.barra-fissa.ceduta { transform: translateY(100%); }
+.barra-fissa .cosa { font-size: var(--t-xs); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barra-fissa .quanto { font-size: var(--t-l); font-variant-numeric: tabular-nums; line-height: var(--lh-tight); }
+.barra-fissa .pieno { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; min-height: calc(var(--tap) + var(--s-1)); padding: 0 var(--s-4); background: var(--accent); color: var(--accent-text); text-decoration: none; font-size: var(--t-m); transition: background-color var(--dur-1) var(--ease-out); }
+.barra-fissa .pieno:hover { background: var(--accent-hover); } .barra-fissa .pieno:active { background: var(--accent-press); }
+
+/* ---------- blocchi dopo la corsa ---------- */
+.azioni-parete { display: grid; gap: var(--s-3); justify-items: start; }
+.tasto-tono { display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 var(--s-5); border: var(--bordo) solid var(--line-strong); color: var(--text); background: none; text-decoration: none; font-size: var(--t-m); cursor: pointer; transition: border-color var(--dur-1) var(--ease-out); }
+.tasto-tono:hover { border-color: var(--text); } .tasto-tono:active { transform: scale(var(--prema-largo)); }
+.stato-condividi { font-size: var(--t-s); color: var(--text-muted); min-height: var(--s-5); }
+body.con-barra { padding-bottom: var(--barra-h); }
+.firma { padding-bottom: calc(var(--barra-h) + var(--s-5)); }
+
+@media (min-width: 1024px) {
+  .apri-opzioni { display: none; }
+  .opzioni { display: grid; }
+  .tappa[data-tappa="2"] { grid-template-columns: minmax(0, 440px); align-content: end; justify-self: start; width: calc(440px + 2 * var(--gutter)); background: linear-gradient(to right, var(--scrim) 70%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--s-9)); mask-image: linear-gradient(to bottom, transparent, #000 var(--s-9)); }
+  .tappa[data-tappa="2"] .comandi.pannello-accendi { grid-template-columns: 1fr; }
+  .tappa { grid-template-columns: 4fr 8fr; column-gap: var(--s-7); align-items: end; padding-top: var(--s-8); }
+  .tappa .nome { display: grid; gap: var(--s-1); } .tappa h1, .tappa h2, .tappa .prezzo { font-size: var(--t-xl); }
+  .tappa .comandi { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3) var(--s-6); align-items: end; }
+  .tappa .comandi.pannello-accendi { grid-template-columns: auto 1fr; }
+  .barra-fissa .cosa { font-size: var(--t-s); }
+}
