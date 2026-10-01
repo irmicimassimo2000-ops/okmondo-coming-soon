@@ -228,3 +228,7 @@ body.con-barra { padding-bottom: var(--barra-h); }
   .fermo > .tacche { right: calc(var(--off) + var(--gutter) / 2); }
   .barra-fissa { padding-left: calc(var(--off) + var(--gutter)); padding-right: calc(var(--off) + var(--gutter)); }
 }
+
+/* App OK: in arrivo. Il pannello di «Accendila» è un'anteprima; il controllo vero è la centralina con telecomando */
+.app .app-vera { margin: 0; font-size: var(--t-xs); color: var(--text-muted); }
+.app .in-arrivo { margin-left: var(--s-2); padding: 0 var(--s-1); border: var(--bordo) solid var(--line-strong); font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }

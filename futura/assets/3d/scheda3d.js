@@ -66,7 +66,7 @@
     tutti("[data-prezzo]", e => e.textContent = euro(c.prezzo));
     tutti("[data-descrizione]", e => e.textContent = descrizione());
     tutti("[data-scegli]", a => a.href = wa("Ciao Massimo, per FUTURA scegliamo: " + descrizione() + ", " + euro(c.prezzo) + "."));
-    tutti("[data-foto-parete]", a => a.href = wa("Ciao Massimo, per FUTURA ti mando la foto della parete dove va: " + descrizione() + ". Ci fate la bozza realistica sulla nostra parete?"));
+    tutti("[data-foto-parete]", a => a.href = wa("Ciao Massimo, per FUTURA ti mando la foto della parete dove va: " + descrizione() + ". Ci fate la simulazione realistica sulla nostra parete?"));
     tutti("[data-pdf]", a => { a.href = c.pdf + "?v=" + VER; a.textContent = "Scarica il preventivo " + s.misura + " cm, " + descLuce() + " (PDF)"; });
     tutti("[data-velocita]", e => { e.value = s.modo === "dimmer" ? s.livello : s.velocita; });
     tutti("[data-nome-cursore]", e => e.textContent = s.modo === "dimmer" ? "Intensità" : "Velocità");
@@ -149,7 +149,7 @@
   // «Manda al socio»: la configurazione nel link; share nativo, se manca WhatsApp senza numero
   async function condividi() {
     const url = location.origin + location.pathname + "?" + urlScelta().toString();
-    const testo = "Guarda questa: " + descrizione() + ", " + euro(conto().prezzo) + " (bozza).";
+    const testo = "Guarda questa: " + descrizione() + ", " + euro(conto().prezzo) + ".";
     const st = document.querySelector("[data-stato-condividi]");
     try { if (navigator.share) { await navigator.share({ title: NOME + " · FUTURA", text: testo, url }); if (st) st.textContent = "Inviato."; return; } } catch (err) { if (err && err.name === "AbortError") return; }
     window.open(wa(testo + " " + url, ""), "_blank", "noopener");
