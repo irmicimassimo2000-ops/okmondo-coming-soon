@@ -70,7 +70,8 @@
     tutti("[data-pdf]", a => { a.href = c.pdf + "?v=" + VER; a.textContent = "Scarica il preventivo " + s.misura + " cm, " + descLuce() + " (PDF)"; });
     tutti("[data-velocita]", e => { e.value = s.modo === "dimmer" ? s.livello : s.velocita; });
     tutti("[data-nome-cursore]", e => e.textContent = s.modo === "dimmer" ? "Intensità" : "Velocità");
-    tutti("[data-foto-luce]", img => { const src = img.dataset["src" + (s.luce === "digitale" ? "Digitale" : "Fissa")]; if (src && !img.src.endsWith(src)) img.src = src; });
+    tutti("[data-foto-luce]", img => { const st = img.closest("[data-velo]").dataset.stato; if (st !== "statico" && st !== "errore") return;   // la foto solo se il 3D non parte
+      const src = img.dataset["src" + (s.luce === "digitale" ? "Digitale" : "Fissa")]; if (src && !img.src.endsWith(src)) img.src = src; });
     tutti("[data-slot-video]", e => { const v = e.querySelector("video"); const src = v && v.getAttribute("data-src-" + s.luce); if (!src) { e.hidden = true; return; } if (!v.src.endsWith(src)) v.src = src; e.hidden = false; });
     const led = document.querySelector("[data-led]"); if (led) { led.classList.remove("lampo"); void led.offsetWidth; led.classList.add("lampo"); }
     history.replaceState(null, "", "?" + urlScelta().toString());
@@ -180,7 +181,7 @@
   const barra = velo.querySelector("[data-barra]"), msg = velo.querySelector("[data-msg]");
   const gl = (() => { try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch (e) { return false; } })();
   const ridotto = matchMedia("(prefers-reduced-motion: reduce)").matches && !REG;
-  if (!gl || ridotto) { velo.dataset.stato = "statico"; msg.textContent = gl ? "" : "Questo dispositivo non mostra il 3D: ecco la foto."; return; }
+  if (!gl || ridotto) { velo.dataset.stato = "statico"; msg.textContent = gl ? "" : "Questo dispositivo non mostra il 3D: ecco la foto."; disegna(); return; }
   async function scarica(url, sulByte) {
     const r = await fetch(url, { cache: "force-cache" }); if (!r.ok) throw new Error("HTTP " + r.status + " " + url);
     const rd = r.body.getReader(); const parti = [];
@@ -188,7 +189,7 @@
     return new Blob(parti);
   }
   (async function avvia3d() {
-    const spia = setTimeout(() => { velo.dataset.stato = "errore"; msg.textContent = "Il 3D non si è caricato. La foto resta qui."; }, 45000);
+    const spia = setTimeout(() => { velo.dataset.stato = "errore"; msg.textContent = "Il 3D non si è caricato: ecco la foto."; disegna(); }, 45000);
     try {
       const man = await (await fetch("assets/3d/manifesto.json?v=" + VER)).json();
       let fatti = 0; const sulByte = n => { fatti += n; barra.style.transform = "scaleX(" + Math.min(1, fatti / man.totale) + ")"; };
@@ -399,6 +400,6 @@
       if (REG) { window.__fotogramma = passo; passo(0.001); }
       else { const t0 = performance.now(); const ciclo = ora => { passo((ora - t0) / 1000); mondo.misuraFps(ora); requestAnimationFrame(ciclo); }; requestAnimationFrame(ciclo); }
       clearTimeout(spia); velo.dataset.stato = "pronto"; window.__pronto = true;
-    } catch (err) { clearTimeout(spia); console.error(err); velo.dataset.stato = "errore"; msg.textContent = "Il 3D non si è caricato. La foto resta qui."; }
+    } catch (err) { clearTimeout(spia); console.error(err); velo.dataset.stato = "errore"; msg.textContent = "Il 3D non si è caricato: ecco la foto."; disegna(); }
   })();
 })();

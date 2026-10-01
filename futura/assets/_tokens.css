@@ -53,6 +53,8 @@
   /* ---- GEOMETRIE DEI COMPONENTI ---- */
   --ctl-h: 40px;
   --seg-h: 36px;
+  --alone-palco: radial-gradient(70% 34% at 50% 26%, oklch(0.36 0.12 23 / 0.55), transparent 72%), var(--bg);   /* palco mentre il 3D carica (telefono) */
+  --alone-palco-pc: radial-gradient(38% 40% at 66% 48%, oklch(0.36 0.12 23 / 0.55), transparent 72%), var(--bg);  /* palco mentre il 3D carica (PC, colonna di destra) */
   --riga-et: 64px;      /* colonna delle etichette delle righe del primo schermo */
   --ico: 36px;          /* icone del palco */        /* controlli segmentati compatti (selettori della scheda); l'area di tocco resta --tap */
   --t-ctl: 14px;        /* testo dei controlli compatti: un passo fuori scala, solo per i selettori */            /* segmenti (frontale, luce) */

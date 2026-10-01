@@ -18,7 +18,7 @@
 /* ---------- eroe 3D: foto d'attesa, barra sui byte, tela ---------- */
 .eroe { position: relative; overflow: hidden; background: var(--bg); }
 .eroe .tela { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; opacity: 0; transition: opacity var(--dur-3) var(--ease-out); cursor: grab; }
-.velo { position: absolute; inset: 0; }
+.velo { position: absolute; inset: 0; background: var(--alone-palco); }   /* mentre il 3D carica: palco scuro con la caduta rossa della scena, nessuna foto */
 .velo img { width: 100%; height: 100%; object-fit: contain; object-position: 50% 30%; background: var(--bg); transition: opacity var(--dur-3) var(--ease-out); }
 .velo .barra { position: absolute; left: 0; right: 0; top: 0; height: var(--bordo-forte); background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); }
 .velo .msg { position: absolute; left: var(--gutter); top: calc(var(--tap) + var(--s-4)); color: var(--text-muted); font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; }
@@ -232,3 +232,15 @@ body.con-barra { padding-bottom: var(--barra-h); }
 /* App OK: in arrivo. Il pannello di «Accendila» è un'anteprima; il controllo vero è la centralina con telecomando */
 .app .app-vera { margin: 0; font-size: var(--t-xs); color: var(--text-muted); }
 .app .in-arrivo { margin-left: var(--s-2); padding: 0 var(--s-1); border: var(--bordo) solid var(--line-strong); font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+
+/* la foto del velo (la copertina da studio) solo se il 3D non parte: senza WebGL, movimento ridotto, errore */
+.velo img { opacity: 0; }
+.velo[data-stato="statico"] img, .velo[data-stato="errore"] img { opacity: 1; }
+@media (min-width: 1024px) { .velo { background: var(--alone-palco-pc); } }
+/* la copertina di riserva sta nel palco, non dietro al testo: in alto sul telefono, nella colonna di destra da PC */
+.velo img { position: absolute; left: var(--gutter); right: var(--gutter); top: calc(var(--tap) + var(--ico) + var(--s-2)); width: calc(100% - 2 * var(--gutter)); height: 30svh; object-fit: contain; object-position: 50% 50%; background: none; }
+.velo .msg { right: calc(var(--gutter) + 2 * var(--ico) + var(--s-4)); }
+@media (min-width: 1024px) {
+  .velo img { left: calc(var(--off) + var(--gutter) + var(--col-testo) + var(--gutter)); width: calc(100% - 2 * var(--off) - 3 * var(--gutter) - var(--col-testo)); top: calc(var(--tap) + var(--ico) + var(--s-4)); height: calc(100% - var(--tap) - var(--ico) - var(--barra-h) - 2 * var(--s-4)); }   /* un img assoluto non si dimensiona con left/right: larghezza e altezza esplicite */
+  .velo .msg { left: calc(var(--off) + var(--gutter)); }
+}

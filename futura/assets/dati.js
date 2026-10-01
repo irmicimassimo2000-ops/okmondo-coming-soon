@@ -1,19 +1,19 @@
 // GENERATO da _strumenti/prepara_v2.py dai confronti dei preventivi (2ª gen e Infinity, v5 digitale, v6 statico).
 // Solo prezzi al cliente, dalla fonte unica schede-prodotto/prezzi-sito-metodoA.json (metodo A, 01/10/2026). Non modificare a mano.
 window.DATI = {
- "versione": "20261001i",
+ "versione": "20261001j",
  "whatsapp": "393208599301",
  "telecomandino": 30,
  "copertine": {
   "infinity": {
-   "fissa": "assets/img/inf-quasifrontale.webp",
-   "digitale": "assets/img/inf-tretquarti.webp",
+   "fissa": "assets/img/cover-infinity.webp",
+   "digitale": "assets/img/cover-infinity.webp",
    "indice": "assets/img/cover-infinity.webp",
    "altra": "assets/img/cover-infinity.webp"
   },
   "gen2": {
-   "fissa": "assets/img/gen2-fissa.webp",
-   "digitale": "assets/img/gen2-digitale.webp",
+   "fissa": "assets/img/cover-gen2.webp",
+   "digitale": "assets/img/cover-gen2.webp",
    "indice": "assets/img/cover-gen2.webp",
    "altra": "assets/img/cover-gen2.webp"
   }
