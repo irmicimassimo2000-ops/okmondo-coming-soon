@@ -244,3 +244,58 @@ body.con-barra { padding-bottom: var(--barra-h); }
   .velo img { left: calc(var(--off) + var(--gutter) + var(--col-testo) + var(--gutter)); width: calc(100% - 2 * var(--off) - 3 * var(--gutter) - var(--col-testo)); top: calc(var(--tap) + var(--ico) + var(--s-4)); height: calc(100% - var(--tap) - var(--ico) - var(--barra-h) - 2 * var(--s-4)); }   /* un img assoluto non si dimensiona con left/right: larghezza e altezza esplicite */
   .velo .msg { left: calc(var(--off) + var(--gutter)); }
 }
+
+/* ENFASI DEI COMANDI DI SCELTA (01/10/2026). Telefono: solo colore e contrasto (misure e posizioni invariate). */
+.righe .etichetta { color: var(--text-label); }
+.righe .seg button, .righe .riga-switch, .effetti-app button { border-color: var(--line-ctl); color: var(--text);
+  transition: background-color var(--dur-ctl) var(--ease-out), border-color var(--dur-ctl) var(--ease-out), color var(--dur-ctl) var(--ease-out), transform var(--dur-ctl) var(--ease-out); }
+.righe .seg button[aria-pressed="true"], .righe .seg button[aria-checked="true"], .effetti-app button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-text); box-shadow: none; }
+.righe .seg button:active, .righe .riga-switch:active, .effetti-app button:active, .interruttore:active { transform: scale(var(--prema)); }
+@media (hover: hover) { .righe .seg button:not([aria-pressed="true"]):not([aria-checked="true"]):hover, .effetti-app button:not([aria-pressed="true"]):hover { border-color: var(--text); } }
+/* interruttori (telecomando RF, Accesa): rossi da accesi */
+.interruttore[aria-checked="true"], .righe .riga-switch[aria-checked="true"] { border-color: var(--accent); color: var(--text); }
+.interruttore { border-color: var(--line-ctl); color: var(--text); }
+/* «Accendila»: un solo contenitore (niente scatola nella scatola); cursore della velocità più leggibile */
+.app { background: none; border: 0; padding: 0; }
+.app .testa { color: var(--text-label); }
+.cursore { color: var(--text-label); }
+.cursore input::-webkit-slider-runnable-track { height: var(--traccia); background: var(--line-ctl); }
+.cursore input::-moz-range-track { height: var(--traccia); background: var(--line-ctl); }
+.cursore input::-moz-range-progress { height: var(--traccia); background: var(--accent); }
+.cursore input::-webkit-slider-thumb { width: var(--pomo); height: var(--pomo); margin-top: calc((var(--traccia) - var(--pomo)) / 2); }
+.cursore input::-moz-range-thumb { width: var(--pomo); height: var(--pomo); }
+
+/* PC (>= 1024 px): i comandi erano troppo piccoli sullo schermo. Colonna più larga, comandi alti 50 px, testo 17 px, titolo in proporzione. */
+@media (min-width: 1024px) {
+  :root { --col-testo: 500px; --riga-et: 92px; }
+  .tappa[data-tappa="0"] h1 { font-size: var(--t-xxl); line-height: var(--lh-display); }
+  .tappa[data-tappa="0"] .sotto { font-size: var(--t-m); }
+  .righe .etichetta { font-size: var(--t-ctl); }
+  .righe .seg button, .righe .riga-switch { height: var(--ctl-h-pc); min-height: var(--ctl-h-pc); font-size: var(--t-m); }
+  .righe .seg button::before, .righe .riga-switch::before { display: none; }
+  .comandi.righe { gap: var(--s-4); }
+  .tappa[data-tappa="2"] { grid-template-columns: minmax(0, var(--col-testo)); width: calc(var(--col-testo) + 2 * var(--gutter)); }
+  .app, .telecomando { max-width: none; }
+  .app .testa, .app .app-vera { font-size: var(--t-ctl); }
+  .effetti-app button { min-height: var(--ctl-h-pc); font-size: var(--t-m); }
+  .app .interruttore, .pannello-accendi > div > .interruttore { min-height: var(--ctl-h-pc); font-size: var(--t-m); }
+}
+
+/* SCELTA = bordo rosso 2 px + velo rosso 20% + testo bianco (il pieno rosso è SOLO di «Scegli questa»). Il secondo pixel del bordo
+   è un'ombra interna: la dimensione del comando non cambia (telefono invariato). */
+.righe .seg button[aria-pressed="true"], .righe .seg button[aria-checked="true"], .effetti-app button[aria-pressed="true"] {
+  background: var(--scelta-velo); border-color: var(--scelta-bordo); box-shadow: inset 0 0 0 var(--bordo) var(--scelta-bordo); color: var(--accent-text); }
+
+/* «Accendila» da PC: centrata in verticale come la vista 1, nella colonna di sinistra */
+@media (min-width: 1024px) {
+  .tappa[data-tappa="2"] { grid-row: auto; grid-column: auto; position: absolute; z-index: 2; left: calc(var(--off) + var(--gutter)); top: var(--tap); bottom: var(--barra-h); width: var(--col-testo);
+    margin-left: 0; display: flex; flex-direction: column; justify-content: center; align-items: stretch; gap: var(--s-5); padding: 0; background: none; -webkit-mask-image: none; mask-image: none; }
+  .tappa[data-tappa="2"][hidden] { display: none; }
+}
+/* PC LARGHI (>= 1800 px): tutto un passo più grande; la CTA della barra resta il rosso più grande. Passi fuori scala solo qui. */
+@media (min-width: 1800px) {
+  :root { --col-testo: 560px; --ctl-h-pc: 56px; --t-ctl-xl: 19px; --t-label-xl: 13px; }
+  .righe .etichetta, .app .testa, .app .app-vera { font-size: var(--t-label-xl); }
+  .righe .seg button, .righe .riga-switch, .effetti-app button, .app .interruttore, .pannello-accendi > div > .interruttore { font-size: var(--t-ctl-xl); }
+  .barra-fissa .pieno { min-height: var(--ctl-h-pc); font-size: var(--t-ctl-xl); padding: 0 var(--s-6); }
+}

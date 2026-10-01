@@ -53,6 +53,14 @@
   /* ---- GEOMETRIE DEI COMPONENTI ---- */
   --ctl-h: 40px;
   --seg-h: 36px;
+  --line-ctl:   oklch(0.97 0.004 20 / 0.58);   /* contorno dei comandi di scelta non scelti: più visibile di --line-strong */
+  --text-label: oklch(0.88 0.006 20);          /* etichette LUCE / MISURA / OPZIONE: più chiare di --text-muted */
+  --dur-ctl: 150ms;
+  --scelta-bordo: oklch(0.54 0.197 25.5);          /* #BE1622 schiarito di 0,03 L: >= 3:1 anche sulla parete illuminata dietro la colonna da PC */
+  --scelta-velo:  oklch(0.512 0.197 25.5 / 0.2);   /* lo stesso rosso al 20%: riempimento della scelta (bianco sopra 14:1) */                            /* riempimento della scelta al tocco */
+  --pomo: 22px;                                /* cursore della velocità */
+  --traccia: 4px;                              /* binario del cursore della velocità */
+  --ctl-h-pc: 50px;                            /* comandi da PC */
   --alone-palco: radial-gradient(70% 34% at 50% 26%, oklch(0.36 0.12 23 / 0.55), transparent 72%), var(--bg);   /* palco mentre il 3D carica (telefono) */
   --alone-palco-pc: radial-gradient(38% 40% at 66% 48%, oklch(0.36 0.12 23 / 0.55), transparent 72%), var(--bg);  /* palco mentre il 3D carica (PC, colonna di destra) */
   --riga-et: 64px;      /* colonna delle etichette delle righe del primo schermo */
@@ -71,4 +79,4 @@
   --ease-out: cubic-bezier(.2, .8, .2, 1);
 }
 @media (min-width: 1024px) { :root { --gutter: var(--s-7); --bar-h: 72px; } }
-@media (prefers-reduced-motion: reduce) { :root { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; } }
+@media (prefers-reduced-motion: reduce) { :root { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; --dur-ctl: 0ms; --prema: 1; --prema-largo: 1; } }

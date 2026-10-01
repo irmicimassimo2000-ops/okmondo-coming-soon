@@ -1,7 +1,7 @@
 // GENERATO da _strumenti/prepara_v2.py dai confronti dei preventivi (2ª gen e Infinity, v5 digitale, v6 statico).
 // Solo prezzi al cliente, dalla fonte unica schede-prodotto/prezzi-sito-metodoA.json (metodo A, 01/10/2026). Non modificare a mano.
 window.DATI = {
- "versione": "20261001j",
+ "versione": "20261001l",
  "whatsapp": "393208599301",
  "telecomandino": 30,
  "copertine": {
