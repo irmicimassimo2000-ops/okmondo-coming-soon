@@ -1,7 +1,7 @@
 // GENERATO da _strumenti/prepara_v2.py dai confronti dei preventivi (2ª gen e Infinity, v5 digitale, v6 statico).
 // Solo prezzi al cliente, IN BOZZA (Infinity statica arrotondata e approvata da Massimo il 30/09). Non modificare a mano.
 window.DATI = {
- "versione": "20261001g",
+ "versione": "20261001h",
  "whatsapp": "393208599301",
  "telecomandino": 30,
  "copertine": {
@@ -23,11 +23,11 @@ window.DATI = {
    "ingombro": "122 x 59 cm",
    "supporti": 10,
    "digitale": {
-    "prezzo": 1410,
+    "prezzo": 1040,
     "pdf": "assets/doc/futura-infinity-120cm-digitale-preventivo.pdf"
    },
    "fissa": {
-    "prezzo": 1350,
+    "prezzo": 975,
     "pdf": "assets/doc/futura-infinity-120cm-fissa-preventivo.pdf"
    }
   },
@@ -35,11 +35,11 @@ window.DATI = {
    "ingombro": "142 x 68 cm",
    "supporti": 10,
    "digitale": {
-    "prezzo": 1690,
+    "prezzo": 1220,
     "pdf": "assets/doc/futura-infinity-140cm-digitale-preventivo.pdf"
    },
    "fissa": {
-    "prezzo": 1620,
+    "prezzo": 1155,
     "pdf": "assets/doc/futura-infinity-140cm-fissa-preventivo.pdf"
    }
   },
@@ -47,11 +47,11 @@ window.DATI = {
    "ingombro": "161 x 78 cm",
    "supporti": 12,
    "digitale": {
-    "prezzo": 2000,
+    "prezzo": 1430,
     "pdf": "assets/doc/futura-infinity-160cm-digitale-preventivo.pdf"
    },
    "fissa": {
-    "prezzo": 1930,
+    "prezzo": 1360,
     "pdf": "assets/doc/futura-infinity-160cm-fissa-preventivo.pdf"
    }
   }
@@ -60,33 +60,33 @@ window.DATI = {
   "120": {
    "dim": "124 x 61",
    "fissa": {
-    "prezzo": 255.3,
+    "prezzo": 275.0,
     "pdf": "assets/doc/futura-2gen-120cm-fissa-preventivo.pdf"
    },
    "digitale": {
-    "prezzo": 320.1,
+    "prezzo": 340.0,
     "pdf": "assets/doc/futura-2gen-120cm-digitale-preventivo.pdf"
    }
   },
   "140": {
    "dim": "144 x 71",
    "fissa": {
-    "prezzo": 321.45,
+    "prezzo": 320.0,
     "pdf": "assets/doc/futura-2gen-140cm-fissa-preventivo.pdf"
    },
    "digitale": {
-    "prezzo": 388.85,
+    "prezzo": 390.0,
     "pdf": "assets/doc/futura-2gen-140cm-digitale-preventivo.pdf"
    }
   },
   "160": {
    "dim": "163 x 80",
    "fissa": {
-    "prezzo": 397.26,
+    "prezzo": 370.0,
     "pdf": "assets/doc/futura-2gen-160cm-fissa-preventivo.pdf"
    },
    "digitale": {
-    "prezzo": 467.5,
+    "prezzo": 440.0,
     "pdf": "assets/doc/futura-2gen-160cm-digitale-preventivo.pdf"
    }
   }
