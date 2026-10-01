@@ -394,6 +394,44 @@ export async function costruisci({ tela, geo, prodotto, stato, qualita = {} }) {
   const tmpV2 = new THREE.Vector2();
   const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), box = new THREE.Box3(), sfera = new THREE.Sphere();
   let esp = 0;
+  // ---- inquadratura dell'insegna montata nel palco ----
+  const AZMAX = 0.95, MARGINE = 16,   // AZMAX: il massimo del trascinamento; l'inquadratura a riposo vale per il PENDOLO (stato.azPendolo)
+    MV = { d: 3, px: 0, py: 0, pronto: false }, provaM = new THREE.PerspectiveCamera();
+  const quadriM = {};
+  const centroInsegna = () => new THREE.Vector3(0, 2.3, 0);
+  function puntiARiposo() {   // i punti veri degli strati, riportati alla posizione montata (senza lo spostamento dell'esploso)
+    insegna.updateMatrixWorld(true); const out = [], v = new THREE.Vector3();
+    for (const st of reali) { const dz = scala * (st.grp.position.z - st.z0);
+      for (let k = 0; k < st.campioni.length; k += 4) { const [o, i] = st.campioni[k]; v.fromBufferAttribute(o.geometry.attributes.position, i).applyMatrix4(o.matrixWorld); out.push(new THREE.Vector3(v.x, v.y, v.z - dz)); } }
+    return out;
+  }
+  // ingombro sullo schermo (px) dell'insegna, su tutti gli angoli raggiungibili, con la camera VERA (distanza d, insegna portata in px,py):
+  // con l'insegna di sbieco i punti vicini si spostano più dei lontani, quindi si misura e si corregge, non si stima
+  function ingombri(pts, d, px, py, A) {
+    const C = centroInsegna(); let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    provaM.fov = camera.fov; provaM.aspect = camera.aspect; provaM.near = camera.near; provaM.far = camera.far; provaM.updateProjectionMatrix();
+    for (let k = -4; k <= 4; k++) { const az = A * k / 4, R = new THREE.Vector3(Math.cos(az), 0, -Math.sin(az));
+      const sh = R.multiplyScalar(-(px - vista.w / 2) / (vista.w / 2) * d * vista.tanH).add(new THREE.Vector3(0, (py - vista.h / 2) / (vista.h / 2) * d * vista.tanV, 0));
+      provaM.position.set(Math.sin(az) * d, 0, Math.cos(az) * d).add(C).add(sh); provaM.lookAt(C.clone().add(sh)); provaM.updateMatrixWorld(true);
+      for (const q of pts) { const r = q.clone().project(provaM); const x = (r.x * 0.5 + 0.5) * vista.w, y = (-r.y * 0.5 + 0.5) * vista.h; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } }
+    return [x0, x1, y0, y1];
+  }
+  function inquadraMontata(A) {
+    const P0 = stato.palco || { x0: 0, y0: 0, x1: vista.w, y1: vista.h * 0.6 };
+    const x0 = P0.x0 + MARGINE, x1 = P0.x1 - MARGINE, y0 = P0.y0 + MARGINE, y1 = Math.max(P0.y0 + MARGINE + 40, P0.y1 - MARGINE);
+    const chiave = [vista.w, vista.h, x0, x1, y0, y1].map(v => Math.round(+v)).join(",") + "," + scala.toFixed(3) + "," + A.toFixed(2);
+    if (quadriM[chiave]) return quadriM[chiave];
+    const pts = puntiARiposo(), dMin = (larg * scala / (vista.verticale ? 0.92 : 0.64) / 2) / vista.tanH;   // mai più grande del disegno di prima
+    let d = Math.max(dMin, 3 * scala), px = (x0 + x1) / 2, py = (y0 + y1) / 2;
+    for (let it = 0; it < 6; it++) {
+      const [a0, a1, b0, b1] = ingombri(pts, d, px, py, A);
+      d = Math.max(dMin, d * Math.max((a1 - a0) / (x1 - x0), (b1 - b0) / (y1 - y0)) * 1.01);
+      const [c0, c1, e0, e1] = ingombri(pts, d, px, py, A);
+      px += (x0 + x1) / 2 - (c0 + c1) / 2; py += (y0 + y1) / 2 - (e0 + e1) / 2;
+    }
+    if (Object.keys(quadriM).length > 24) for (const k in quadriM) delete quadriM[k];   // cache piccola: la si svuota
+    return (quadriM[chiave] = { d, px, py });
+  }
   function aggiorna(t, p, azUtente) {
     giorno += ((stato.giorno ? 1 : 0) - giorno) * 0.12; acceso += ((stato.acceso === false ? 0 : 1) - acceso) * 0.25;
     scala += (SCALA[stato.misura] - scala) * 0.18; insegna.scale.setScalar(scala);
@@ -417,14 +455,20 @@ export async function costruisci({ tela, geo, prodotto, stato, qualita = {} }) {
     for (const s of reali) { s.grp.position.z = s.z0 + e * passo * s.slot; if (s.segue) s.segue.position.z = s.grp.position.z; }
     M.bordoForex.opacity = M.bordoVetro.opacity = Math.min(1, e * 1.6); M.bordoForex.visible = M.bordoVetro.visible = e > 0.01;
     P.g.traverse(o => { if (o.userData.scambio) o.material = o.userData.scambio[e > 0.02 ? 1 : 0]; if (o.userData.soloMontato) o.visible = e <= 0.02; });
-    // camera montata: in verticale l'insegna larga il 92%, centro al 28% dall'alto; a 1440, «Accendila», insegna a destra
-    const Wm = larg * scala, quota = vista.verticale ? 0.92 : 0.64;
-    const distM = (Wm / quota / 2) / vista.tanH;
-    const azM = stato.vista ? Math.max(-0.95, Math.min(0.95, azUtente)) : (vista.verticale ? Math.max(-0.3, Math.min(0.3, azUtente)) : azUtente) + (stato.fermo ? 0 : Math.sin(t * 0.18) * 0.03);
-    const alto = vista.verticale ? 0.44 : 0.12, destra = vista.verticale ? 0 : ss(0.8, 1, p) * 0.3;
-    const tyM = 2.3 - alto * distM * vista.tanV, txM = -destra * distM * vista.tanH;
-    tmpA.set(txM + Math.sin(azM) * distM, 2.3 - (vista.verticale ? 0.18 : 0), Math.cos(azM) * distM);   // posizione montata
-    const bersM = new THREE.Vector3(txM, tyM, 0);
+    // CAMERA MONTATA: l'insegna sta nel PALCO (il riquadro libero che la pagina misura: sotto la testata, sopra testo e comandi, accanto al
+    // pannello laterale), con 16 px di margine A OGNI ANGOLO raggiungibile (pendolo, swipe, giroscopio: fino a ±AZMAX), non solo a riposo.
+    const azM = Math.max(-AZMAX, Math.min(AZMAX, azUtente));
+    // a riposo: inquadrata per il pendolo; se il dito la porta oltre, si allontana piano fino all'inquadratura per ±AZMAX (mai sotto il testo)
+    const Ap = Math.min(AZMAX, stato.azPendolo || AZMAX), qa = inquadraMontata(Ap);
+    let quadro = qa;
+    if (Math.abs(azM) > Ap + 0.01) { const qb = inquadraMontata(AZMAX), f = Math.min(1, (Math.abs(azM) - Ap) / (AZMAX - Ap));
+      quadro = { d: qa.d + (qb.d - qa.d) * f, px: qa.px + (qb.px - qa.px) * f, py: qa.py + (qb.py - qa.py) * f }; }
+    MV.d += (quadro.d - MV.d) * (MV.pronto ? (quadro.d > MV.d ? 0.45 : 0.15) : 1);  MV.px += (quadro.px - MV.px) * (MV.pronto ? 0.15 : 1); MV.py += (quadro.py - MV.py) * (MV.pronto ? 0.15 : 1); MV.pronto = true;   // ad allontanarsi è svelta (il testo non va mai sopra), a tornare morbida
+    const Cm = centroInsegna(), Rm = new THREE.Vector3(Math.cos(azM), 0, -Math.sin(azM));
+    const sx = -(MV.px - vista.w / 2) / (vista.w / 2) * MV.d * vista.tanH, sy = (MV.py - vista.h / 2) / (vista.h / 2) * MV.d * vista.tanV;
+    const spost = Rm.clone().multiplyScalar(sx).add(new THREE.Vector3(0, sy, 0));
+    tmpA.set(Math.sin(azM) * MV.d, 0, Math.cos(azM) * MV.d).add(Cm).add(spost);   // posizione montata: orbita intorno all'insegna + traslazione nel piano dell'immagine
+    const bersM = Cm.clone().add(spost);
     // camera dell'esploso: assonometria da destra in alto, adattata alla pila (sfera che la contiene)
     const E = e * e * (3 - 2 * e);
     if (E > 0.0005) {
@@ -498,6 +542,10 @@ export async function costruisci({ tela, geo, prodotto, stato, qualita = {} }) {
       }
       return out;
     },
+    ingombroPx() { const v = new THREE.Vector3(); let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; scena.updateMatrixWorld(true);
+      for (const st of reali) for (let k = 0; k < st.campioni.length; k += 2) { const [o, i] = st.campioni[k]; v.fromBufferAttribute(o.geometry.attributes.position, i).applyMatrix4(o.matrixWorld); const q = proj(v);
+        if (ok(q)) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]); } }
+      return [x0, y0, x1, y1]; },
     pila: P.pila.map(s => ({ k: s.k, testo: s.testo, mm: s.mm })), pacchetto: P.pacchetto, esploso: () => esp,
     riquadro() { box.makeEmpty(); for (const s of reali) box.expandByObject(s.grp); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
       for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) { const q = proj(new THREE.Vector3(x, y, z));

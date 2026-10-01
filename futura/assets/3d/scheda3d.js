@@ -52,8 +52,10 @@
   function disegna() {
     const c = conto();
     tutti("[data-misura-scegli]", b => { const m = b.dataset.misuraScegli, on = m === s.misura, cm = conto(m);   // le tre sagome: scelta, tabulazione, prezzo
-      b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; b.setAttribute("aria-label", m + " cm, ingombro " + cm.ing + ", " + euro(cm.prezzo));
-      const em = b.querySelector("[data-prezzo-misura]"); if (em) em.textContent = euro(cm.prezzo); });
+      b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; b.setAttribute("aria-label", m + " cm, ingombro " + cm.ing); });
+    tutti("[data-dimensioni]", e => e.textContent = c.ing + (PROD === "infinity" ? " · profondità 4,6 cm" : ""));   // profondità: DOC3 «profondità 46 mm»
+    tutti("[data-giorno-icona]", b => { b.setAttribute("aria-pressed", String(s.giorno)); b.setAttribute("aria-label", s.giorno ? "Luce del giorno: attiva" : "Luce del giorno"); });
+    tutti(".icone-palco [data-acceso]", b => b.setAttribute("aria-label", "Insegna accesa"));   // interruttore: lo stato lo dice aria-checked
     tutti("[data-luce]", b => b.setAttribute("aria-pressed", String(b.dataset.luce === s.luce)));
     tutti("[data-tele]", b => b.setAttribute("aria-checked", String(s.tele)));
     tutti("[data-acceso]", b => b.setAttribute("aria-checked", String(s.acceso)));
@@ -74,6 +76,33 @@
     history.replaceState(null, "", "?" + urlScelta().toString());
   }
 
+  // ---------- DA VICINO: carosello nativo + lightbox ----------
+  (() => {
+    const sc = document.querySelector("[data-scorri]"); if (!sc) return;
+    const voci = [...sc.children], conta = document.querySelector("[data-conta]"), punti = [...document.querySelectorAll("[data-vai-foto]")];
+    const FV = D.vicino[PROD === "infinity" ? "infinity" : "gen2"];
+    let ora = 0;
+    const passo = () => Math.max(1, voci[0].getBoundingClientRect().width + parseFloat(getComputedStyle(sc).columnGap || 0));
+    const segna = i => { ora = i; const k = Math.max(1, Math.round((sc.clientWidth + 1) / passo())), fine = Math.min(voci.length, i + k);   // a schermo largo se ne vedono più insieme
+      if (conta) conta.textContent = (k > 1 ? (i + 1) + "–" + fine : (i + 1)) + " / " + voci.length;
+      punti.forEach((b, j) => b.setAttribute("aria-current", String(j >= i && j < fine))); };
+    sc.addEventListener("scroll", () => { const i = Math.round(sc.scrollLeft / passo()); if (i !== ora) segna(Math.max(0, Math.min(voci.length - 1, i))); }, { passive: true });
+    punti.forEach((b, k) => b.addEventListener("click", () => voci[k].scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", inline: "start", block: "nearest" })));
+    segna(0);
+    const lb = document.querySelector("[data-lightbox]"), img = lb.querySelector("[data-lb-img]"), testo = lb.querySelector("[data-lb-testo]");
+    let lbi = 0;
+    const mostra = i => { lbi = (i + FV.length) % FV.length; img.src = FV[lbi].src + "?v=" + VER; img.alt = FV[lbi].testo; testo.textContent = (lbi + 1) + " / " + FV.length + " · " + FV[lbi].testo; };
+    sc.addEventListener("click", e => { const b = e.target.closest("[data-apri-foto]"); if (!b) return; mostra(+b.dataset.apriFoto); lb.showModal(); });
+    lb.addEventListener("click", e => { if (e.target.closest("[data-lb-chiudi]") || e.target === lb) lb.close(); const p = e.target.closest("[data-lb-passo]"); if (p) mostra(lbi + +p.dataset.lbPasso); });
+    lb.addEventListener("keydown", e => { if (e.key === "ArrowRight") mostra(lbi + 1); if (e.key === "ArrowLeft") mostra(lbi - 1); });
+    lb.addEventListener("close", () => { const b = sc.querySelector('[data-apri-foto="' + lbi + '"]'); voci[lbi].scrollIntoView({ inline: "start", block: "nearest" }); if (b) b.focus(); });
+    let x0 = null, y0 = 0;   // swipe nella lightbox: in giù chiude, di lato scorre
+    lb.addEventListener("pointerdown", e => { x0 = e.clientX; y0 = e.clientY; });
+    lb.addEventListener("pointerup", e => { if (x0 === null) return; const dx = e.clientX - x0, dy = e.clientY - y0; x0 = null;
+      if (dy > 80 && dy > Math.abs(dx)) lb.close(); else if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) mostra(lbi + (dx < 0 ? 1 : -1)); });
+    window.__vicino = { segna: () => ora, mostra, lb };
+  })();
+
   // ---------- gesti ----------
   document.addEventListener("click", e => {
     const t = e.target.closest("button,[data-condividi]"); if (!t) return;
@@ -83,6 +112,7 @@
     if ("tele" in d) { s.tele = !s.tele; s.modo = s.tele ? "fluido" : "fisso"; }
     if ("acceso" in d) s.acceso = !s.acceso;
     if (d.giorno) s.giorno = d.giorno === "1";
+    if ("giornoIcona" in d) s.giorno = !s.giorno;
     if (d.effetto) { s.modo = d.effetto; s.acceso = true; }
     if (d.tasto) tasto(d.tasto);
     if ("condividi" in d) { condividi(); return; }
@@ -140,7 +170,7 @@
   const progresso = () => { if (REG && q.has("pda")) { const k = Math.min(1, Math.max(0, tReg / +(q.get("dur") || 6))); return +q.get("pda") + (+q.get("pa") - +q.get("pda")) * k; }
     if (REG && q.has("p")) return +q.get("p"); if (!corsa) return 0; const r = corsa.getBoundingClientRect(); return Math.min(1, Math.max(0, -r.top / (r.height - innerHeight))); };
   const tappe = [...document.querySelectorAll("[data-tappa]")]; let tappaOra = -1;
-  function mostraTappa(p) { const k = p < 0.2 ? 0 : p < 0.72 ? 1 : 2; s.fermo = k === 1 && innerWidth < 600; if (k === tappaOra) return; tappaOra = k; tappe.forEach(e => e.hidden = +e.dataset.tappa !== k); tutti("[data-tacca]", (e, i) => e.classList.toggle("su", +e.dataset.tacca === k)); }
+  function mostraTappa(p) { const k = p < 0.2 ? 0 : p < 0.72 ? 1 : 2; s.fermo = k === 1 && innerWidth < 600; if (k === tappaOra) return; tappaOra = k; tappe.forEach(e => e.hidden = +e.dataset.tappa !== k); { const ic = document.querySelector("[data-icone-palco]"); if (ic) ic.hidden = k === 1; } tutti("[data-tacca]", (e, i) => e.classList.toggle("su", +e.dataset.tacca === k)); }
   mostraTappa(progresso());
   addEventListener("scroll", () => mostraTappa(progresso()), { passive: true });
 
@@ -229,7 +259,7 @@
       const quota = document.createElement("p"); quota.className = "ancora quota-pacchetto"; quota.textContent = mondo.pacchetto; contAncore.appendChild(quota);
       const legenda = document.querySelector(".tappa[data-tappa='1'] .legenda");
       if (legenda) legenda.innerHTML = mondo.pila.map(st => "<li>" + st.testo + (st.mm ? " · " + st.mm : "") + "</li>").join("") + '<li class="quota-voce">' + mondo.pacchetto.replace("\n", " · ") + "</li>";
-      const PASSO = 50;   // riga 24 px + 26 px di aria
+      const PASSO = 49;   // riga 24 px + 25 px di aria (>= 24 anche con gli arrotondamenti)
       // --- geometria sullo schermo
       const dentro = (p, poly) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j];
         if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
@@ -306,7 +336,7 @@
           dati.numeri = posti; window.__fili = dati; return;
         }
         const X = Math.min(ogg[2] + 36, w - 24 - Math.max(...etich.map(el => el.querySelector(".lungo").offsetWidth + 34)));
-        const yMin = 64, yMax = h - (s.riservaSotto || 0) - 60;   // la colonna (e la quota sotto) resta sopra la tappa
+        const yMin = 64, yMax = h - (s.riservaSotto || 0) - (mondo.pacchetto.includes("\n") ? 60 : 48);   // spazio per la quota sotto la colonna (una o due righe)   // la colonna (e la quota sotto) resta sopra la tappa
         let lay = impagina(F, X, yMin, yMax);
         if (!lay) {   // nessuna combinazione pulita: fili dal punto visibile più vicino alla riga (la prova automatica lo segnala)
           const righe = F.map((_, k) => (ogg[1] + ogg[3]) / 2 + (k - (F.length - 1) / 2) * PASSO);
@@ -329,12 +359,33 @@
         const rq = quota.getBoundingClientRect(); dati.colonna = [X, Math.max(...dati.etichette.map(e => e.riquadro[2]), rq.right - c.left)];
         window.__fili = dati;
       }
+      // IL PALCO: il riquadro dove sta l'insegna montata. Sotto la testata, sopra testo e comandi della tappa visibile e sopra la barra fissa;
+      // se la tappa è un pannello laterale (schermo largo, «Accendila»), a destra del pannello. Il testo non va mai sopra l'insegna.
+      function testiTappa() {   // i riquadri di titolo, testi e comandi della tappa visibile (non lo sfondo sfumato)
+        const tp = document.querySelector(".tappa:not([hidden])"); if (!tp) return [];
+        return [...tp.querySelectorAll(":scope > *")].filter(e => e.offsetParent).map(e => e.getBoundingClientRect()).filter(r => r.width > 0 && r.height > 0);
+      }
+      window.__testi = () => { const c = tela.getBoundingClientRect(), L = testiTappa().map(r => [r.left - c.left, r.top - c.top, r.right - c.left, r.bottom - c.top]);
+        for (const sel of [".fermo > .testata", ".barra-fissa"]) { const e = document.querySelector(sel); if (e && e.offsetParent !== null || (e && getComputedStyle(e).position === "fixed")) { const r = e.getBoundingClientRect(); if (r.height) L.push([r.left - c.left, r.top - c.top, r.right - c.left, r.bottom - c.top]); } }
+        return L; };
+      function palco() {
+        const c = tela.getBoundingClientRect(), w = c.width, h = c.height; if (!(w > 0 && h > 0)) return null;
+        const te = document.querySelector(".fermo > .testata"), bf = document.querySelector(".barra-fissa");
+        let x0 = 0, x1 = w, y0 = te ? te.getBoundingClientRect().bottom - c.top : 0, y1 = h;
+        if (bf) y1 = Math.min(y1, bf.getBoundingClientRect().top - c.top);
+        // le icone giorno/notte e accesa sono una sovrapposizione nell'angolo del palco: non lo accorciano (non sono testo)
+        const R = testiTappa(); if (!R.length) return { x0, y0, x1, y1 };
+        const L = Math.min(...R.map(r => r.left)) - c.left, Rr = Math.max(...R.map(r => r.right)) - c.left, T = Math.min(...R.map(r => r.top)) - c.top;
+        if (Rr - L < 0.6 * w && w >= 1024) x0 = Math.max(x0, Rr); else y1 = Math.min(y1, T);
+        return { x0, y0, x1, y1 };
+      }
       function passo(t) {
         tReg = t;
         // spazio che serve sotto la pila nell'esploso a schermo largo: la tappa visibile + la colonna della legenda
         { const tp = document.querySelector(".tappa:not([hidden])"); const top = tp ? tp.getBoundingClientRect().top : mondo.vista.h; s.riservaSotto = (mondo.vista.h - top) + 24; }
         // a schermo largo oggetto al 62% e colonna accanto (<= 25%): il gruppo sta al centro; stretto: oggetto al 92%, centrato
         s.centroX = mondo.vista.w >= 1024 ? 0.39 : 0.5; s.larghezza = mondo.vista.w >= 1024 ? 0.62 : 0.92;
+        s.palco = palco(); s.azPendolo = AMP;   // l'insegna a riposo si inquadra per il pendolo
         const e = mondo.disegna(t, progresso(), azVista(t) * (1 - mondo.esploso())); etichette(e);   // il pendolo è dell'insegna montata: a pila aperta la camera sta ferma e la legenda si legge
         // (la sagoma di 175 cm è stata tolta: la scala la danno le misure scritte e lo slider)
       }

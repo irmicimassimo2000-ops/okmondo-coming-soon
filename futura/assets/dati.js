@@ -1,7 +1,7 @@
 // GENERATO da _strumenti/prepara_v2.py dai confronti dei preventivi (2ª gen e Infinity, v5 digitale, v6 statico).
 // Solo prezzi al cliente, IN BOZZA (Infinity statica arrotondata e approvata da Massimo il 30/09). Non modificare a mano.
 window.DATI = {
- "versione": "20261001c",
+ "versione": "20261001f",
  "whatsapp": "393208599301",
  "telecomandino": 30,
  "copertine": {
@@ -90,5 +90,71 @@ window.DATI = {
     "pdf": "assets/doc/futura-2gen-160cm-digitale-preventivo.pdf"
    }
   }
+ },
+ "vicino": {
+  "infinity": [
+   {
+    "src": "assets/img/vicino/infinity-cover.webp",
+    "testo": "In studio, sospesa sul nero",
+    "w": 1600,
+    "h": 1067
+   },
+   {
+    "src": "assets/img/vicino/infinity-fronte.webp",
+    "testo": "Di fronte: il tunnel infinito dentro la sagoma",
+    "w": 1600,
+    "h": 1067
+   },
+   {
+    "src": "assets/img/vicino/infinity-tretquarti.webp",
+    "testo": "Di tre quarti: il tunnel cambia con lo sguardo",
+    "w": 1600,
+    "h": 1067
+   },
+   {
+    "src": "assets/img/vicino/infinity-tunnel.webp",
+    "testo": "Il tunnel da vicino: le copie del neon fra specchio e frontale",
+    "w": 1008,
+    "h": 672
+   },
+   {
+    "src": "assets/img/vicino/infinity-esploso.webp",
+    "testo": "Smontata: supporti, base, specchio, neon, corsia, frontale",
+    "w": 1498,
+    "h": 999
+   }
+  ],
+  "gen2": [
+   {
+    "src": "assets/img/vicino/gen2-cover.webp",
+    "testo": "In studio, sospesa sul nero",
+    "w": 1600,
+    "h": 1067
+   },
+   {
+    "src": "assets/img/vicino/gen2-tretquarti.webp",
+    "testo": "Di tre quarti, sulla parete",
+    "w": 1600,
+    "h": 1067
+   },
+   {
+    "src": "assets/img/vicino/gen2-solco.webp",
+    "testo": "Il neon nel solco del Forex",
+    "w": 1062,
+    "h": 708
+   },
+   {
+    "src": "assets/img/vicino/gen2-digitale.webp",
+    "testo": "Luce digitale: la luce corre lungo il tratto",
+    "w": 1600,
+    "h": 1067
+   },
+   {
+    "src": "assets/img/vicino/gen2-esploso.webp",
+    "testo": "Smontata: distanziali, due lame di Forex, neon",
+    "w": 1600,
+    "h": 1067
+   }
+  ]
  }
 };
