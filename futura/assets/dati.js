@@ -1,7 +1,7 @@
 // GENERATO da _strumenti/prepara_v2.py dai confronti dei preventivi (2ª gen e Infinity, v5 digitale, v6 statico).
 // Solo prezzi al cliente, IN BOZZA (Infinity statica arrotondata e approvata da Massimo il 30/09). Non modificare a mano.
 window.DATI = {
- "versione": "20261001a",
+ "versione": "20261001b",
  "whatsapp": "393208599301",
  "telecomandino": 30,
  "infinity": {

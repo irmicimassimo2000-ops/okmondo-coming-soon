@@ -21,7 +21,8 @@
     modo: "fisso", velocita: q.has("vel") ? Math.min(1, Math.max(0, +q.get("vel"))) : 0.45,
     livello: q.has("liv") ? Math.min(1, Math.max(0.06, +q.get("liv"))) : 0.7,
     acceso: q.get("spento") !== "1", giorno: q.get("giorno") === "1",
-    bloom: q.get("bloom") !== "0",   // bloom=0: il bagliore di post-produzione spento (come su un telefono che rallenta)
+    bloom: q.get("bloom") !== "0",
+    prova: REG ? { prec: q.get("prec"), rt8: q.get("rt8") === "1", dpr: q.has("dpr") ? +q.get("dpr") : null, fp: q.has("fp") ? +q.get("fp") : null, fv: q.has("fv") ? +q.get("fv") : null } : {},   // solo in registrazione: emulare un telefono (precisione, bersaglio a 8 bit, densità)   // bloom=0: il bagliore di post-produzione spento (come su un telefono che rallenta)
     vista: "pendolo"   // l'insegna si guarda girandola: pendolo + dito (+ giroscopio sul telefono)
   };
   const eff = q.get("effetto");
@@ -154,7 +155,7 @@
       await Promise.all(man.file.map(f => scarica(f, sulByte)));
       const geo = JSON.parse(await (await scarica(man.geometria[PROD], sulByte)).text());
       const { costruisci } = await import(man.motore);
-      const mondo = await costruisci({ tela, geo, prodotto: PROD, stato: s, qualita: {} });
+      const mondo = await costruisci({ tela, geo, prodotto: PROD, stato: s, qualita: { versione: VER } });
       window.__mondo = mondo;
       let az = 0;
       // ---- COME SI GUARDA L'INSEGNA: pendolo lento da solo, il dito la gira con inerzia, il telefono inclinato ci guarda dentro ----

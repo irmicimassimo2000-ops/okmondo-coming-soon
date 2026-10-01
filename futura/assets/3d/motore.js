@@ -7,6 +7,7 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
+const CORRE = ["scia", "onda", "riempimento", "scintille"];   // effetti in cui la luce corre lungo il tratto
 export const MODI = { fisso: 0, dimmer: 1, fluido: 2, staccato: 3, scia: 4, onda: 5, respiro: 6, riempimento: 7, scintille: 8 };
 const TELEFONO = matchMedia("(pointer: coarse)").matches || innerWidth < 700;
 const LUCI_MAX = TELEFONO ? 4 : 8;                       // al massimo 4 luci sul telefono
@@ -34,18 +35,19 @@ export function intensita(s, t, u) {
 const GLSL_INTENSITA = `
 float fr1(float x){ return x - floor(x); }
 float hs(float x){ return fr1(sin(x * 127.1) * 43758.5453); }
-float inten(float t, float u){
+float intenF(float t, float u, float fase){
   float v = uVel; float m = uModo;
   if (m < 0.5) return 1.0;
   if (m < 1.5) return 0.06 + 0.94 * uLivello;
   if (m < 2.5) return 0.1 + 0.9 * (0.5 + 0.5 * sin(t * (0.4 + 2.6 * v) * 6.2832));
   if (m < 3.5) return fr1(t * (1.0 + 9.0 * v)) < 0.5 ? 1.0 : 0.02;
-  if (m < 4.5) { float d = fr1(fr1(t * (0.08 + 0.5 * v) + uFase) - u); return 0.16 + exp(-d * 4.5) * 1.35; }
+  if (m < 4.5) { float d = fr1(fr1(t * (0.08 + 0.5 * v) + fase) - u); return 0.16 + exp(-d * 4.5) * 1.35; }
   if (m < 5.5) return 0.12 + 0.88 * (0.5 + 0.5 * sin(6.2832 * (u * 3.0 - t * (0.2 + 1.2 * v))));
   if (m < 6.5) { float b = 0.5 + 0.5 * sin(t * (0.3 + 1.2 * v) * 6.2832); return 0.1 + 0.9 * b * b; }
   if (m < 7.5) return u < fr1(t * (0.1 + 0.4 * v)) ? 1.0 : 0.05;
   return hs(floor(u * 60.0) + floor(t * (2.0 + 10.0 * v)) * 7.3) > 0.78 ? 1.1 : 0.12;
-}`;
+}
+float inten(float t, float u){ return intenF(t, u, uFase); }`;
 // il tubo: silicone lattiginoso da 6 mm. Acceso: rosso pieno col cuore appena più caldo (il bagliore fa l'alone).
 // Spento: silicone bianco traslucido; nell'esploso (uEsp) si vede anche di notte.
 const VERT = `varying vec2 vUv; varying vec3 vN; varying vec3 vV;
@@ -59,9 +61,9 @@ void main(){
   float nucleo = pow(ndv, 3.0);
   vec3 rosso = vec3(1.0, 0.04, 0.045);
   // sotto la soglia in cui ACES desatura il rosso verso il rosa: il colore resta pieno, l'alone lo fa il bagliore
-  vec3 c = rosso * i * (0.62 + 0.5 * nucleo);
-  c += vec3(0.38, 0.03, 0.02) * pow(nucleo, 6.0) * smoothstep(0.7, 1.0, i) * i;
-  c += vec3(1.0, 0.45, 0.4) * max(i - 1.05, 0.0) * 2.2 * (0.4 + 0.6 * nucleo);   // la testa della scia: calda, quasi bianca
+  float ic = min(i, 1.0);   // il tubo resta ROSSO anche sulla testa della scia (oltre 1 ACES lo porterebbe al rosa)
+  vec3 c = rosso * ic * (0.62 + 0.5 * nucleo);
+  c += vec3(0.38, 0.03, 0.02) * pow(nucleo, 6.0) * smoothstep(0.7, 1.0, ic) * ic;
   vec3 spento = vec3(0.8, 0.78, 0.76) * (0.05 + 0.62 * max(uGiorno, 0.55 * uEsp)) * (0.35 + 0.65 * ndv);   // silicone bianco traslucido
   c += spento * (1.0 - clamp(i, 0.0, 1.0)) * uAtt;
   gl_FragColor = vec4(c * uTinta, 1.0);
@@ -76,18 +78,64 @@ void main(){ float i = inten(uTempo, vUv.x) * uAcceso * uAtt; float ndv = clamp(
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
 }`;
-const ALONI = [];   // guaine d'alone: la forza si dimezza quando c'è anche il bagliore di post-produzione
+const ALONI = [];
+// alone CUOCIUTO: texture gaussiana fatta offline (morbida su ogni telefono); R/G della texture larga = posizione lungo il tratto e
+// indice del tratto, letti al centro del texel (vicino esatto): così l'alone segue anche gli effetti digitali (scia, onda...)
+const FRAG_COTTO = `${UNI}
+uniform sampler2D tHalo, tIndice; uniform vec2 uSize; uniform float uCanale;
+${GLSL_INTENSITA}
+void main(){
+  vec2 uvI = (floor(vUv * uSize) + 0.5) / uSize;
+  vec4 ix = texture2D(tIndice, uvI);
+  float fase = floor(ix.g * 255.0 / 64.0 + 0.5) * 0.25;
+  float a = uCanale < 0.5 ? texture2D(tHalo, vUv).r : texture2D(tIndice, vUv).b;
+  // effetti che corrono lungo il tratto: qui solo una base fissa (la luce che corre la portano gli sprite); gli altri: intensità comune
+  float corre = (abs(uModo - 4.0) < 0.5 || abs(uModo - 5.0) < 0.5 || abs(uModo - 7.0) < 0.5 || abs(uModo - 8.0) < 0.5) ? 1.0 : 0.0;
+  float i = mix(intenF(uTempo, 0.5, 0.0), 0.0, corre) * uAcceso * uAtt;   // tratto spento = parete spenta
+  gl_FragColor = vec4(vec3(1.0, 0.035, 0.05) * uTinta * a * i * uForza * (1.0 - 0.75 * uGiorno), 1.0);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}`;
+// sprite della luce che corre: punti lungo il tratto, intensità dalla stessa formula del tubo, forma da una texture gaussiana
+const VERT_SPRITE = `attribute float aU; attribute float aFase; uniform float uPx, uDim; varying float vU; varying float vF;
+void main(){ vU = aU; vF = aFase; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = uDim * uPx / max(0.05, -mv.z); }`;
+const FRAG_SPRITE = `${UNI}
+uniform sampler2D tGauss; varying float vU; varying float vF;
+${GLSL_INTENSITA}
+void main(){
+  float corre = (abs(uModo - 4.0) < 0.5 || abs(uModo - 5.0) < 0.5 || abs(uModo - 7.0) < 0.5 || abs(uModo - 8.0) < 0.5) ? 1.0 : 0.0;
+  float a = texture2D(tGauss, gl_PointCoord).r;
+  float i = max(intenF(uTempo, vU, vF) - 0.2, 0.0) / 0.8 * uAcceso * uAtt * corre;   // sopra il fondo dell'effetto: un tratto spento non illumina
+  gl_FragColor = vec4(vec3(1.0, 0.035, 0.05) * a * i * uForza * (1.0 - 0.75 * uGiorno), 1.0);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}`;
+function spriteScia(neonPoly, base, z, forza) {
+  const pos = [], uu = [], ff = [];
+  neonPoly.forEach((pl, k) => { const L = [0]; for (let i = 1; i < pl.length; i++) L.push(L[i - 1] + Math.hypot(pl[i][0] - pl[i - 1][0], pl[i][1] - pl[i - 1][1]));
+    const tot = L[L.length - 1], n = Math.max(8, Math.round(tot / 14));   // uno sprite ogni ~14 mm
+    for (let j = 0; j <= n; j++) { const d = j / n * tot; let i = 1; while (i < L.length - 1 && L[i] < d) i++; const f = (d - L[i - 1]) / Math.max(1e-6, L[i] - L[i - 1]);
+      pos.push((pl[i - 1][0] + (pl[i][0] - pl[i - 1][0]) * f) / 1000, (pl[i - 1][1] + (pl[i][1] - pl[i - 1][1]) * f) / 1000, z); uu.push(d / tot); ff.push(k * 0.25); } });
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("aU", new THREE.Float32BufferAttribute(uu, 1)); g.setAttribute("aFase", new THREE.Float32BufferAttribute(ff, 1));
+  const u = Object.assign({}, base.uniforms, { tGauss: { value: null }, uPx: { value: 500 }, uDim: { value: 0.07 }, uForza: { value: forza }, uEspo: { value: 1 } });
+  const m = new THREE.ShaderMaterial({ uniforms: u, vertexShader: VERT_SPRITE, fragmentShader: FRAG_SPRITE, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+  m.userData.forza = forza; ALONI.push(m);
+  const pt = new THREE.Points(g, m); pt.visible = false; pt.frustumCulled = false; return pt;
+}
+function materialeCotto(base, canale, forza) {
+  const u = Object.assign({}, base.uniforms, { tHalo: { value: null }, tIndice: { value: null }, uSize: { value: new THREE.Vector2(1, 1) }, uCanale: { value: canale }, uForza: { value: forza }, uEspo: { value: 1 } });
+  const m = new THREE.ShaderMaterial({ uniforms: u, vertexShader: VERT, fragmentShader: FRAG_COTTO, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+  m.userData.forza = forza; ALONI.push(m); return m;
+}   // guaine d'alone: la forza si dimezza quando c'è anche il bagliore di post-produzione
 function materialeAlone(base, forza = 0.33, espo = 2.2) {
   const u = Object.assign({}, base.uniforms, { uForza: { value: forza }, uEspo: { value: espo } });
   const m = new THREE.ShaderMaterial({ uniforms: u, vertexShader: VERT, fragmentShader: FRAG_ALONE, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
   m.userData.forza = forza; ALONI.push(m); return m;
 }
-// il neon intero: tubo + tre guaine (6 mm, 14 mm, 40 mm di raggio) che fanno la luce anche senza bagliore
+// il neon: tubo + guaina sottile a Fresnel sul bordo; la luce intorno la fanno gli aloni cuociuti (texture)
 function tuboNeon(gr, poly, z, m) {
   gr.add(new THREE.Mesh(tubo(poly, z, 0.003), m));
   gr.add(new THREE.Mesh(tubo(poly, z, 0.0052), materialeAlone(m, 0.33, 2.2)));
-  gr.add(new THREE.Mesh(tubo(poly, z, 0.014, true), materialeAlone(m, 0.08, 3.0)));
-  gr.add(new THREE.Mesh(tubo(poly, z, 0.04, true), materialeAlone(m, 0.016, 3.8)));
 }
 function materialeNeon(fase) {
   const u = { uTempo: { value: 0 }, uModo: { value: 0 }, uVel: { value: 0.5 }, uLivello: { value: 1 }, uFase: { value: fase },
@@ -112,17 +160,6 @@ function puntiLungo(neon, n) {
   for (let k = 0; k < n; k++) { const d = (k + 0.5) / n * tot; const s = segs.find(s => d <= s[2] + s[3]) || segs[segs.length - 1]; const f = (d - s[2]) / s[3];
     out.push([s[0][0] + (s[1][0] - s[0][0]) * f, s[0][1] + (s[1][1] - s[0][1]) * f, k / n]); }
   return out;
-}
-function texAlone(geo) {
-  const [W, H] = geo.ingombro_mm, sc = 0.3, pad = 420;
-  const cv = document.createElement("canvas"); cv.width = Math.round((W + pad * 2) * sc); cv.height = Math.round((H + pad * 2) * sc);
-  const g = cv.getContext("2d"); g.fillStyle = "#000"; g.fillRect(0, 0, cv.width, cv.height);
-  g.strokeStyle = "#fff"; g.lineCap = g.lineJoin = "round";
-  const passata = (blur, larg, alfa) => { g.filter = "blur(" + Math.round(blur * sc) + "px)"; g.lineWidth = larg * sc; g.globalAlpha = alfa;
-    for (const poly of geo.neon) { g.beginPath(); poly.forEach((p, i) => { const x = (p[0] + W / 2 + pad) * sc, y = (H / 2 - p[1] + pad) * sc; i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); } };
-  passata(210, 260, 0.45); passata(80, 80, 0.7);   // la caduta larga sulla parete + il rosso vicino al tubo
-  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
-  return { t, w: (W + pad * 2) / 1000, h: (H + pad * 2) / 1000 };
 }
 
 // sagome degli strati (coordinate locali in metri): servono alla legenda per sapere cosa copre cosa sullo schermo
@@ -164,7 +201,7 @@ function montaGen2(geo, neonMat, M) {
     // le due lame stanno sullo STESSO piano (due pezzi di Forex affiancati): uno strato, due pezzi
     { k: "lame", testo: "Due lame · Forex nero", mm: "10 mm", grp: lameG, slot: 1, sagome: [chiusa(lame[0], 0.011), chiusa(lame[1], 0.011)] },
     { k: "neon", testo: "Neon Split nel solco", mm: "6 mm", grp: neon, slot: 2, sagome: geo.neon.map(pl => aperta(pl, 0.0095)) }];
-  return { g, pila, pacchetto: "Spessore montata · 25 mm\npannello 10 + distanziale 15, indicativo", forex: [forex] };
+  return { g, pila, pacchetto: "Spessore montata · 25 mm\npannello 10 + distanziale 15, indicativo", forex: [forex], zAlone: 0.0115, zSprite: 0.0155 };
 }
 function montaInfinity(geo, neonMat, qualita, M) {
   const g = new THREE.Group();
@@ -183,17 +220,16 @@ function montaInfinity(geo, neonMat, qualita, M) {
   // il TUNNEL: copie del neon ogni 2d dietro lo specchio (d = 30 mm), sempre più deboli, più scure/verdi (il vetro dello specchio) e più sfocate.
   // Si vedono solo dove lo specchio è davvero in vista (stencil sul piano dello specchio, col test di profondità: corsia e neon lo coprono);
   // dentro, la profondità si azzera e le PARETI VIRTUALI della corsia (riflesse, ripetute ogni 2d) coprono le copie quando la si guarda di sbieco.
-  const tunnel = new THREE.Group(); const copie = [];
-  const N = qualita.copie, R = 0.66, DD = 0.060;
+  const tunnel = new THREE.Group(); const copie = [], aloniTunnel = [];
+  const N = qualita.copie, R = 0.66, DD = 0.060, ATT0 = 0.3;   // le copie più scure del neon vero (come l'ancora Blender)
   const sten = m => { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.EqualStencilFunc; m.stencilZPass = THREE.KeepStencilOp; return m; };
   for (let k = 1; k <= N; k++) {
     const tinta = new THREE.Vector3(Math.pow(0.9, k), Math.pow(0.97, k), Math.pow(0.93, k));
     geo.neon.forEach((poly, i) => {
-      const mat = sten(neonMat(i * 0.25)); mat.uniforms.uAtt.value = Math.pow(R, k); mat.uniforms.uTinta.value = tinta;
+      const mat = sten(neonMat(i * 0.25)); mat.uniforms.uAtt.value = ATT0 * Math.pow(R, k); mat.uniforms.uTinta.value = tinta;
       const z = 0.016 - k * DD;
       const m = new THREE.Mesh(tubo(poly, z, 0.003 + 0.0005 * k, true), mat); m.renderOrder = 2; m.userData.k = k; tunnel.add(m); copie.push(m);
-      const al = sten(materialeAlone(mat, 0.09 * Math.pow(0.9, k), 2.8)); al.uniforms.uTinta = mat.uniforms.uTinta;
-      const a = new THREE.Mesh(tubo(poly, z, 0.006 + 0.0028 * k, true), al); a.renderOrder = 2; tunnel.add(a);
+      if (i === 0) aloniTunnel.push({ k, mat, z: 0.0136 - k * DD });
     });
     // pareti virtuali della corsia per questo tratto (solo i fianchi: i tappi sono invisibili); più chiare dove c'è la copia del neon
     for (const poly of interni) {
@@ -245,14 +281,15 @@ function montaInfinity(geo, neonMat, qualita, M) {
     { k: "neon", testo: "Neon nel solco", mm: "6 mm", grp: neon, slot: 3, segue: tunnel, sagome: geo.neon.map(pl => aperta(pl, 0.016)) },
     { k: "corsia", testo: "Corsia · Dibond nero", mm: "40 mm", grp: corsia, slot: 4, sagome: esterni.map(pl => chiusa(pl, 0.043)) },
     { k: "frontale", testo: "Frontale semiriflettente", mm: "3 mm", grp: frontale, slot: 5, sagome: esterni.map(pl => chiusa(pl, 0.0461)) }];
-  const spegniTunnel = e => { const f = Math.max(0, 1 - e / 0.25); tunnel.visible = f > 0; for (const m of copie) if (m.material.uniforms) m.material.uniforms.uAtt.value = Math.pow(R, m.userData.k) * f; };   // a pila aperta solo il neon vero
-  return { g, pila, pacchetto: "Spessore montata · 46 mm", spegniTunnel, forex: [forex] };   // frontale: solo specchio spia
+  const spegniTunnel = e => { const f = Math.max(0, 1 - e / 0.25); tunnel.visible = f > 0; for (const m of copie) if (m.material.uniforms) m.material.uniforms.uAtt.value = ATT0 * Math.pow(R, m.userData.k) * f; };   // a pila aperta solo il neon vero
+  return { g, pila, pacchetto: "Spessore montata · 46 mm", spegniTunnel, forex: [forex], tunnel, aloniTunnel, sten, zAlone: 0.0136, zSprite: 0.021 };   // frontale: solo specchio spia
 }
 
 // ---------- la sala: parete grigia e quieta, pavimento. L'insegna è la protagonista ----------
 export async function costruisci({ tela, geo, prodotto, stato, qualita = {} }) {
-  const renderer = new THREE.WebGLRenderer({ canvas: tela, antialias: false, stencil: true, powerPreference: "high-performance" });
-  let dpr = Math.min(window.devicePixelRatio || 1, TELEFONO ? 1.6 : 1.75); renderer.setPixelRatio(dpr);
+  const PROVA = stato.prova || {};
+  const renderer = new THREE.WebGLRenderer({ canvas: tela, antialias: false, stencil: true, powerPreference: "high-performance", precision: PROVA.prec || "highp" });
+  let dpr = PROVA.dpr || Math.min(window.devicePixelRatio || 1, TELEFONO ? 1.6 : 1.75); renderer.setPixelRatio(dpr);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = false;   // strati distanti: un'ombra portata non fa contatto, raddoppia solo le sagome
   const scena = new THREE.Scene(); const sfondo = new THREE.Color(0x060505); scena.background = sfondo;
@@ -292,12 +329,30 @@ export async function costruisci({ tela, geo, prodotto, stato, qualita = {} }) {
   }
   const larg = geo.ingombro_mm[0] / 1000, alt = geo.ingombro_mm[1] / 1000;
 
-  const A = texAlone(geo);
-  const alone = new THREE.Mesh(new THREE.PlaneGeometry(A.w, A.h), new THREE.MeshBasicMaterial({ map: A.t, color: new THREE.Color(0.78, 0.1, 0.1), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
-  alone.position.z = 0.002 - P.g.position.z; P.g.add(alone);
   // dentro la finestra dello specchio la profondità è azzerata (tunnel): l'alone e l'ombra della parete lì non devono passare
   const fuoriFinestra = m => { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.NotEqualStencilFunc; m.stencilZPass = THREE.KeepStencilOp; };
-  fuoriFinestra(alone.material);
+  // ALONI CUOCIUTI (texture offline, morbide su ogni telefono). Rettangoli in mm come in _strumenti/cuoci_aloni.py; arrivano dopo la scena.
+  const [Wmm, Hmm] = geo.ingombro_mm, rett = (pad, mmpx) => [Math.ceil((Wmm + 2 * pad) / mmpx) * mmpx / 1000, Math.ceil((Hmm + 2 * pad) / mmpx) * mmpx / 1000];
+  const baseNeon = P.pila.find(x => x.k === "neon").grp.children[0].material;
+  const pianoCotto = (dim, mat) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(dim[0], dim[1]), mat); m.visible = false; return m; };
+  const aloneVicino = pianoCotto(rett(70, 2), materialeCotto(baseNeon, 0, PROVA.fv || 0.025)); aloneVicino.position.z = P.zAlone; P.pila.find(x => x.k === "neon").grp.add(aloneVicino);
+  const aloneParete = pianoCotto(rett(450, 6), materialeCotto(baseNeon, 1, PROVA.fp || 0.14)); aloneParete.position.z = 0.002 - P.g.position.z; fuoriFinestra(aloneParete.material); P.g.add(aloneParete);
+  const sprite = spriteScia(geo.neon, baseNeon, P.zSprite, 0.25);  P.pila.find(x => x.k === "neon").grp.add(sprite);   // ~5 sprite si sovrappongono (70 mm ogni 14 mm)
+  // la cometa illumina anche la parete: sprite larghi sul piano della parete (un tratto spento lascia la parete spenta)
+  const spriteParete = spriteScia(geo.neon, baseNeon, 0.002 - P.g.position.z, 0.04);  spriteParete.material.uniforms.uDim.value = 0.26; fuoriFinestra(spriteParete.material); P.g.add(spriteParete);   // ~19 sprite si sovrappongono (260 mm ogni 14 mm)
+  const aloniCopie = (P.aloniTunnel || []).map(({ k, mat, z }) => { const m = pianoCotto(rett(70, 2), P.sten(materialeCotto(mat, 0, 0.3 * Math.pow(0.88, k))));
+    m.material.depthTest = true; m.position.z = z; m.renderOrder = 2; P.tunnel.add(m); return m; });
+  const nomeAloni = prodotto === "infinity" ? "infinity" : "gen2";
+  (async () => {
+    try {
+      const L = new THREE.TextureLoader(), base = "assets/3d/aloni/" + nomeAloni, v = "?v=" + (qualita.versione || "");
+      const [tS, tL, tO, tG] = await Promise.all([base + "-stretto.png", base + "-largo.png", base + "-ombra.png", "assets/3d/aloni/gauss.png"].map(x => L.loadAsync(x + v)));
+      for (const sp of [sprite, spriteParete]) { sp.material.uniforms.tGauss.value = tG; sp.visible = true; }
+      tL.generateMipmaps = false; tL.minFilter = tL.magFilter = THREE.LinearFilter;   // la texture-indice si legge al centro del texel
+      for (const m of [aloneVicino, aloneParete, ...aloniCopie]) { const u = m.material.uniforms; u.tHalo.value = tS; u.tIndice.value = tL; u.uSize.value.set(tL.image.width, tL.image.height); m.visible = true; }
+      ombra.material.alphaMap = tO; ombra.material.needsUpdate = true; ombra.visible = true;
+    } catch (e) { console.warn("aloni non caricati", e); }
+  })();
 
   const luci = puntiLungo(geo.neon, LUCI_MAX).map(([x, y, u]) => { const l = new THREE.PointLight(0xff1a1a, 0, 2.2, 2); l.position.set(x / 1000, y / 1000, 0.32); l.userData.u = u; insegna.add(l); return l; });
   const ambiente = new THREE.AmbientLight(0xffffff, 0.03); scena.add(ambiente);
@@ -311,15 +366,12 @@ export async function costruisci({ tela, geo, prodotto, stato, qualita = {} }) {
   const rim = new THREE.DirectionalLight(0xffffff, 0); scena.add(rim, rim.target);
 
   const radenteParete = new THREE.SpotLight(0xffeee4, 0, 5, 0.95, 1.0, 1.4); radenteParete.position.set(0, 4.6, 0.28); radenteParete.target.position.set(0, 1.2, 0); scena.add(radenteParete, radenteParete.target);
-  const ombra = (() => { const [W, H] = geo.ingombro_mm, sc = 0.55, pad = 60; const cv = document.createElement("canvas"); cv.width = Math.round((W + 2 * pad) * sc); cv.height = Math.round((H + 2 * pad) * sc);
-    const g = cv.getContext("2d"); g.filter = "blur(" + Math.round(9 * sc) + "px)"; g.fillStyle = "rgba(0,0,0,1)";
-    for (const poly of geo.pannelli) { g.beginPath(); poly.forEach((p, k) => { const x = (p[0] + W / 2 + pad) * sc, y = (H / 2 - p[1] + pad) * sc + 6 * sc; k ? g.lineTo(x, y) : g.moveTo(x, y); }); g.closePath(); g.fill(); }
-    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
-    return new THREE.Mesh(new THREE.PlaneGeometry((W + 2 * pad) / 1000, (H + 2 * pad) / 1000), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: 0, depthWrite: false })); })();
+  // ombra morbida dei pannelli sulla parete: anche lei cuociuta (texture offline usata come alfa), arriva con gli aloni
+  const ombra = new THREE.Mesh(new THREE.PlaneGeometry(...rett(60, 4)), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false })); ombra.visible = false;
   ombra.position.z = 0.0015 - P.g.position.z; P.g.add(ombra); fuoriFinestra(ombra.material);
 
   // bagliore su un bersaglio HDR con stencil (serve al tunnel) e MSAA (niente scalini sui bordi)
-  const rt = new THREE.WebGLRenderTarget(2, 2, { type: THREE.HalfFloatType, stencilBuffer: true, depthBuffer: true, samples: TELEFONO ? 2 : 4 });
+  const rt = new THREE.WebGLRenderTarget(2, 2, { type: PROVA.rt8 ? THREE.UnsignedByteType : THREE.HalfFloatType, stencilBuffer: true, depthBuffer: true, samples: TELEFONO ? 2 : 4 });
   const composer = new EffectComposer(renderer, rt);
   composer.addPass(new RenderPass(scena, camera));
   const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.62, 0.5, 0.4);
@@ -339,6 +391,7 @@ export async function costruisci({ tela, geo, prodotto, stato, qualita = {} }) {
   let giorno = stato.giorno ? 1 : 0, acceso = stato.acceso === false ? 0 : 1, scala = SCALA[stato.misura];
   const colParNotte = new THREE.Color(0x3d3c40), colParGiorno = new THREE.Color(0x8d8782);
   const ss = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+  const tmpV2 = new THREE.Vector2();
   const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), box = new THREE.Box3(), sfera = new THREE.Sphere();
   let esp = 0;
   function aggiorna(t, p, azUtente) {
@@ -353,10 +406,10 @@ export async function costruisci({ tela, geo, prodotto, stato, qualita = {} }) {
     for (const mt of materiali) { const u = mt.uniforms; u.uTempo.value = t; u.uModo.value = m; u.uVel.value = stato.velocita; u.uLivello.value = stato.livello; u.uAcceso.value = acceso * luceE; u.uGiorno.value = giorno; u.uEsp.value = 0; }
     P.spegniTunnel && P.spegniTunnel(e);
     let media = 0;
-    for (const l of luci) { const i = intensita(stato, t, l.userData.u) * acceso * luceE; l.intensity = (0.1 / Math.sqrt(LUCI_MAX / 4)) * Math.min(i, 1.2) * (1 - 0.6 * giorno); media += i; }
+    for (const l of luci) { const i0 = intensita(stato, t, l.userData.u), i = (CORRE.includes(stato.modo) ? Math.max(i0 - 0.2, 0) / 0.8 : i0) * acceso * luceE;  l.intensity = (0.1 / Math.sqrt(LUCI_MAX / 4)) * Math.min(i, 1.2) * (1 - 0.6 * giorno); media += i; }   // effetti che corrono: un tratto spento non illumina la parete
     media /= luci.length;
-    alone.material.opacity = Math.min(1, media) * (conBloom ? 0.17 : 0.22) * (1 - 0.75 * giorno);
     for (const a of ALONI) a.uniforms.uForza.value = a.userData.forza * (conBloom ? 0.55 : 1);   // col bagliore le guaine si alleggeriscono
+    aloneParete.material.uniforms.uForza.value *= 1 - 0.7 * e;   // a pila aperta il neon è lontano dalla parete: lì arriva meno luce
     ambiente.intensity = 0.1 + 0.55 * giorno + 0.03 * e; radenteParete.intensity = (7 + 10 * giorno) * (1 - 0.4 * e); pav.visible = e < 0.3; ombra.material.opacity = (0.1 + 0.45 * giorno) * (1 - e); cielo.intensity = 1.1 * giorno; chiave.intensity = 0.35 + 0.9 * giorno;
     parete.material.color.copy(colParNotte).lerp(colParGiorno, giorno);   // la stessa sala del montato: è il neon che la scalda   // nell'esploso il fondale si schiarisce un grado sfondo.copy(new THREE.Color(0x060505)).lerp(new THREE.Color(0x3a3634), giorno);
     // strati: un solo asse (profondità), passo costante; nell'esploso i materiali che riflettono diventano veri
@@ -424,7 +477,7 @@ export async function costruisci({ tela, geo, prodotto, stato, qualita = {} }) {
   }
   let fps = [], conta = 0, fin = performance.now();
   return {
-    disegna(t, p, az) { const e = aggiorna(t, p, az); conBloom ? composer.render() : renderer.render(scena, camera); return e; },
+    disegna(t, p, az) { const e = aggiorna(t, p, az); const px = renderer.getDrawingBufferSize(tmpV2).y / (2 * vista.tanV); sprite.material.uniforms.uPx.value = spriteParete.material.uniforms.uPx.value = px; conBloom ? composer.render() : renderer.render(scena, camera); return e; },
     misuraFps(ora) { conta++; if (ora - fin > 1000) { fps.push(conta * 1000 / (ora - fin)); conta = 0; fin = ora; window.__fps = fps.slice();
       if (fps.length === 3 && Math.min(...fps.slice(1)) < 26 && conBloom) conBloom = false;
       if (fps.length === 6 && Math.min(...fps.slice(4)) < 22 && dpr > 1) { dpr = 1; renderer.setPixelRatio(1); misura(); } } },
