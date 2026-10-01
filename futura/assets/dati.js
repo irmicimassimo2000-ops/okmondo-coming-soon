@@ -1,7 +1,7 @@
 // GENERATO da _strumenti/prepara_v2.py dai confronti dei preventivi (2ª gen e Infinity, v5 digitale, v6 statico).
 // Solo prezzi al cliente, IN BOZZA (Infinity statica arrotondata e approvata da Massimo il 30/09). Non modificare a mano.
 window.DATI = {
- "versione": "20260930e",
+ "versione": "20261001a",
  "whatsapp": "393208599301",
  "telecomandino": 30,
  "infinity": {
@@ -9,13 +9,11 @@ window.DATI = {
    "ingombro": "122 x 59 cm",
    "supporti": 10,
    "digitale": {
-    "spia": 1410,
-    "pellicola": 1250,
+    "prezzo": 1410,
     "pdf": "assets/doc/futura-infinity-120cm-digitale-preventivo.pdf"
    },
    "fissa": {
-    "spia": 1350,
-    "pellicola": 1190,
+    "prezzo": 1350,
     "pdf": "assets/doc/futura-infinity-120cm-fissa-preventivo.pdf"
    }
   },
@@ -23,13 +21,11 @@ window.DATI = {
    "ingombro": "142 x 68 cm",
    "supporti": 10,
    "digitale": {
-    "spia": 1690,
-    "pellicola": 1490,
+    "prezzo": 1690,
     "pdf": "assets/doc/futura-infinity-140cm-digitale-preventivo.pdf"
    },
    "fissa": {
-    "spia": 1620,
-    "pellicola": 1420,
+    "prezzo": 1620,
     "pdf": "assets/doc/futura-infinity-140cm-fissa-preventivo.pdf"
    }
   },
@@ -37,13 +33,11 @@ window.DATI = {
    "ingombro": "161 x 78 cm",
    "supporti": 12,
    "digitale": {
-    "spia": 2000,
-    "pellicola": 1750,
+    "prezzo": 2000,
     "pdf": "assets/doc/futura-infinity-160cm-digitale-preventivo.pdf"
    },
    "fissa": {
-    "spia": 1930,
-    "pellicola": 1680,
+    "prezzo": 1930,
     "pdf": "assets/doc/futura-infinity-160cm-fissa-preventivo.pdf"
    }
   }

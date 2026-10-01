@@ -26,17 +26,23 @@
 .eroe:has(.velo[data-stato="pronto"]) .tela { opacity: 1; }
 .velo[data-stato="statico"] .barra, .velo[data-stato="errore"] .barra { display: none; }
 .ancore { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-.ancora { position: absolute; left: 0; top: 0; max-width: 46vw; font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--text); opacity: 0; transition: opacity var(--dur-2) var(--ease-out); }
+.ancora { position: absolute; left: 0; top: 0; max-width: 25vw; white-space: nowrap; font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--text-muted); opacity: 0; transition: opacity var(--dur-2) var(--ease-out); }
 .fili { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity var(--dur-2) var(--ease-out); }
-.fili line { stroke: var(--line-strong); stroke-width: var(--bordo); }
+.fili polyline, .fili path { fill: none; stroke: var(--text-muted); stroke-width: var(--bordo); }
+.fili .graffa { stroke: var(--line-strong); }
+.ancora .num-strato { display: inline-grid; place-items: center; min-width: var(--s-5); height: var(--s-5); margin-right: var(--s-1); border: var(--bordo) solid var(--line-strong); font-variant-numeric: tabular-nums; }
+.ancora.solo-numero .lungo { display: none; }
+.ancora.solo-numero .num-strato { min-width: var(--s-4); height: var(--s-4); background: var(--bg); font-size: var(--t-xs); }
+.quota-pacchetto { color: var(--text-muted); white-space: pre-line; line-height: var(--lh-body); }
+.legenda .quota-voce { list-style: none; margin-left: calc(-1 * var(--s-5)); color: var(--text-muted); }
 .fili circle { fill: var(--accent); }
 .ancora.verso-sinistra { text-align: right; }
 .ancora.verso-sinistra::before { display: none; }
 .ancora.verso-sinistra::after { content: ""; display: inline-block; width: var(--s-5); height: var(--bordo); background: var(--accent); vertical-align: middle; margin-left: var(--s-2); }
 .etichetta-asta { position: absolute; left: 0; top: 0; z-index: 1; opacity: 0; pointer-events: none; color: var(--text-muted); font-size: var(--t-xs); letter-spacing: var(--track-caps); }
 .legenda { margin: 0; padding-left: var(--s-5); font-size: var(--t-s); color: var(--text-muted); display: none; gap: var(--s-1); }
-@media (max-width: 599px) { .ancora .lungo { display: none; } .legenda { display: grid; } }
-@media (min-width: 600px) { .ancora .corto { display: none; } }
+@media (max-width: 1023px) { .legenda { display: grid; } }
+
 
 /* ---------- opzioni a richiesta (telefono); a 1440 sempre in vista ---------- */
 .apri-opzioni { justify-self: start; }
@@ -104,3 +110,7 @@ body.con-barra { padding-bottom: var(--barra-h); }
   .tappa .comandi.pannello-accendi { grid-template-columns: auto 1fr; }
   .barra-fissa .cosa { font-size: var(--t-s); }
 }
+
+.fermo > .muovi { position: absolute; width: auto; grid-row: auto; z-index: 2; left: 50%; top: calc(var(--s-6) * 2); transform: translateX(-50%); padding: var(--s-2) var(--s-4); background: var(--bg); color: var(--text); border: var(--bordo) solid var(--line-strong); font: inherit; font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; }
+.fermo > .muovi:focus-visible { outline: var(--bordo) solid var(--accent); outline-offset: var(--s-1); }
+.fermo > .muovi[hidden] { display: none; }
