@@ -1,9 +1,23 @@
 // GENERATO da _strumenti/prepara_v2.py dai confronti dei preventivi (2ª gen e Infinity, v5 digitale, v6 statico).
 // Solo prezzi al cliente, IN BOZZA (Infinity statica arrotondata e approvata da Massimo il 30/09). Non modificare a mano.
 window.DATI = {
- "versione": "20261001b",
+ "versione": "20261001c",
  "whatsapp": "393208599301",
  "telecomandino": 30,
+ "copertine": {
+  "infinity": {
+   "fissa": "assets/img/inf-quasifrontale.webp",
+   "digitale": "assets/img/inf-tretquarti.webp",
+   "indice": "assets/img/cover-infinity.webp",
+   "altra": "assets/img/cover-infinity.webp"
+  },
+  "gen2": {
+   "fissa": "assets/img/gen2-fissa.webp",
+   "digitale": "assets/img/gen2-digitale.webp",
+   "indice": "assets/img/cover-gen2.webp",
+   "altra": "assets/img/cover-gen2.webp"
+  }
+ },
  "infinity": {
   "120": {
    "ingombro": "122 x 59 cm",

@@ -51,7 +51,9 @@
   --bar-h: 64px;
 
   /* ---- GEOMETRIE DEI COMPONENTI ---- */
-  --ctl-h: 40px;            /* segmenti (frontale, luce) */
+  --ctl-h: 40px;
+  --seg-h: 36px;        /* controlli segmentati compatti (selettori della scheda); l'area di tocco resta --tap */
+  --t-ctl: 14px;        /* testo dei controlli compatti: un passo fuori scala, solo per i selettori */            /* segmenti (frontale, luce) */
   --etichetta-w: 72px;      /* etichetta dei segmenti */
   --leva-w: 32px; --leva-h: 16px; --leva-pomo: 10px; --leva-gioco: 2px;
   --bordo: 1px; --bordo-forte: 2px; --sottolinea: 6px; --sottolinea-link: 3px;

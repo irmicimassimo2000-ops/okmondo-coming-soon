@@ -111,6 +111,45 @@ body.con-barra { padding-bottom: var(--barra-h); }
   .barra-fissa .cosa { font-size: var(--t-s); }
 }
 
-.fermo > .muovi { position: absolute; width: auto; grid-row: auto; z-index: 2; left: 50%; top: calc(var(--s-6) * 2); transform: translateX(-50%); padding: var(--s-2) var(--s-4); background: var(--bg); color: var(--text); border: var(--bordo) solid var(--line-strong); font: inherit; font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; }
-.fermo > .muovi:focus-visible { outline: var(--bordo) solid var(--accent); outline-offset: var(--s-1); }
-.fermo > .muovi[hidden] { display: none; }
+
+
+/* le tacche sono decorative: non devono prendersi il dito (sopra la tela bloccavano lo swipe sul telefono) */
+.fermo > .tacche { position: absolute; pointer-events: none; }   /* posizione assoluta (la regola dei figli del palco la rendeva un riquadro largo quanto la tela) */
+
+/* SELETTORI COMPATTI della scheda (correzione di Massimo, 01/10/2026). Controlli segmentati alti 36 px, testo 14 px, area di tocco 44 px
+   (uno pseudo-elemento allarga la zona sensibile). Gestalt: l'etichetta sta sopra il suo controllo a 8 px, 24 px fra un gruppo e l'altro;
+   un solo bordo sinistro, controlli allineati in basso. Stesso ritmo sulle due schede. */
+.tappa[data-tappa="0"] .comandi { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-5); }
+.tappa[data-tappa="0"] .comandi .bozza { flex-basis: 100%; }
+.tappa[data-tappa="0"] .scelta { display: grid; grid-auto-flow: column; justify-content: start; row-gap: var(--s-2); column-gap: 0; }
+.tappa[data-tappa="0"] .scelta .etichetta { grid-row: 1; grid-column: 1 / span 6; min-width: 0; font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--text-muted); }
+.tappa[data-tappa="0"] .scelta button { grid-row: 2; position: relative; min-height: var(--seg-h); height: var(--seg-h); padding: 0 var(--s-3); font-size: var(--t-ctl); border-radius: 0; margin-left: calc(-1 * var(--bordo)); }
+.tappa[data-tappa="0"] .scelta button:first-of-type { margin-left: 0; }
+.tappa[data-tappa="0"] .scelta button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); z-index: 1; }
+.tappa[data-tappa="0"] .scelta button::before,
+.tappa[data-tappa="0"] .interruttore::before,
+.tappa[data-tappa="0"] .apri-opzioni::before { content: ""; position: absolute; left: 0; right: 0; top: calc((var(--tap) - var(--seg-h)) / -2); bottom: calc((var(--tap) - var(--seg-h)) / -2); }
+.tappa[data-tappa="0"] .apri-opzioni { position: relative; min-height: var(--seg-h); height: var(--seg-h); padding: 0 var(--s-3); font-size: var(--t-ctl); }
+.tappa[data-tappa="0"] .opzioni { gap: var(--s-2); }
+.tappa[data-tappa="0"] .opzioni .riga-comandi { gap: var(--s-2) var(--s-5); align-items: flex-end; }
+.tappa[data-tappa="0"] .interruttore { position: relative; min-height: var(--seg-h); height: var(--seg-h); font-size: var(--t-ctl); gap: var(--s-2); }
+@media (min-width: 1024px) {
+  .tappa[data-tappa="0"] .comandi { display: flex; }
+  .tappa[data-tappa="0"] .opzioni { display: flex; }
+}
+
+/* MISURA · le tre sagome in scala (variante C scelta da Massimo, 01/10/2026): gruppo radio, il prezzo sotto ognuna.
+   Stessa etichetta dei selettori compatti; a 375 le tre sagome stanno su una riga. */
+.misure-scala { display: grid; gap: var(--s-2); min-width: 0; flex: 1 1 288px; max-width: 360px; }
+.misure-scala .etichetta { font-size: var(--t-xs); letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--text-muted); }
+.misure-scala .sagome { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); align-items: end; }
+.misure-scala button { display: grid; gap: var(--s-1); justify-items: center; min-height: var(--tap); padding: var(--s-2) var(--s-1); background: none; border: var(--bordo) solid transparent; border-radius: 0; color: var(--text-muted); cursor: pointer; font: inherit; transition: border-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out); }
+.misure-scala .fig { width: 100%; height: var(--s-6); display: flex; align-items: flex-end; justify-content: center; }
+.misure-scala img { display: block; height: auto; opacity: 0.4; transition: opacity var(--dur-1) var(--ease-out); }
+.misure-scala b { font-weight: 400; font-size: var(--t-ctl); color: inherit; }
+.misure-scala em { font-style: normal; font-size: var(--t-ctl); font-variant-numeric: tabular-nums; color: inherit; }
+.misure-scala button[aria-checked="true"] { color: var(--text); border-color: var(--line-strong); }
+.misure-scala button[aria-checked="true"] img { opacity: 1; }
+.misure-scala button:focus-visible { outline: var(--bordo-forte) solid var(--text); outline-offset: var(--bordo-forte); }
+.misure-scala button:active { transform: scale(var(--prema)); }
+@media (hover: hover) { .misure-scala button:hover { color: var(--text); } .misure-scala button:hover img { opacity: 0.75; } }

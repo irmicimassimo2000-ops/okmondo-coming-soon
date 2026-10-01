@@ -33,9 +33,9 @@
   const euro = n => { const [i, d] = (Math.round(n * 100) / 100).toFixed(2).split("."); const I = i.replace(/\B(?=(\d{3})+(?!\d))/g, "."); return (d === "00" ? I : I + "," + d) + " €"; };
   const tutti = (sel, f) => document.querySelectorAll(sel).forEach(f);
   const tele = () => s.luce === "fissa" && s.tele;
-  function conto() {
-    if (PROD === "infinity") { const r = D.infinity[s.misura][s.luce]; return { prezzo: r.prezzo + (tele() ? D.telecomandino : 0), pdf: r.pdf, ing: D.infinity[s.misura].ingombro }; }
-    const r = D.gen2[s.misura][s.luce]; return { prezzo: r.prezzo + (tele() ? D.telecomandino : 0), pdf: r.pdf, ing: D.gen2[s.misura].dim + " cm" };
+  function conto(m = s.misura) {   // prezzo, PDF e ingombro di una misura con la luce (e il telecomandino) scelti
+    if (PROD === "infinity") { const r = D.infinity[m][s.luce]; return { prezzo: r.prezzo + (tele() ? D.telecomandino : 0), pdf: r.pdf, ing: D.infinity[m].ingombro }; }
+    const r = D.gen2[m][s.luce]; return { prezzo: r.prezzo + (tele() ? D.telecomandino : 0), pdf: r.pdf, ing: D.gen2[m].dim + " cm" };
   }
   const descLuce = () => s.luce === "digitale" ? "luce digitale" : (s.tele ? "luce fissa con telecomandino" : "luce fissa");
   const descrizione = () => NOME + " " + s.misura + " cm, " + descLuce() + (PROD === "infinity" ? ", frontale specchio spia" : "");
@@ -51,7 +51,9 @@
   // ---------- disegno dello stato ----------
   function disegna() {
     const c = conto();
-    tutti("[data-misura]", e => { if (e.tagName === "INPUT") { e.value = M.indexOf(s.misura); e.setAttribute("aria-valuetext", s.misura + " cm, ingombro " + c.ing); } });
+    tutti("[data-misura-scegli]", b => { const m = b.dataset.misuraScegli, on = m === s.misura, cm = conto(m);   // le tre sagome: scelta, tabulazione, prezzo
+      b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; b.setAttribute("aria-label", m + " cm, ingombro " + cm.ing + ", " + euro(cm.prezzo));
+      const em = b.querySelector("[data-prezzo-misura]"); if (em) em.textContent = euro(cm.prezzo); });
     tutti("[data-luce]", b => b.setAttribute("aria-pressed", String(b.dataset.luce === s.luce)));
     tutti("[data-tele]", b => b.setAttribute("aria-checked", String(s.tele)));
     tutti("[data-acceso]", b => b.setAttribute("aria-checked", String(s.acceso)));
@@ -60,7 +62,6 @@
     tutti("[data-se-tele]", e => e.hidden = !(tele() === (e.dataset.seTele === "1")) || s.luce !== "fissa");
     tutti("[data-effetto]", b => b.setAttribute("aria-pressed", String(b.dataset.effetto === s.modo && (s.luce === "digitale" || tele()))));
     tutti("[data-prezzo]", e => e.textContent = euro(c.prezzo));
-    tutti("[data-misura-testo]", e => e.textContent = s.misura + " cm · " + c.ing);
     tutti("[data-descrizione]", e => e.textContent = descrizione());
     tutti("[data-scegli]", a => a.href = wa("Ciao Massimo, per FUTURA scegliamo: " + descrizione() + ", " + euro(c.prezzo) + "."));
     tutti("[data-foto-parete]", a => a.href = wa("Ciao Massimo, per FUTURA ti mando la foto della parete dove va: " + descrizione() + ". Ci fate la bozza realistica sulla nostra parete?"));
@@ -77,6 +78,7 @@
   document.addEventListener("click", e => {
     const t = e.target.closest("button,[data-condividi]"); if (!t) return;
     const d = t.dataset;
+    if (d.misuraScegli) s.misura = d.misuraScegli;
     if (d.luce) { s.luce = d.luce; s.modo = s.luce === "digitale" ? "scia" : (s.tele ? "fluido" : "fisso"); }
     if ("tele" in d) { s.tele = !s.tele; s.modo = s.tele ? "fluido" : "fisso"; }
     if ("acceso" in d) s.acceso = !s.acceso;
@@ -88,9 +90,17 @@
     disegna();
   });
   document.addEventListener("input", e => {
-    if (e.target.matches("input[data-misura]")) s.misura = M[+e.target.value];
     if (e.target.matches("[data-velocita]")) { if (s.modo === "dimmer") s.livello = Math.max(0.06, +e.target.value); else s.velocita = +e.target.value; }
     disegna();
+  });
+  // le sagome con la tastiera: frecce, Inizio e Fine spostano la scelta (e il fuoco) dentro il gruppo
+  document.addEventListener("keydown", e => {
+    const g = e.target.closest && e.target.closest("[data-misure]"); if (!g) return;
+    const i = M.indexOf(s.misura); let j = i;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") j = Math.min(M.length - 1, i + 1);
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") j = Math.max(0, i - 1);
+    else if (e.key === "Home") j = 0; else if (e.key === "End") j = M.length - 1; else return;
+    e.preventDefault(); s.misura = M[j]; disegna(); const b = g.querySelector('[data-misura-scegli="' + M[j] + '"]'); if (b) b.focus();
   });
   // il telecomando RF a 14 tasti: ogni tasto fa partire l'effetto sull'insegna 3D
   function tasto(k) {
@@ -162,29 +172,39 @@
       const ssv = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
       const AMP = PROD === "infinity" ? 0.6 : 0.26, MAXD = 0.9, PERIODO = 7;   // pendolo ±35° (2ª gen ±15°), dito fino a ±50°
       const V = { az: 0, v: 0, ultimo: -1e9, tocco: false, giro: null, x: null, tPrec: 0, fase: null };
-      let px = null, pt = 0;
-      tela.addEventListener("pointerdown", ev => { px = ev.clientX; pt = performance.now(); V.tocco = true; V.v = 0; try { tela.setPointerCapture(ev.pointerId); } catch (e) {} });
+      // trascinamento: blocco di direzione sui primi 8 px. Orizzontale = l'insegna gira (con inerzia); verticale = la pagina scorre
+      // (la tela ha touch-action: pan-y, quindi il browser tiene lo scroll verticale e a noi arrivano solo i gesti orizzontali)
+      let px = null, py = 0, pt = 0, verso = null;
+      tela.addEventListener("pointerdown", ev => { px = ev.clientX; py = ev.clientY; pt = performance.now(); verso = null; });
       tela.addEventListener("pointermove", ev => {
-        if (!matchMedia("(pointer: coarse)").matches) { const r = tela.getBoundingClientRect(); V.x = (ev.clientX - r.left) / r.width * 2 - 1; }   // parallasse del mouse
-        if (px === null) return; const ora = performance.now(), d = (ev.clientX - px) * 0.006;
+        if (ev.pointerType === "mouse") { const r = tela.getBoundingClientRect(); V.x = (ev.clientX - r.left) / r.width * 2 - 1; }   // parallasse del mouse
+        if (px === null) return;
+        if (!verso) { const dx = ev.clientX - px, dy = ev.clientY - py; if (Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
+          verso = Math.abs(dx) > Math.abs(dy) ? "o" : "v";
+          if (verso === "o") { V.tocco = true; V.v = 0; try { tela.setPointerCapture(ev.pointerId); } catch (e) {} } }
+        if (verso !== "o") return;
+        const ora = performance.now(), d = (ev.clientX - px) * 0.006;
         V.az = Math.max(-MAXD, Math.min(MAXD, V.az + d)); V.v = d / Math.max(8, ora - pt) * 16; px = ev.clientX; pt = ora; V.ultimo = ora / 1000; });
-      const lascia = () => { px = null; V.tocco = false; V.ultimo = performance.now() / 1000; };
+      const lascia = () => { if (verso === "o") V.ultimo = performance.now() / 1000; px = null; verso = null; V.tocco = false; };
       tela.addEventListener("pointerup", lascia); tela.addEventListener("pointercancel", lascia);
-      const telefono = matchMedia("(pointer: coarse)").matches || innerWidth < 700;
-      if (PROD === "infinity" && telefono && window.DeviceOrientationEvent) {
-        // il telefono è il punto di vista: iOS chiede il permesso con un gesto, per questo c'è il pulsante
-        const btn = document.createElement("button"); btn.type = "button"; btn.className = "muovi"; btn.textContent = "Muovi il telefono per guardarci dentro";
-        document.querySelector(".fermo").appendChild(btn); V.btn = btn;
+      window.__vista = V;   // per le prove automatiche
+      // GIROSCOPIO, senza pulsanti: Android e desktop lo ascoltano subito; iOS vuole il permesso dentro un gesto dell'utente, quindi lo
+      // chiede in silenzio al primo tocco o clic naturale sulla pagina (iOS mostra il suo dialogo una volta sola). Negato o assente: pendolo + swipe.
+      if (PROD === "infinity" && window.DeviceOrientationEvent) {
         const ascolta = () => addEventListener("deviceorientation", ev => { if (ev.gamma == null) return; if (V.g0 == null) V.g0 = ev.gamma; V.giro = Math.max(-1, Math.min(1, (ev.gamma - V.g0) / 35)); });
-        btn.addEventListener("click", async () => { try { if (DeviceOrientationEvent.requestPermission) { if (await DeviceOrientationEvent.requestPermission() !== "granted") return; } ascolta(); } catch (e) {} });
+        if (typeof DeviceOrientationEvent.requestPermission === "function") {
+          const chiedi = () => { DeviceOrientationEvent.requestPermission().then(r => { if (r === "granted") ascolta(); }).catch(() => {}); };
+          addEventListener("touchend", chiedi, { once: true, capture: true, passive: true }); addEventListener("click", chiedi, { once: true, capture: true });
+        } else ascolta();
       }
       function azVista(t) {
         if (REG && q.has("az")) return +q.get("az");          // registrazione: angolo fisso (confronto con le ancore)
         if (REG && q.has("nosway")) return 0;                  // registrazione: di fronte, ferma (misure)
         if (REG && !q.get("demo")) return AMP * Math.sin(t * 2 * Math.PI / PERIODO);   // registrazione: il pendolo puro, deterministico
         V.tPrec = t;
-        if (REG && q.get("demo") === "giro") { if (V.btn) V.btn.hidden = t > 2.2; if (t > 2.2) { V.giro = Math.sin((t - 2.2) * 0.9); } }
-        if (V.giro != null) { V.az += (V.giro * 0.62 - V.az) * 0.12; V.ultimo = t; return V.az; }   // il giroscopio guida, al posto del pendolo
+        if (REG && q.get("demo") === "giro") V.giro = Math.sin(t * 0.9);
+        // il giroscopio guida al posto del pendolo; uno swipe lo scavalca, e dopo ~2,5 s di riposo torna il giroscopio
+        if (V.giro != null && !V.tocco && (REG || performance.now() / 1000 - V.ultimo > 2.5)) { V.az += (V.giro * 0.62 - V.az) * 0.12; return V.az; }
         if (REG && q.get("demo") === "gesto") {                // registrazione: un trascinamento, il rilascio con l'inerzia, poi il pendolo
           if (t < 0.5) V.ultimo = -1e9;
           else if (t < 1.7) { const n = -0.8 * ssv(0.5, 1.7, t); V.v = n - V.az; V.az = n; V.ultimo = t; }
@@ -316,7 +336,6 @@
         // a schermo largo oggetto al 62% e colonna accanto (<= 25%): il gruppo sta al centro; stretto: oggetto al 92%, centrato
         s.centroX = mondo.vista.w >= 1024 ? 0.39 : 0.5; s.larghezza = mondo.vista.w >= 1024 ? 0.62 : 0.92;
         const e = mondo.disegna(t, progresso(), azVista(t) * (1 - mondo.esploso())); etichette(e);   // il pendolo è dell'insegna montata: a pila aperta la camera sta ferma e la legenda si legge
-        if (V.btn && !(REG && q.get("demo") === "giro")) V.btn.hidden = V.giro != null || e > 0.05;   // il pulsante del giroscopio solo sull'insegna montata   // in registrazione la camera oscilla: si vede la parallasse
         // (la sagoma di 175 cm è stata tolta: la scala la danno le misure scritte e lo slider)
       }
       if (REG) { window.__fotogramma = passo; passo(0.001); }
