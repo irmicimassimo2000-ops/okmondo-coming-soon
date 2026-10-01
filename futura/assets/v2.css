@@ -213,3 +213,18 @@ body.con-barra { padding-bottom: var(--barra-h); }
   .barra-fissa .nota-corta { display: inline; }
   :root { --barra-h: 64px; }
 }
+
+/* PC (>= 1024 px): DUE COLONNE in una griglia larga al massimo 1600 px e centrata (Massimo, 01/10/2026; il telefono non cambia).
+   A sinistra il testo (titolo, dimensioni, righe) centrato in verticale fra testata e barra; a destra il palco 3D. */
+@media (min-width: 1024px) {
+  :root { --off: max(0px, calc((100vw - 1600px) / 2)); --col-testo: 420px; }
+  .fermo > .testata { padding-left: calc(var(--off) + var(--gutter)); padding-right: calc(var(--off) + var(--gutter)); }
+  .tappa[data-tappa="0"] { grid-row: auto; grid-column: auto; position: absolute; z-index: 2; left: calc(var(--off) + var(--gutter)); top: var(--tap); bottom: var(--barra-h); width: var(--col-testo);
+    display: flex; flex-direction: column; justify-content: center; align-items: stretch; gap: var(--s-5); padding: 0; background: none; }
+  .tappa[data-tappa="0"] .comandi.righe { max-width: none; }
+  .tappa[data-tappa="1"] { padding-left: calc(var(--off) + var(--gutter)); padding-right: calc(var(--off) + var(--gutter)); }
+  .tappa[data-tappa="2"] { margin-left: var(--off); }
+  .fermo > .icone-palco { right: calc(var(--off) + var(--gutter)); }
+  .fermo > .tacche { right: calc(var(--off) + var(--gutter) / 2); }
+  .barra-fissa { padding-left: calc(var(--off) + var(--gutter)); padding-right: calc(var(--off) + var(--gutter)); }
+}

@@ -1,5 +1,5 @@
 {
- "versione": "20261001f",
+ "versione": "20261001g",
  "file": [
   "assets/vendor/three-r185/build/three.module.min.js",
   "assets/vendor/three-r185/build/three.core.min.js",
@@ -14,12 +14,12 @@
   "assets/vendor/three-r185/jsm/shaders/LuminosityHighPassShader.js",
   "assets/vendor/three-r185/jsm/shaders/OutputShader.js",
   "assets/vendor/three-r185/jsm/environments/RoomEnvironment.js",
-  "assets/3d/motore.js?v=20261001f"
+  "assets/3d/motore.js?v=20261001g"
  ],
- "motore": "./motore.js?v=20261001f",
+ "motore": "./motore.js?v=20261001g",
  "geometria": {
-  "gen2": "assets/3d/marchio-2gen-120.json?v=20261001f",
-  "infinity": "assets/3d/infinity-120.json?v=20261001f"
+  "gen2": "assets/3d/marchio-2gen-120.json?v=20261001g",
+  "infinity": "assets/3d/infinity-120.json?v=20261001g"
  },
- "totale": 868300
+ "totale": 867844
 }

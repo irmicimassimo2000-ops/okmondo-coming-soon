@@ -368,6 +368,7 @@
       window.__testi = () => { const c = tela.getBoundingClientRect(), L = testiTappa().map(r => [r.left - c.left, r.top - c.top, r.right - c.left, r.bottom - c.top]);
         for (const sel of [".fermo > .testata", ".barra-fissa"]) { const e = document.querySelector(sel); if (e && e.offsetParent !== null || (e && getComputedStyle(e).position === "fixed")) { const r = e.getBoundingClientRect(); if (r.height) L.push([r.left - c.left, r.top - c.top, r.right - c.left, r.bottom - c.top]); } }
         return L; };
+      const GRIGLIA = 1600;   // larghezza massima del contenuto da PC (px)
       function palco() {
         const c = tela.getBoundingClientRect(), w = c.width, h = c.height; if (!(w > 0 && h > 0)) return null;
         const te = document.querySelector(".fermo > .testata"), bf = document.querySelector(".barra-fissa");
@@ -376,7 +377,12 @@
         // le icone giorno/notte e accesa sono una sovrapposizione nell'angolo del palco: non lo accorciano (non sono testo)
         const R = testiTappa(); if (!R.length) return { x0, y0, x1, y1 };
         const L = Math.min(...R.map(r => r.left)) - c.left, Rr = Math.max(...R.map(r => r.right)) - c.left, T = Math.min(...R.map(r => r.top)) - c.top;
-        if (Rr - L < 0.6 * w && w >= 1024) x0 = Math.max(x0, Rr); else y1 = Math.min(y1, T);
+        if (w >= 1024) {   // PC: la griglia da 1600 px centrata; il palco è la colonna a destra del testo
+          const off = Math.max(0, (w - GRIGLIA) / 2), gut = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--gutter")) || 48;
+          x1 = Math.min(x1, w - off - gut);
+          if (Rr - L < 0.6 * w) { x0 = Math.max(x0, Rr + gut); return { x0, y0, x1, y1, mx: 0.1 * (x1 - x0) }; }
+        }
+        y1 = Math.min(y1, T);
         return { x0, y0, x1, y1 };
       }
       function passo(t) {
@@ -384,7 +390,8 @@
         // spazio che serve sotto la pila nell'esploso a schermo largo: la tappa visibile + la colonna della legenda
         { const tp = document.querySelector(".tappa:not([hidden])"); const top = tp ? tp.getBoundingClientRect().top : mondo.vista.h; s.riservaSotto = (mondo.vista.h - top) + 24; }
         // a schermo largo oggetto al 62% e colonna accanto (<= 25%): il gruppo sta al centro; stretto: oggetto al 92%, centrato
-        s.centroX = mondo.vista.w >= 1024 ? 0.39 : 0.5; s.larghezza = mondo.vista.w >= 1024 ? 0.62 : 0.92;
+        { const W = mondo.vista.w, cont = Math.min(W, GRIGLIA), off = (W - cont) / 2;   // esploso: dentro la griglia da 1600
+          s.centroX = W >= 1024 ? (off + cont * 0.39) / W : 0.5; s.larghezza = W >= 1024 ? cont * 0.62 / W : 0.92; }
         s.palco = palco(); s.azPendolo = AMP;   // l'insegna a riposo si inquadra per il pendolo
         const e = mondo.disegna(t, progresso(), azVista(t) * (1 - mondo.esploso())); etichette(e);   // il pendolo è dell'insegna montata: a pila aperta la camera sta ferma e la legenda si legge
         // (la sagoma di 175 cm è stata tolta: la scala la danno le misure scritte e lo slider)

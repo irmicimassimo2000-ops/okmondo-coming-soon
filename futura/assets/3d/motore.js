@@ -418,7 +418,8 @@ export async function costruisci({ tela, geo, prodotto, stato, qualita = {} }) {
   }
   function inquadraMontata(A) {
     const P0 = stato.palco || { x0: 0, y0: 0, x1: vista.w, y1: vista.h * 0.6 };
-    const x0 = P0.x0 + MARGINE, x1 = P0.x1 - MARGINE, y0 = P0.y0 + MARGINE, y1 = Math.max(P0.y0 + MARGINE + 40, P0.y1 - MARGINE);
+    const mx = Math.max(MARGINE, P0.mx || 0);   // da PC l'insegna a riposo occupa circa l'80% della sua colonna
+    const x0 = P0.x0 + mx, x1 = P0.x1 - mx, y0 = P0.y0 + MARGINE, y1 = Math.max(P0.y0 + MARGINE + 40, P0.y1 - MARGINE);
     const chiave = [vista.w, vista.h, x0, x1, y0, y1].map(v => Math.round(+v)).join(",") + "," + scala.toFixed(3) + "," + A.toFixed(2);
     if (quadriM[chiave]) return quadriM[chiave];
     const pts = puntiARiposo(), dMin = (larg * scala / (vista.verticale ? 0.92 : 0.64) / 2) / vista.tanH;   // mai più grande del disegno di prima
