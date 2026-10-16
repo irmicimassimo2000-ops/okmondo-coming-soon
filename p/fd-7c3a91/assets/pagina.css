@@ -1,0 +1,104 @@
+/* Scheda prodotto · direzione B «Sulla scena» · Fratelli D'Achino × OK */
+html, body { height: 100%; }
+body { overflow: hidden; }
+
+/* testata: barra bianca piena, il marchio sta sempre su fondo bianco */
+.testata { position: fixed; top: 0; left: 0; right: 0; z-index: 40; height: var(--testata-h); padding: 0 var(--s-4); background: #fff; border-bottom: 1px solid var(--line); }
+.testata .marchio { height: 52px; }
+:root { --testata-h: 64px; --scena-h: clamp(230px, 38svh, 380px); }
+@media (max-height: 720px) and (max-width: 1023px) { :root { --scena-h: clamp(120px, 24svh, 170px); } }
+
+/* la scena occupa tutto sotto la testata */
+.b-scena { position: fixed; top: var(--testata-h); left: 0; right: 0; height: var(--scena-h); }
+.b-scena .scena { border-radius: 0; width: 100%; height: 100%; }
+.b-scena .scena.errore::after { content: "Non riesco a mostrare l\2019 anteprima. I prezzi qui accanto restano validi."; position: absolute; inset: 0; display: grid; place-items: center; padding: var(--s-6); color: rgb(255 255 255 / .85); font-size: var(--t-s); text-align: center; }
+
+/* pannello: foglio dal basso su telefono, scheda a destra su PC */
+.b-pannello { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: #fff; border-radius: var(--r-l) var(--r-l) 0 0; box-shadow: 0 -12px 44px rgb(0 0 0 / .28); top: calc(var(--testata-h) + var(--scena-h) - 22px); display: flex; flex-direction: column; }
+.b-corpo { overflow: auto; flex: 1; min-height: 0; padding: var(--s-4) var(--s-4) var(--s-3); display: grid; align-content: start; gap: var(--s-4); overscroll-behavior: contain; }
+.b-fondo { padding: var(--s-3) var(--s-4); padding-bottom: max(var(--s-3), env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #fff; display: grid; gap: var(--s-3); border-radius: 0 0 0 0; }
+.b-testo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.b-testo h1 { font-size: var(--t-l); line-height: 1.15; }
+.b-testo .intro { display: none; }
+.slider [data-slider-sotto] { display: none; }
+.slider .testa { display: none; }
+.slider .campo, .slider input[type=range] { height: 40px; }
+.b-testo h1 { font-size: var(--t-m); }
+
+/* lo slider: ogni tacca porta misura, dimensioni e i DUE prezzi */
+.slider .stop { gap: var(--s-1); }
+.slider .stop button { display: grid; gap: 1px; align-content: start; padding: var(--s-2) var(--s-2); min-height: 0; border-radius: var(--r-s); }
+.slider .stop button .n { font-size: var(--t-s); font-weight: 600; color: inherit; }
+.slider .stop button .w { font-size: var(--t-xs); color: var(--muted); }
+.slider .stop button .pr { display: grid; font-size: var(--t-xs); font-variant-numeric: tabular-nums; margin-top: var(--s-1); color: var(--muted); line-height: 1.35; }
+.slider .stop button .pr b { color: var(--ink); font-weight: 600; }
+.slider .stop button[aria-pressed=true] .n, .slider .stop button[aria-pressed=true] .w { color: var(--ink); }
+.slider .stop button[aria-pressed=true] { background: var(--surf); }
+.slider .stop button { text-align: left; }
+.slider .stop button:last-child { text-align: left; }
+.slider .stop button:nth-child(2) { text-align: left; }
+
+/* le due scelte affiancate */
+.b-righe { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.b-righe .scelta { grid-template-columns: 1fr; min-height: 92px; padding: var(--s-3); gap: var(--s-1); align-content: start; }
+.b-righe .scelta .prezzo { grid-column: 1; grid-row: auto; font-size: var(--t-l); }
+.b-righe .scelta .dettaglio { margin-left: 0; font-size: var(--t-xs); }
+.b-righe .scelta .nome { font-size: var(--t-s); }
+
+.b-fondo .totale .cifra { font-size: var(--t-xl); }
+.b-fondo { gap: var(--s-2); padding-top: var(--s-3); }
+.b-fondo .tasto { min-height: 52px; }
+.azioni-seconde { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--s-2) var(--s-4); }
+.dettagli summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--verde-ink); font-weight: 500; font-size: var(--t-s); }
+.dettagli[open] summary { margin-bottom: var(--s-2); }
+.dettagli .avviso { margin-bottom: var(--s-3); }
+.dettagli dl { display: grid; gap: var(--s-2); font-size: var(--t-s); margin-bottom: var(--s-3); }
+.dettagli dt { color: var(--muted); font-size: var(--t-xs); text-transform: uppercase; letter-spacing: .05em; }
+.messaggio-condivisione { font-size: var(--t-xs); color: var(--verde-ink); min-height: 1.2em; }
+
+@media (min-width: 1024px) {
+  .b-scena { height: auto; bottom: 0; }
+  .b-testo { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; display: grid; gap: var(--s-1); }
+  .slider .testa { display: flex; }
+  .slider .campo, .slider input[type=range] { height: var(--tap); }
+  .b-testo h1 { font-size: var(--t-xl); }
+  .b-testo .intro { display: block; font-size: var(--t-s); }
+  .slider [data-slider-sotto] { display: block; }
+  :root { --testata-h: 76px; }
+  .testata { padding: 0 var(--s-7); }
+  .testata .marchio { height: 60px; }
+  .b-pannello { left: auto; right: var(--s-6); top: calc(var(--testata-h) + var(--s-5)); bottom: var(--s-5); width: 440px; border-radius: var(--r-l); box-shadow: 0 24px 70px rgb(0 0 0 / .38); }
+  .b-corpo { padding: var(--s-5); flex: 1; }
+  .b-fondo { padding: var(--s-4) var(--s-5) var(--s-5); border-radius: 0 0 var(--r-l) var(--r-l); }
+  .b-testo h1 { font-size: var(--t-xl); }
+}
+
+/* segnale che nel pannello c'è altro da scorrere */
+.b-corpo.altro + .b-fondo { box-shadow: 0 -10px 14px -10px rgb(0 0 0 / .22); }
+.testata .da img { filter: grayscale(1); opacity: .6; }
+.totale .condizioni { display: block; font-size: var(--t-xs); color: var(--muted); }
+.dettagli .avviso a { color: var(--verde-ink); }
+@media (max-height: 720px) and (max-width: 1023px) { .b-fondo .totale { display: flex; align-items: baseline; gap: var(--s-2); flex-wrap: wrap; } .b-fondo .totale .cifra { font-size: var(--t-l); } .b-fondo .tasto { min-height: 46px; } .azioni-seconde { display: none; } }
+.azioni-seconde-corte { display: none; }
+@media (max-height: 720px) and (max-width: 1023px) {
+  .azioni-seconde { display: none; }
+  .azioni-seconde-corte { display: block; }
+}
+
+@media (min-width: 700px) and (max-width: 1023px) {
+  .b-pannello { left: 50%; right: auto; width: min(560px, 100%); transform: translateX(-50%); }
+}
+
+/* schermi cortissimi (zoom 200% su telefono): la scena si fa striscia, il tasto resta in vista */
+@media (max-height: 420px) and (max-width: 1023px) {
+  :root { --scena-h: 64px; --testata-h: 48px; }
+  .testata .marchio { height: 38px; }
+  .b-fondo .totale .nota { display: none; }
+  .b-fondo .totale .condizioni { font-size: 11px; }
+  .b-fondo .tasto { min-height: 44px; }
+}
+
+.b-fondo .totale { display: grid; gap: 2px; }
+.b-fondo .totale .nota, .b-fondo .totale .condizioni { display: block; }
+.slider [data-slider-sotto] { display: none !important; }
+.b-fondo .totale .nota { text-align: left; }
