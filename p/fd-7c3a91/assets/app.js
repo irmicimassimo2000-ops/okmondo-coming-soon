@@ -16,8 +16,8 @@
   if (scena) { try { window.Scena.costruisci(scena, D); } catch (e) { scena.classList.add('errore'); scena = null; } }
 
   function prezzi(i) { var m = D.misure[i]; return { scritta: m.scritta.prezzo, logo: m.logo.prezzo }; }
-  function dimTesto(i) { return D.misure[i].scritta.dimensione.replace(/\s/g, ' '); }
-  function dimLogo(i) { return D.misure[i].logo.dimensione.replace(/\s/g, ' '); }
+  function dimTesto(i) { return D.misure[i].scritta.lastra.replace(/\s/g, ' '); }
+  function dimLogo(i) { return D.misure[i].logo.lastra.replace(/\s/g, ' '); }
 
   function totale() { var p = prezzi(stato.m); return (stato.scritta ? p.scritta : 0) + (stato.logo ? p.logo : 0); }
   function cosa() {
