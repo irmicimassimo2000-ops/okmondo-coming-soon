@@ -93,7 +93,7 @@ body { overflow: hidden; }
 @media (max-height: 420px) and (max-width: 1023px) {
   :root { --scena-h: 64px; --testata-h: 48px; }
   .testata .marchio { height: 38px; }
-  .b-fondo .totale .nota { display: none; }
+  .b-fondo .totale .nota { font-size: 12px; text-align: right; }
   .b-fondo .totale .condizioni { font-size: 11px; }
   .b-fondo .tasto { min-height: 44px; }
 }
@@ -128,7 +128,7 @@ body { overflow: hidden; }
   .b-fondo { gap: var(--s-2); padding-top: var(--s-2); }
   .b-fondo .totale { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); flex-wrap: nowrap; }
   .b-fondo .totale .cifra { font-size: var(--t-xl); flex: none; }
-  .b-fondo .totale .nota { display: none; }
+  .b-fondo .totale .nota { font-size: 12px; text-align: right; }
   .b-fondo .totale .condizioni { font-size: 12px; text-align: right; }
   .b-fondo .totale .cond { display: grid; gap: 1px; }
   .b-fondo .tasto { min-height: 50px; }
@@ -146,3 +146,4 @@ body { overflow: hidden; }
   .b-fondo .totale .nota, .b-fondo .totale .condizioni { text-align: left; }
   .azioni-seconde { display: none; }
 }
+.b-scena .scena { background: #17281d; }

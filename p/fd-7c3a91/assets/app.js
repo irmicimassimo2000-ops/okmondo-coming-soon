@@ -19,7 +19,8 @@
   function dimTesto(i) { return D.misure[i].scritta.lastra.replace(/\s/g, ' '); }
   function dimLogo(i) { return D.misure[i].logo.lastra.replace(/\s/g, ' '); }
 
-  function totale() { var p = prezzi(stato.m); return (stato.scritta ? p.scritta : 0) + (stato.logo ? p.logo : 0); }
+  function insieme() { var m = D.misure[stato.m]; return stato.scritta && stato.logo && m.insieme ? m.insieme : null; }
+  function totale() { var p = prezzi(stato.m); if (insieme()) return insieme().prezzo; return (stato.scritta ? p.scritta : 0) + (stato.logo ? p.logo : 0); }
   function cosa() {
     if (stato.scritta && stato.logo) return 'la scritta e il logo';
     if (stato.scritta) return 'la scritta';
@@ -67,7 +68,7 @@
     var t = totale();
     $$('[data-condividi]').forEach(function (b) { b.disabled = !t; });
     $$('[data-totale]').forEach(function (el) { el.textContent = euro(t); });
-    $$('[data-totale-nota]').forEach(function (el) { el.textContent = t ? cosa().charAt(0).toUpperCase() + cosa().slice(1) + ' · misura ' + (i + 1) : 'Scegli almeno un’insegna'; });
+    $$('[data-totale-nota]').forEach(function (el) { el.textContent = !t ? 'Scegli almeno un’insegna' : insieme() ? 'Insieme risparmi ' + euro(insieme().risparmio) : cosa().charAt(0).toUpperCase() + cosa().slice(1) + ' · misura ' + (i + 1); });
     $$('[data-cta]').forEach(function (a) {
       if (t) { a.setAttribute('href', 'https://wa.me/' + D.whatsapp + '?text=' + encodeURIComponent(messaggio())); a.removeAttribute('aria-disabled'); a.removeAttribute('tabindex'); }
       else { a.removeAttribute('href'); a.setAttribute('aria-disabled', 'true'); a.setAttribute('tabindex', '-1'); }

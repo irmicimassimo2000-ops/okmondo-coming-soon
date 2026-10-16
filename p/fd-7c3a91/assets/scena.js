@@ -9,13 +9,28 @@
 
   function dPath(p) { return p.chiuso ? p.d + ' Z' : p.d; }
 
+  // quote di larghezza e altezza della lastra: linee sottili con tick, testo piccolo (la scala del testo la fissa inquadra)
+  function quote(ins, tipo) {
+    var b = ins.bbox_cm, dim = (ins.lastra || '').split(' x '), w = dim[0], h = dim[1];
+    if (!b || !w) return '';
+    var x0 = b[0], y0 = b[1], x1 = b[2], y1 = b[3], g = 3.2, tk = 1.6;
+    var yo = tipo === 'logo' ? y0 - g : y1 + g;          // linea orizzontale: sopra il logo, sotto la scritta
+    var ty = tipo === 'logo' ? yo - 1.8 : yo + 6;
+    var xv = x1 + g, ym = (y0 + y1) / 2;
+    return '<g class="quote">' +
+      '<path d="M' + x0 + ' ' + yo + 'H' + x1 + 'M' + x0 + ' ' + (yo - tk / 2) + 'v' + tk + 'M' + x1 + ' ' + (yo - tk / 2) + 'v' + tk +
+      'M' + xv + ' ' + y0 + 'V' + y1 + 'M' + (xv - tk / 2) + ' ' + y0 + 'h' + tk + 'M' + (xv - tk / 2) + ' ' + y1 + 'h' + tk + '"/>' +
+      '<text x="' + ((x0 + x1) / 2) + '" y="' + ty + '" text-anchor="middle">' + w + ' cm</text>' +
+      '<text transform="translate(' + (xv + 2.4) + ' ' + ym + ') rotate(-90)" text-anchor="middle" dominant-baseline="hanging">' + h + ' cm</text></g>';
+  }
+
   function gruppoInsegna(ins, tipo, ox, oy) {
     var cls = tipo === 'scritta' ? 'bianco' : 'verde';
     var tubi = ins.paths.map(function (p) { return '<path class="tubo ' + cls + '" d="' + dPath(p) + '"/>'; }).join('');
     var anime = ins.paths.map(function (p) { return '<path class="anima ' + cls + '" d="' + dPath(p) + '"/>'; }).join('');
     return '<g class="insegna ' + tipo + '" data-tipo="' + tipo + '" data-on="true">' +
       '<path class="plex" d="' + ins.plex + '"/>' +
-      '<g class="neon" filter="url(#alone-' + cls + ')">' + tubi + '</g>' + anime + '</g>';
+      '<g class="neon" filter="url(#alone-' + cls + ')">' + tubi + '</g>' + anime + quote(ins, tipo) + '</g>';
   }
 
   // silhouette di 180 cm (y verso l'alto), metà destra come curve; la sinistra è lo specchio in ordine inverso
@@ -78,6 +93,7 @@
       '.tubo.verde{stroke:#9fd43f}.anima.verde{stroke:#f2ffd2}' +
       '.insegna[data-on=false] .plex{fill:rgb(240 248 235 / .035);stroke:rgb(255 255 255 / .25)}' +
       '.insegna .plex{transition:fill .26s,stroke .26s}' +
+      '.quote{opacity:.7;transition:opacity .26s}.quote path{fill:none;stroke:rgb(255 255 255 / .55);stroke-width:1px;vector-effect:non-scaling-stroke}.quote text{fill:rgb(255 255 255 / .8);font:500 calc(var(--fs, 6) * 1px) Geist, system-ui, sans-serif;font-variant-numeric:tabular-nums}.insegna[data-on=false] .quote{opacity:0}' +
       '</style>';
     var R = '<rect x="-900" y="-500" width="2200" height="' + (H + 540) + '"';
     var sfondo = R + ' fill="url(#muro)"/>' +
@@ -100,27 +116,41 @@
       var w = host.clientWidth, h = host.clientHeight;
       if (w < 1024 || !h) {
         var sp = host.querySelector('.persona'), qt = host.querySelector('.quotatura'), tx = host.querySelector('.quotatura text');
-        var tel = w < 700;
-        if (sp) sp.setAttribute('transform', 'translate(' + (tel ? 112 : 84) + ' ' + H + ') scale(1 -1)');
-        if (qt) qt.setAttribute('transform', tel ? 'translate(-42 0)' : '');
+        var tel = true;
+        if (sp) sp.setAttribute('transform', 'translate(' + (tel ? 106 : 84) + ' ' + H + ') scale(1 -1)');
+        if (qt) qt.setAttribute('transform', tel ? 'translate(-48 0)' : '');
         if (sp) sp.setAttribute('opacity', tel ? '.8' : '1');
         if (tx) { tx.setAttribute('x', tel ? 112 : 123); tx.setAttribute('text-anchor', tel ? 'middle' : 'start'); tx.setAttribute('font-size', tel ? 10 : 9); tx.setAttribute('transform', tel ? 'rotate(-90 112 ' + (H - 90) + ')' : ''); }
         if (tel) {
-          var sc = Math.min(w / 212, h / 250), vw2 = w / sc, vh2 = h / sc;
-          svg.setAttribute('viewBox', (171 - vw2 / 2).toFixed(2) + ' ' + (292 - vh2).toFixed(2) + ' ' + vw2.toFixed(2) + ' ' + vh2.toFixed(2));
+          var sc = Math.min(w / 250, h / 280), vw2 = w / sc, vh2 = h / sc;
+          svg.setAttribute('viewBox', (171 - vw2 / 2).toFixed(2) + ' ' + (286 - vh2).toFixed(2) + ' ' + vw2.toFixed(2) + ' ' + vh2.toFixed(2));
           svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
         } else {
           svg.setAttribute('viewBox', vbStretto);
           svg.setAttribute('preserveAspectRatio', host.getAttribute('data-fit-stretto') || 'xMidYMin meet');
         }
+        fissaQuote(w, h);
         return;
       }
       // PC: la composizione sta nello spazio libero a sinistra del pannello, tutta intera e centrata lì
       var pan = document.querySelector('.b-pannello'), libero = pan ? Math.max(320, pan.getBoundingClientRect().left - 24) : w;
-      var s = Math.min(h / 280, (libero * 0.9) / 240);
+      var s = Math.min(h / 280, (libero * 0.9) / 250);
       var vw = w / s, vh = h / s;
       svg.setAttribute('viewBox', (175 - (libero / 2) / s).toFixed(2) + ' ' + (292 - vh).toFixed(2) + ' ' + vw.toFixed(2) + ' ' + vh.toFixed(2));
       svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+      var sp2 = host.querySelector('.persona'), qt2 = host.querySelector('.quotatura'), tx2 = host.querySelector('.quotatura text');
+      if (sp2) { sp2.setAttribute('transform', 'translate(84 ' + H + ') scale(1 -1)'); sp2.setAttribute('opacity', '1'); }
+      if (qt2) qt2.setAttribute('transform', '');
+      if (tx2) { tx2.setAttribute('x', 122); tx2.setAttribute('text-anchor', 'middle'); tx2.setAttribute('transform', 'rotate(-90 122 ' + (H - 90) + ')'); }
+      fissaQuote(w, h);
+    }
+    // corpo del testo delle quote: circa 11 px sullo schermo, qualunque sia la scala della scena
+    function fissaQuote(w, h) {
+      var vb = svg.viewBox.baseVal;
+      if (!vb || !vb.width || !w) return;
+      var pxcm = Math.min(w / vb.width, h / vb.height);
+      svg.style.setProperty('--fs', (11.5 / pxcm).toFixed(2));
+      var etq = svg.querySelector('.quotatura text'); if (etq) etq.setAttribute('font-size', (12.5 / pxcm).toFixed(2));
     }
     inquadra();
     if (window.ResizeObserver) new ResizeObserver(inquadra).observe(host); else window.addEventListener('resize', inquadra);
