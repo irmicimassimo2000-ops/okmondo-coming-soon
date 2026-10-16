@@ -103,7 +103,7 @@
   var corpo = $('.b-corpo');
   function segnala() { if (!corpo) return; var resto = corpo.scrollHeight - corpo.clientHeight - corpo.scrollTop; corpo.classList.toggle('altro', resto > 6); }
   if (corpo) { corpo.addEventListener('scroll', segnala, { passive: true }); window.addEventListener('resize', segnala); setTimeout(segnala, 60); }
-  var dett = $('.dettagli'); if (dett && window.matchMedia('(min-width: 1024px)').matches) dett.open = true;
+  var dett = $('.dettagli'); if (dett && window.matchMedia('(min-width: 700px)').matches) dett.open = true;
   prezziTacche();
   render();
 })();

@@ -79,12 +79,12 @@
       '.insegna[data-on=false] .plex{fill:rgb(240 248 235 / .035);stroke:rgb(255 255 255 / .25)}' +
       '.insegna .plex{transition:fill .26s,stroke .26s}' +
       '</style>';
-    var R = '<rect x="-400" width="1140" height="' + (H + 40) + '"';
+    var R = '<rect x="-900" y="-500" width="2200" height="' + (H + 540) + '"';
     var sfondo = R + ' fill="url(#muro)"/>' +
       R + ' filter="url(#rilievo)" opacity=".5"/>' + R + ' filter="url(#rilievoL)" opacity=".16"/>' +
       R + ' filter="url(#rugosa)"/>' +
       R + ' fill="url(#luce)"/>' +
-      '<rect x="-400" y="' + (H - 10) + '" width="1140" height="50" fill="' + T.pav + '"/><rect x="-400" y="' + (H - 11) + '" width="1140" height="1.2" fill="rgb(255 255 255 / .12)"/>';
+      '<rect x="-900" y="' + (H - 10) + '" width="2200" height="50" fill="' + T.pav + '"/><rect x="-900" y="' + (H - 11) + '" width="2200" height="1.2" fill="rgb(255 255 255 / .12)"/>';
     var gruppi = m.map(function (mi, i) {
       var L = mi.lockup_cm[0], A = mi.lockup_cm[1];
       var tx = ANCORA_X - L / 2, ty = FONDO_Y - A;
@@ -96,7 +96,20 @@
     var svg = host.querySelector('svg');
     var vbStretto = host.getAttribute('data-vb-stretto') || '36 48 268 250';
     var vbLargo = host.getAttribute('data-vb-largo') || '-40 0 480 280';
-    function inquadra() { var st = host.clientWidth < 700; svg.setAttribute('viewBox', st ? vbStretto : vbLargo); svg.setAttribute('preserveAspectRatio', (st && host.getAttribute('data-fit-stretto')) || host.getAttribute('data-fit') || 'xMidYMid slice'); }
+    function inquadra() {
+      var w = host.clientWidth, h = host.clientHeight;
+      if (w < 1024 || !h) {
+        svg.setAttribute('viewBox', vbStretto);
+        svg.setAttribute('preserveAspectRatio', host.getAttribute('data-fit-stretto') || 'xMidYMin meet');
+        return;
+      }
+      // PC: la composizione sta nello spazio libero a sinistra del pannello, tutta intera e centrata lì
+      var pan = document.querySelector('.b-pannello'), libero = pan ? Math.max(320, pan.getBoundingClientRect().left - 24) : w;
+      var s = Math.min(h / 280, (libero * 0.9) / 240);
+      var vw = w / s, vh = h / s;
+      svg.setAttribute('viewBox', (175 - (libero / 2) / s).toFixed(2) + ' ' + (292 - vh).toFixed(2) + ' ' + vw.toFixed(2) + ' ' + vh.toFixed(2));
+      svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+    }
     inquadra();
     if (window.ResizeObserver) new ResizeObserver(inquadra).observe(host); else window.addEventListener('resize', inquadra);
   }
