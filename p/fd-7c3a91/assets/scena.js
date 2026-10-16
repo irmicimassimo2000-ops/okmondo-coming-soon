@@ -50,9 +50,9 @@
       '<g fill="none" stroke="' + T.persLine + '" stroke-width=".45" opacity=".75"><path d="M-17.6 100.5 C-7 98.5 7 98.5 17.6 100.5"/><path d="M-20.6 125 C-8 129 8 129 20.6 125"/></g>' +
       '<g fill="' + T.persLine + '" opacity=".5"><path d="M-12.8 3.8 C-15 3.2 -15.8 1.4 -14.8 0 L-3.8 0 L-3.9 3.6 Z"/><path d="M12.8 3.8 C15 3.2 15.8 1.4 14.8 0 L3.8 0 L3.9 3.6 Z"/></g>' +
       '</g>' +
-      '<g class="quota" stroke="' + T.quota + '" stroke-width="0.5" fill="none">' +
+      '<g class="quotatura"><g class="quota" stroke="' + T.quota + '" stroke-width="0.5" fill="none">' +
       '<path d="M116 ' + (H - 180) + ' V' + H + ' M112 ' + (H - 180) + ' H120 M112 ' + (H - 0.5) + ' H120"/></g>' +
-      '<text x="123" y="' + (H - 94) + '" font-size="9" fill="' + T.testo + '" font-family="Geist, system-ui, sans-serif">1,80 m</text>';
+      '<text x="123" y="' + (H - 94) + '" font-size="9" fill="' + T.testo + '" font-family="Geist, system-ui, sans-serif">1,80 m</text></g>';
   }
 
   function costruisci(host, dati) {
@@ -99,8 +99,20 @@
     function inquadra() {
       var w = host.clientWidth, h = host.clientHeight;
       if (w < 1024 || !h) {
-        svg.setAttribute('viewBox', vbStretto);
-        svg.setAttribute('preserveAspectRatio', host.getAttribute('data-fit-stretto') || 'xMidYMin meet');
+        var sp = host.querySelector('.persona'), qt = host.querySelector('.quotatura'), tx = host.querySelector('.quotatura text');
+        var tel = w < 700;
+        if (sp) sp.setAttribute('transform', 'translate(' + (tel ? 112 : 84) + ' ' + H + ') scale(1 -1)');
+        if (qt) qt.setAttribute('transform', tel ? 'translate(-42 0)' : '');
+        if (sp) sp.setAttribute('opacity', tel ? '.8' : '1');
+        if (tx) { tx.setAttribute('x', tel ? 112 : 123); tx.setAttribute('text-anchor', tel ? 'middle' : 'start'); tx.setAttribute('font-size', tel ? 10 : 9); tx.setAttribute('transform', tel ? 'rotate(-90 112 ' + (H - 90) + ')' : ''); }
+        if (tel) {
+          var sc = Math.min(w / 212, h / 250), vw2 = w / sc, vh2 = h / sc;
+          svg.setAttribute('viewBox', (171 - vw2 / 2).toFixed(2) + ' ' + (292 - vh2).toFixed(2) + ' ' + vw2.toFixed(2) + ' ' + vh2.toFixed(2));
+          svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+        } else {
+          svg.setAttribute('viewBox', vbStretto);
+          svg.setAttribute('preserveAspectRatio', host.getAttribute('data-fit-stretto') || 'xMidYMin meet');
+        }
         return;
       }
       // PC: la composizione sta nello spazio libero a sinistra del pannello, tutta intera e centrata lì

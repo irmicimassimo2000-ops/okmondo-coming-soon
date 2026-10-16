@@ -102,3 +102,47 @@ body { overflow: hidden; }
 .b-fondo .totale .nota, .b-fondo .totale .condizioni { display: block; }
 .slider [data-slider-sotto] { display: none !important; }
 .b-fondo .totale .nota { text-align: left; }
+
+/* ===== Telefono: l'insegna è la protagonista, il resto si fa piccolo ===== */
+.pt { display: none; }
+@media (max-width: 699px) {
+  :root { --scena-h: clamp(260px, calc(100svh - var(--testata-h) - 372px), 600px); }
+  .b-corpo { gap: var(--s-3); padding: var(--s-3) var(--s-4) var(--s-2); }
+  .slider .campo, .slider input[type=range] { height: 32px; }
+  .slider .stop { gap: 2px; }
+  .slider .stop button .w { display: none; }
+  .slider .stop button { padding: 6px var(--s-2); }
+  .slider .stop button .n { font-size: var(--t-s); }
+  .slider .stop button .pr { margin-top: 2px; gap: 1px; }
+  .slider .stop button .pr span { display: flex; align-items: center; gap: 5px; }
+  .slider .stop button .pr { font-size: 12px; }
+  .slider .stop button .pr .pt { display: none; }
+  .pt { display: none; }
+  .pt.b { background: #fff; border: 1.5px solid #8a9a7a; }
+  .pt.v { background: var(--verde); border: 1.5px solid var(--verde-ink); }
+  .b-righe { gap: var(--s-2); }
+  .b-righe .scelta { min-height: 0; padding: var(--s-2) var(--s-3); }
+  .b-righe .scelta .dettaglio { display: none; }
+  .b-righe .scelta .prezzo { font-size: var(--t-m); }
+  .dettagli { display: none; }
+  .b-fondo { gap: var(--s-2); padding-top: var(--s-2); }
+  .b-fondo .totale { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); flex-wrap: nowrap; }
+  .b-fondo .totale .cifra { font-size: var(--t-xl); flex: none; }
+  .b-fondo .totale .nota { display: none; }
+  .b-fondo .totale .condizioni { font-size: 12px; text-align: right; }
+  .b-fondo .totale .cond { display: grid; gap: 1px; }
+  .b-fondo .tasto { min-height: 50px; }
+  .azioni-seconde { justify-content: center; }
+  .azioni-seconde-corte { display: none !important; }
+}
+@media (max-width: 699px) and (max-height: 720px) { :root { --scena-h: clamp(200px, calc(100svh - var(--testata-h) - 330px), 420px); } }
+@media (max-width: 699px) and (max-height: 420px) {
+  :root { --scena-h: 64px; --testata-h: 48px; }
+  .b-pannello { overflow-y: auto; display: block; }
+  .b-corpo { overflow: visible; }
+  .b-fondo { position: sticky; bottom: 0; }
+  .b-fondo .totale { flex-wrap: wrap; }
+  .b-fondo .totale .cond { text-align: left; }
+  .b-fondo .totale .nota, .b-fondo .totale .condizioni { text-align: left; }
+  .azioni-seconde { display: none; }
+}
