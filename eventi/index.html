@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Eventi, format e service — in costruzione</title>
+<style>
+@font-face{font-family:"Geist";src:url("../assets/geist-latin.woff2") format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Geist Mono";src:url("../assets/geist-mono-latin.woff2") format("woff2");font-weight:100 900;font-display:swap}
+*{box-sizing:border-box;margin:0}html{-webkit-text-size-adjust:100%}a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+:root{color-scheme:dark;--bg:#0a0a0a;--t:#fff;--t2:#bdbdbd;--pad:clamp(16px,4vw,56px)}
+body{background:var(--bg);color:var(--t);font:400 17px/1.5 "Geist",system-ui,sans-serif;min-height:100dvh;-webkit-font-smoothing:antialiased}
+:focus-visible{outline:2px solid var(--t);outline-offset:3px}
+.mono{font-family:"Geist Mono",monospace;font-size:14px}
+.wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);min-height:calc(100dvh - 90px)}
+.l{padding:var(--pad);display:flex;flex-direction:column;justify-content:flex-end;gap:24px;border-right:1.5px dashed #fff}
+.l h1{font-weight:800;letter-spacing:-.06em;line-height:.9;font-size:clamp(56px,10vw,150px);overflow-wrap:anywhere}
+.l p{color:var(--t2);font-size:20px;max-width:30ch}
+.r{display:flex;flex-direction:column}
+.r .row{flex:1;display:grid;grid-template-columns:1fr;align-items:center;gap:16px;padding:16px var(--pad);border-bottom:1.5px dashed #fff;font-size:clamp(22px,2.6vw,36px);font-weight:700;letter-spacing:-.03em}
+.r .row .mono{color:var(--t2);font-weight:400}
+.r .row.st{background:#fff;color:#0a0a0a}.r .row.st .mono{color:#0a0a0a}
+.r .go{display:flex;flex-wrap:wrap;gap:12px;padding:var(--pad)}
+.b{display:inline-flex;align-items:center;height:48px;padding:0 22px;background:#fff;color:#0a0a0a;font-weight:600}
+.b.o{background:none;border:1.5px solid #fff;color:#fff}
+@media(max-width:860px){.wrap{grid-template-columns:1fr}.l{border-right:0;border-bottom:1.5px dashed #fff;min-height:60dvh}}
+</style></head><body>
+<header style="padding:16px var(--pad);border-bottom:1.5px dashed #fff"><a href="../" aria-label="OK.mondo"><img src="../assets/ok-mark-bianco.svg" alt="OK" style="height:32px"></a></header>
+<div class="wrap" role="main">
+ <section class="l"><h1>Eventi, format e service</h1><p>Serate e festival, dall'idea al service.</p></section>
+ <section class="r" aria-label="Fasi">
+  <div class="row">Idea e format</div>
+  <div class="row">Produzione</div>
+  <div class="row">Service</div>
+  <div class="row st"><span class="mono">ORA</span>In costruzione</div>
+  <div class="go"><a class="b" href="https://oktickets.it" target="_blank" rel="noopener">Intanto: biglietti su OK.TICKETS</a><a class="b o" href="../">← OK.mondo</a></div>
+ </section>
+</div></body></html>

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>OK.3D Design Lab</title>
+<meta name="description" content="OK.3D Design Lab: insegne luminose, lampade e oggetti. Rendiamo reale la tua richiesta: luminosa, tridimensionale, presente, viva.">
+<link rel="canonical" href="https://okmondo.com/ok3d/">
+<style>
+@font-face{font-family:"Geist";src:url("../assets/geist-latin.woff2") format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Geist Mono";src:url("../assets/geist-mono-latin.woff2") format("woff2");font-weight:100 900;font-display:swap}
+*{box-sizing:border-box;margin:0}html{-webkit-text-size-adjust:100%}a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* Sistema OK.3D: la tavola. Foglio bianco, filetti rossi, cartiglio, mono per le coordinate. Indipendente dal resto del sito. Dal 02/11/2026 comprende le insegne luminose. */
+:root{--w:#fff;--n:#0A0A0A;--r:#E20612;--g:#595959;--pad:clamp(16px,4vw,48px);color-scheme:light}
+body{background:var(--w);color:var(--n);font:400 16px/1.5 "Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"Geist Mono",monospace;font-size:14px}
+.bozza{background:var(--n);color:#fff;text-align:center;padding:6px var(--pad);font:500 14px "Geist Mono"}
+:focus-visible{outline:2px solid var(--n);outline-offset:3px}
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:stretch;border-bottom:1px solid var(--r)}
+.top>*{padding:12px var(--pad);display:flex;align-items:center}
+.top .id{gap:12px;border-right:1px solid var(--r)}
+.top .id img{height:40px;width:auto}
+.top .id b{font-size:20px;letter-spacing:-.02em}
+.top nav{gap:28px;color:var(--g)}
+.top nav a:hover{color:var(--n)}
+.top .back{border-left:1px solid var(--r);color:var(--g)}
+.top .back:hover{color:var(--n)}
+@media(max-width:860px){.top{grid-template-columns:1fr auto}.top nav{display:flex;grid-column:1/-1;order:3;overflow-x:auto;gap:20px;padding:0 20px;border-top:1px solid var(--r);white-space:nowrap}.top nav a{padding:12px 0;min-height:44px;display:flex;align-items:center}.cart img{display:none}.top .id b{font-size:18px}}
+.sheet{margin:20px var(--pad) 0;border:1px solid var(--r);position:relative}
+.sheet::before,.sheet::after{content:"";position:absolute;width:14px;height:14px;border:1px solid var(--r)}
+.sheet::before{left:-8px;top:-8px;border-right:0;border-bottom:0}.sheet::after{right:-8px;bottom:-8px;border-left:0;border-top:0}
+.hero{display:grid;grid-template-columns:1.5fr 1fr}
+.photo{background:#000;display:flex;align-items:center;justify-content:center;min-height:440px;position:relative}
+.photo img{width:100%;height:auto;max-height:560px;object-fit:contain}
+.photo .fig{position:absolute;left:16px;bottom:12px;color:#fff;opacity:.85}
+.tx{padding:32px;border-left:1px solid var(--r);display:flex;flex-direction:column;justify-content:space-between;gap:32px}
+.tx h1{font-weight:800;letter-spacing:-.05em;line-height:.98;font-size:clamp(44px,6vw,88px)}
+.tx p{font-size:20px;color:var(--g);max-width:26ch}
+.btn{display:inline-flex;align-items:center;gap:10px;height:48px;padding:0 22px;border-radius:0;background:var(--n);color:#fff;font-weight:600;transition:background .2s;align-self:flex-start}
+.btn:hover{background:var(--r)}
+.btn.o{background:none;color:var(--n);border:1px solid var(--n)}
+.btn.o:hover{background:var(--n);color:#fff}
+.cart{display:grid;grid-template-columns:auto 1fr;border-top:1px solid var(--r)}
+.cart>*{padding:12px 20px;display:flex;align-items:center}
+.cart img{height:40px;width:40px;padding:12px 20px;box-sizing:content-box;flex:none}
+.cart .nm{border-left:1px solid var(--r);flex-direction:column;align-items:flex-start;justify-content:center}
+.cart .nm b{font-size:18px;letter-spacing:-.02em}
+.cart .tv{background:var(--r);color:#fff;flex-direction:column;align-items:flex-start;justify-content:center;gap:0}
+.cart .tv b{font-size:20px}
+.sec{padding:72px var(--pad) 0}
+.sec h2{display:flex;align-items:baseline;gap:16px;font-weight:800;letter-spacing:-.04em;font-size:clamp(28px,3.6vw,48px);line-height:1;border-top:1px solid var(--r);padding-top:16px}
+.sec h2 .mono{color:var(--r);font-weight:500;letter-spacing:0}
+.sub{color:var(--g);margin-top:12px;max-width:52ch;font-size:20px}
+.conc{display:grid;grid-template-columns:1fr 1fr;margin-top:24px;border:1px solid var(--r);overflow:hidden}
+.conc .im{background:#000 url("../assets/futura-macro.jpg") 50% 30%/cover;min-height:420px}
+.conc .in{padding:28px;display:flex;flex-direction:column;justify-content:space-between;gap:24px}
+.conc blockquote{font-weight:800;letter-spacing:-.04em;line-height:1.02;font-size:clamp(30px,3.6vw,52px)}
+.conc .mono{color:var(--g)}
+.tav{display:grid;grid-template-columns:1fr 1.1fr;margin-top:24px;border:1px solid var(--r)}
+.tav .im{position:relative;background:#111;min-height:520px}
+.tav .im img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 38%}
+.tav .in{padding:24px 28px;display:flex;flex-direction:column;justify-content:space-between;gap:24px}
+.tav h3{font-size:clamp(28px,3.2vw,44px);font-weight:800;letter-spacing:-.04em;line-height:1}
+.tav p{color:var(--g);margin-top:12px;max-width:34ch}
+.tav .az{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.tav .mono{color:var(--g)}
+.ditt{display:grid;grid-template-columns:1fr 1fr;margin-top:12px;border:1px solid var(--r);position:relative;background:#000}
+.ditt figure{margin:0;position:relative;height:min(60vh,520px)}
+.ditt img{width:100%;height:100%;object-fit:cover}
+.ditt figcaption{position:absolute;left:12px;bottom:10px;color:#fff;background:rgba(0,0,0,.6);padding:4px 8px}
+.ditt::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:1px;background:var(--r)}
+.casi{display:flex;gap:0;margin-top:12px;border:1px solid var(--r)}
+.casi figure{margin:0;flex:var(--k) 1 0;min-width:0;border-right:1px solid var(--r)}
+.casi figure:last-child{border-right:0}
+.casi .im{aspect-ratio:var(--k);background:#000;overflow:hidden}
+.casi img{width:100%;height:100%;object-fit:cover}
+.casi figcaption{color:var(--g);padding:8px 10px}
+.vuoto{display:grid;grid-template-columns:1fr 1fr;margin-top:24px;border:1px solid var(--r)}
+.vuoto .ph{min-height:320px;background:repeating-linear-gradient(45deg,#fff,#fff 10px,#fdeaeb 10px,#fdeaeb 11px);border-right:1px solid var(--r);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--r);padding:24px}
+.vuoto .in{padding:28px;display:flex;flex-direction:column;justify-content:space-between;gap:24px}
+.vuoto h3{font-size:clamp(28px,3.2vw,44px);font-weight:800;letter-spacing:-.04em;line-height:1}
+.vuoto .mono{color:var(--g)}
+.leg{margin-top:24px;border-top:1px solid var(--r)}
+.leg div{display:grid;grid-template-columns:56px 1fr 1.4fr;gap:16px;padding:16px 0;border-bottom:1px solid #f1c3c6;align-items:baseline}
+.leg b{font-size:20px;letter-spacing:-.02em}
+.leg .mono{color:var(--r)}
+.leg span{color:var(--g)}
+.invito{display:grid;grid-template-columns:1.2fr 1fr;gap:32px;align-items:end;margin-top:24px}
+.invito h3{font-weight:800;letter-spacing:-.05em;line-height:.98;font-size:clamp(40px,5.6vw,80px)}
+.invito p{color:var(--g);margin-top:8px}
+footer{margin:72px var(--pad) 0;border-top:1px solid var(--r);padding:20px 0 40px;color:var(--g);display:flex;flex-wrap:wrap;gap:8px 32px;justify-content:space-between;font-size:14px}
+.rev{transition:transform .6s cubic-bezier(.21,1,.36,1)}
+.js .rev{transform:scale(1.05)}.js .in-view .rev{transform:none}
+@media(max-width:860px){.hero,.conc,.tav,.vuoto,.invito{grid-template-columns:1fr}.photo{min-height:0;aspect-ratio:1.8}.tx{border-left:0;border-top:1px solid var(--r);padding:24px 20px}.conc .im{min-height:300px}.tav .im{min-height:420px}.vuoto .ph{border-right:0;border-bottom:1px solid var(--r);min-height:200px}.leg div{grid-template-columns:40px 1fr}.leg span:last-child{grid-column:2}.cart .tv{display:none}.cart{grid-template-columns:auto 1fr}.ditt{grid-template-columns:1fr}.ditt figure{height:40vh}.ditt::after{top:50%;bottom:auto;left:0;right:0;width:auto;height:1px}.casi{flex-wrap:wrap}.casi figure{flex:1 1 50%;border-bottom:1px solid var(--r)}.casi figure.l{flex-basis:100%}}
+.top nav a,footer a{display:inline-flex;align-items:center;min-height:44px}
+</style>
+</head>
+<body>
+<header class="top">
+ <a class="id" href="#" aria-label="OK.3D"><img src="../assets/ok3d_marchio-disco_rosso.svg" alt="OK.3D"></a>
+ <nav class="mono" aria-label="OK.3D"><a href="#profondita">Profondità</a><a href="#insegne">Insegne</a><a href="#oggetti">Lampade e oggetti</a><a href="#ordina">Come si ordina</a><a href="#scrivici">Scrivici</a></nav>
+ <a class="back mono" href="../">← OK.mondo</a>
+</header>
+<main>
+ <div class="sheet" id="top">
+  <div class="hero">
+   <div class="photo"><img src="../assets/futura-reale.jpg" alt="Insegna a specchio infinito accesa: linee rosse che si ripetono in profondità su fondo nero"><span class="fig mono">Fig. 01 · Proposta · FUTURA CLUB</span></div>
+   <div class="tx">
+    <div><h1>Stampiamo pure a te.</h1><p style="margin-top:20px">Lampade, insegne e oggetti che prima non c'erano.</p></div>
+    <a class="btn" href="#scrivici">Hai un'idea? Scrivici.</a>
+   </div>
+  </div>
+  <div class="cart"><img src="../assets/ok3d_marchio-disco_rosso.svg" alt=""><div class="nm"><b>OK.3D Design Lab</b><span class="mono" style="color:var(--g)">Infinity Mirror</span></div></div>
+ </div>
+
+ <section class="sec" id="profondita">
+  <h2>Profondità</h2>
+  <p class="sub">Per noi «3D» è profondità: luce e forme che escono dal piano.</p>
+  <div class="conc">
+   <div class="im rev" role="img" aria-label="Dettaglio ravvicinato dell'insegna a specchio infinito: linee rosse in profondità"></div>
+   <div class="in"><span class="mono">Il nostro punto di forza</span><blockquote>Rendiamo reale la tua richiesta: luminosa, tridimensionale, presente, viva.</blockquote><span class="mono">Proposta · Infinity Mirror · FUTURA CLUB</span></div>
+  </div>
+ </section>
+
+ <section class="sec" id="insegne">
+  <h2>Insegne luminose</h2>
+  <p class="sub">Il tuo nome, acceso sul muro. Ti accendiamo la bozza sulla foto del tuo muro, prima che tu spenda un euro.</p>
+  <article class="tav">
+   <div class="im"><img src="../assets/led-hero.jpg" alt="Proposta di insegna neon flex per una pizzeria su una parete verde: scritta verde, pizza e vapore accesi"></div>
+   <div class="in">
+    <div><span class="mono">Tavola 01 · Pizza Paris · proposta</span><h3 style="margin-top:12px">Neon flex sulla tua scritta</h3><p>Proposta di design sulla scritta del cliente. Forex nero o plex trasparente, luce monocolore o RGB.</p>
+     <div class="az"><a class="btn" href="https://hq.okmondo.com/insegne-led#bozza">Accendi la mia bozza</a><a class="btn o" href="https://hq.okmondo.com/insegne-led#stima">Stima in 60 secondi</a></div></div>
+    <span class="mono">Neon flex 100×105</span>
+   </div>
+  </article>
+  <div class="ditt">
+   <figure><img src="../assets/led-prima.jpg" alt="Parete verde con porta, prima dell'insegna"><figcaption class="mono">Prima · il tuo muro</figcaption></figure>
+   <figure><img src="../assets/led-dopo.jpg" alt="La stessa parete con la bozza dell'insegna accesa, di sera"><figcaption class="mono">Dopo · bozza sulla foto del cliente</figcaption></figure>
+  </div>
+  <div class="casi">
+   <figure style="--k:.75"><div class="im"><img src="../assets/led-aura.jpg" alt="Insegna Aura in forex con luce RGB"></div><figcaption class="mono">Proposta · Aura · forex · RGB</figcaption></figure>
+   <figure class="l" style="--k:1.49"><div class="im"><img src="../assets/led-loquita.jpg" alt="Insegna Loquita neon con luce RGB"></div><figcaption class="mono">Proposta · Loquita · neon · RGB</figcaption></figure>
+   <figure style="--k:1"><div class="im"><img src="../assets/led-mamani.jpg" alt="Insegna Mamanì in plex trasparente, luce blu"></div><figcaption class="mono">Proposta · Mamanì · plex · 150×37</figcaption></figure>
+   <figure style="--k:1"><div class="im"><img src="../assets/led-alex.jpg" alt="Insegna Alex Tattoo in forex, bianco freddo su cemento"></div><figcaption class="mono">Proposta · Alex Tattoo · forex · bianco</figcaption></figure>
+  </div>
+ </section>
+
+ <section class="sec" id="oggetti">
+  <h2>Lampade e oggetti</h2>
+  <p class="sub">Pezzi stampati in 3D, con la luce dentro quando serve.</p>
+  <div class="vuoto">
+   <div class="ph mono">Foto del pezzo<br>da inserire</div>
+   <div class="in"><span class="mono">Tavola 02 · in arrivo</span><h3>Il primo pezzo stampato compare qui.</h3><span class="mono">Si pubblica solo con un pezzo vero</span></div>
+  </div>
+ </section>
+
+ <section class="sec" id="ordina">
+  <h2>Come si ordina</h2>
+  <div class="leg">
+   <div><span class="mono">1</span><b>Scrivici</b><span>Cosa vuoi fare, che misura, a cosa serve, una foto.</span></div>
+   <div><span class="mono">2</span><b>Ti rispondiamo</b><span>Entro un giorno, con le domande che mancano.</span></div>
+   <div><span class="mono">3</span><b>Lo produciamo</b><span>Qui, nel laboratorio.</span></div>
+   <div><span class="mono">4</span><b>Lo consegniamo</b><span>E, dove serve, lo installiamo.</span></div>
+  </div>
+ </section>
+
+ <section class="sec" id="scrivici">
+  <h2>Scrivici</h2>
+  <div class="invito">
+   <div><h3>Hai un'idea?<br>Scrivici.</h3><p>Ti rispondiamo entro un giorno.</p></div>
+   <a class="btn" href="https://wa.me/393773621181?text=Ciao%2C%20ho%20un%27idea%20per%20OK.3D" style="justify-self:start" rel="noopener">Scrivici su WhatsApp</a>
+  </div>
+ </section>
+</main>
+<footer><span>OK.3D Design Lab</span><a href="https://wa.me/393773621181">WhatsApp +39 377 362 1181</a></footer>
+<script>
+document.documentElement.classList.add("js");
+const p=document.querySelector(".conc");
+if("IntersectionObserver" in window){new IntersectionObserver((e,o)=>{if(e[0].isIntersecting){p.classList.add("in-view");o.disconnect()}},{threshold:.25}).observe(p)}else{p.classList.add("in-view")}
+</script>
+</body>
+</html>

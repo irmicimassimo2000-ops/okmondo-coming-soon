@@ -1,161 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>OK — comunicazione, identità e insegne a San Severo</title>
-  <meta name="description" content="OK è la casa di comunicazione di Massimo Irmici a San Severo, in Capitanata: identità di marca, grafica, insegne LED, eventi e presenza digitale. Tu chiedi, OK risponde: OK." />
-  <!-- 13/09/2026 — qui c'era la direttiva opposta, che diceva a ogni motore
-       e a ogni assistente di ignorare il sito. Su una pagina «stiamo
-       arrivando» sembra innocuo, ed era il motivo per cui OK non esisteva
-       per nessuno. Una cosa che esiste va lasciata trovare.
-       Il tag vecchio non si ricopia nemmeno dentro un commento: i parser
-       lo ignorano, ma un controllo automatico no, e il primo a scriverlo
-       sul proprio sito non deve essere chi vende leggibilità. -->
-  <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://okmondo.com/" />
-  <meta name="theme-color" content="#EDEDE6" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="canonical" href="https://okmondo.com/">
+<title>OK.mondo</title>
+<meta name="description" content="Tu chiedi. OK risponde. Scrivi cosa ti serve e ti portiamo al servizio giusto.">
+<style>
+@font-face{font-family:"Geist";src:url("assets/geist-latin.woff2") format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Geist Mono";src:url("assets/geist-mono-latin.woff2") format("woff2");font-weight:100 900;font-display:swap}
+*{box-sizing:border-box;margin:0}html{-webkit-text-size-adjust:100%}a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-
-  <meta property="og:title" content="OK" />
-  <meta property="og:description" content="L'universo OK. Presto qui." />
-  <meta property="og:image" content="/og.png" />
-  <meta property="og:type" content="website" />
-
-  <!-- La scheda che le persone non vedono e le macchine leggono. È lo
-       standard schema.org: lo leggono allo stesso modo Google, ChatGPT,
-       Claude e Perplexity. Senza, un assistente deve dedurre chi siamo dal
-       testo, e quando deduce sbaglia o tace. Ogni dato qui è vero. -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "ProfessionalService",
-    "name": "OK",
-    "legalName": "Hakuna Matata di Irmici Massimo",
-    "alternateName": "OK.mondo",
-    "description": "Casa di comunicazione a San Severo, in Capitanata: identità di marca, grafica, insegne LED al neon, organizzazione eventi, presenza digitale e siti. Risultati di livello senior resi possibili da un'infrastruttura di agenti AI.",
-    "url": "https://okmondo.com/",
-    "telephone": "+39 320 859 9301",
-    "email": "irmicimassimo2000@gmail.com",
-    "vatID": "IT04399620717",
-    "foundingDate": "2022-02-22",
-    "founder": { "@type": "Person", "name": "Massimo Irmici", "jobTitle": "Direttore creativo" },
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "San Severo",
-      "addressRegion": "FG",
-      "addressCountry": "IT"
-    },
-    "areaServed": [
-      { "@type": "AdministrativeArea", "name": "Capitanata" },
-      { "@type": "AdministrativeArea", "name": "Provincia di Foggia" },
-      { "@type": "AdministrativeArea", "name": "Puglia" }
-    ],
-    "knowsLanguage": "it",
-    "hasOfferCatalog": {
-      "@type": "OfferCatalog",
-      "name": "Servizi",
-      "itemListElement": [
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Identità di marca e logo system" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Grafica per eventi e materiali di comunicazione" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Insegne LED al neon su misura" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Organizzazione e comunicazione di eventi" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Siti, landing page e software su misura" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Visibilità sugli assistenti AI" } }
-      ]
-    }
-  }
-  </script>
-
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "Di cosa si occupa OK?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Identità di marca, grafica, insegne LED al neon, comunicazione e organizzazione di eventi, siti e software su misura. Tutto quello che serve a un'attività per farsi riconoscere e scegliere." }
-      },
-      {
-        "@type": "Question",
-        "name": "Dove si trova OK?",
-        "acceptedAnswer": { "@type": "Answer", "text": "A San Severo, in provincia di Foggia. Lavora in tutta la Capitanata e sul Gargano per le insegne e gli eventi; per il resto senza limiti di distanza." }
-      },
-      {
-        "@type": "Question",
-        "name": "Come si contatta OK?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Al numero +39 320 859 9301, anche su WhatsApp, oppure scrivendo a irmicimassimo2000@gmail.com." }
-      },
-      {
-        "@type": "Question",
-        "name": "Chi c'è dietro OK?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Massimo Irmici, direttore creativo. L'attività è aperta dal 22 febbraio 2022 come Hakuna Matata di Irmici Massimo, partita IVA 04399620717." }
-      }
-    ]
-  }
-  </script>
-
-  <style>
-    :root { --rosso:#E20612; --beige:#EDEDE6; --nero:#1A1A1A; --muto:#6b6b66; }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { height:100%; }
-    body {
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
-      background:var(--beige); color:var(--nero);
-      display:grid; place-items:center; min-height:100svh; text-align:center;
-      padding:24px; -webkit-font-smoothing:antialiased;
-    }
-    .wrap { display:flex; flex-direction:column; align-items:center; gap:26px;
-      animation:rise .9s cubic-bezier(.2,.7,.2,1) both; }
-    .mark {
-      width:116px; height:116px; display:block;
-      filter:drop-shadow(0 18px 44px rgba(226,6,18,.45));
-    }
-    h1 { font-size:clamp(28px,6vw,46px); font-weight:800; letter-spacing:-1.5px; line-height:1.04; }
-    p { font-size:clamp(15px,3.5vw,18px); color:var(--muto); max-width:32ch; line-height:1.5; }
-    .dice { font-size:clamp(13.5px,3vw,15px); max-width:44ch; line-height:1.62; }
-    .dice strong { color:var(--nero); font-weight:600; }
-    .dice a { color:var(--nero); text-decoration:none; border-bottom:1px solid rgba(26,26,26,.28); }
-    .dice a:hover, .dice a:focus-visible { border-bottom-color:var(--rosso); color:var(--rosso); }
-    :focus-visible { outline:2px solid var(--rosso); outline-offset:3px; }
-    .dot { display:inline-block; width:8px; height:8px; border-radius:50%;
-      background:var(--rosso); margin-right:9px; vertical-align:middle;
-      animation:pulse 1.6s ease-in-out infinite; }
-    .foot { position:fixed; bottom:max(22px, env(safe-area-inset-bottom));
-      left:0; right:0; font-size:12px; color:#9a9a94; letter-spacing:.4px; }
-    @keyframes rise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
-    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.35; transform:scale(.78); } }
-    @media (prefers-reduced-motion:reduce) { .wrap,.dot { animation:none; } }
-  </style>
+:root{--w:#fff;--n:#0A0A0A;--r:#E20612;--g:#8A8A8A;--g2:#595959;--line:#E8E8E8;--pad:clamp(16px,4vw,48px);color-scheme:light}
+body{background:var(--w);color:var(--n);font:400 16px/1.5 "Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100dvh;display:flex;flex-direction:column}
+.bozza{background:var(--n);color:#fff;text-align:center;padding:6px var(--pad);font:500 14px "Geist Mono"}
+header{padding:20px var(--pad)}
+header img{height:36px;width:auto}
+main{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding:clamp(48px,14vh,140px) var(--pad) 48px;max-width:1100px;width:100%;margin-inline:auto}
+h1{font-weight:800;letter-spacing:-.05em;line-height:.98;font-size:clamp(44px,8vw,112px)}
+h1 span{display:block;color:var(--g)}
+form{margin-top:clamp(28px,5vh,48px)}
+.bar{display:flex;align-items:center;gap:8px;border:1.5px solid var(--n);border-radius:999px;padding:8px 8px 8px 24px;background:var(--w);transition:box-shadow .2s}
+.bar:focus-within{box-shadow:0 0 0 3px rgba(10,10,10,.12)}
+.bar input{flex:1;min-width:0;border:0;outline:0;background:none;font:500 clamp(17px,2vw,22px) "Geist";color:var(--n);height:52px}
+.bar input::placeholder{color:var(--g)}
+.bar button{height:52px;padding:0 24px;border:0;border-radius:999px;background:var(--r);color:#fff;font:600 16px "Geist";cursor:pointer;transition:transform .35s cubic-bezier(.3,1.4,.5,1)}
+.bar button:hover{transform:scale(1.03)}.bar button:active{transform:scale(.97)}
+:focus-visible{outline:2px solid var(--n);outline-offset:3px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chips button{height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--w);font:500 15px "Geist";color:var(--g2);cursor:pointer;transition:border-color .2s,color .2s}
+.chips button:hover{border-color:var(--n);color:var(--n)}
+#out{margin-top:28px;display:grid;gap:10px}
+.res{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:20px 24px;border-radius:20px;background:var(--n);color:#fff;transition:transform .45s cubic-bezier(.3,1.3,.5,1)}
+.res:hover{transform:translateY(-3px)}
+.res b{display:block;font-size:22px;font-weight:800;letter-spacing:-.03em}
+.res span{color:#cfcfcf}
+.res .go{display:inline-flex;align-items:center;gap:8px;font-weight:600;white-space:nowrap}
+.res .go svg{width:22px;height:22px;background:#fff;color:var(--n);border-radius:50%;padding:4px}
+.res .st{font:500 14px "Geist Mono";color:#fff;border:1px solid #fff;border-radius:999px;padding:2px 10px;margin-left:10px;vertical-align:2px}
+.none{padding:20px 24px;border:1.5px solid var(--n);border-radius:20px}
+.none a{font-weight:600;text-decoration:underline}
+footer{padding:20px var(--pad) 28px;color:var(--g2);font-size:14px;display:flex;flex-wrap:wrap;gap:8px 32px;justify-content:space-between}
+@media(max-width:640px){.bar{padding-left:16px}.bar button{padding:0 16px}.res{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-  <main class="wrap">
-    <!-- Marchio OK reale (ometto: O = testa+sorriso, K = corpo) -->
-    <svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" role="img" aria-label="OK">
-      <rect width="500" height="500" rx="112" ry="112" fill="#E20612"/>
-      <path transform="matrix(1,0,0,-1,250.0054,231.36441)" d="M0 0C-31.933 0-58.392 23.904-62.42 54.757-62.986 59.087-59.675 62.951-55.308 62.951H55.308C59.675 62.951 62.986 59.088 62.42 54.757 58.392 23.904 31.933 0 0 0M0 167.719C-57.777 167.719-104.785 120.728-104.785 62.951-104.785 5.174-57.777-41.833 0-41.833 57.76-41.833 104.768 5.175 104.768 62.951 104.768 120.728 57.76 167.719 0 167.719" fill="#EDEDE6"/>
-      <path transform="matrix(1,0,0,-1,367.8686,414.9971)" d="M0 0V-.597C0-12.972-10.774-22.659-23.065-21.215-74.474-15.174-102.676 10.791-117.869 34.173-133.062 10.791-161.263-15.174-212.672-21.215-224.963-22.659-235.737-12.972-235.737-.597V0C-235.737 10.552-227.808 19.353-217.331 20.612-187.688 24.172-165.916 36.76-152.475 58.157-147.534 66.017-144.385 74.025-142.376 80.86-161.125 83.883-190.272 89.344-224.15 98.364-235.413 101.362-241.972 113.079-238.682 124.26L-238.516 124.824C-235.34 135.615-224.141 141.901-213.27 139.012-183.175 131.015-156.875 125.951-139.16 122.997-125.064 120.646-110.679 120.649-96.582 123.003-78.841 125.966-52.509 131.038-22.466 139.015-11.595 141.902-.398 135.617 2.777 124.827L2.944 124.26C6.234 113.079-.324 101.362-11.587 98.364-45.465 89.344-74.612 83.883-93.361 80.86-91.352 74.025-88.203 66.017-83.262 58.158-69.821 36.76-48.049 24.172-18.406 20.612-7.93 19.354 0 10.552 0 0" fill="#EDEDE6"/>
-    </svg>
-    <h1>Stiamo arrivando.</h1>
-    <p><span class="dot"></span>L'universo OK, presto qui.</p>
-
-    <!-- Otto parole non bastano a nessuno: né a una persona che capita qui
-         per caso, né a un assistente a cui qualcuno chiede chi siamo. Il
-         tono resta quello, il contenuto c'è. -->
-    <p class="dice">
-      OK è la casa di comunicazione di <strong>Massimo Irmici</strong> a
-      <strong>San Severo</strong>, in Capitanata. Identità di marca, grafica,
-      insegne LED al neon, eventi, siti e presenza digitale.
-    </p>
-    <p class="dice">
-      Nel frattempo si lavora: <a href="tel:+393208599301">+39 320 859 9301</a>
-      &nbsp;·&nbsp; <a href="mailto:irmicimassimo2000@gmail.com">irmicimassimo2000@gmail.com</a>
-    </p>
-  </main>
-  <div class="foot">okmondo.com &nbsp;·&nbsp; San Severo (FG)</div>
+<header><img src="assets/ok-mark-nero.svg" alt="OK.mondo"></header>
+<main>
+ <h1>Tu chiedi.<span>OK risponde.</span></h1>
+ <form id="f" role="search" autocomplete="off">
+  <label for="q" style="position:absolute;left:-9999px">Scrivi cosa ti serve</label>
+  <div class="bar"><input id="q" type="text" placeholder="Cosa ti serve? Es. un'insegna" enterkeyhint="go"><button type="submit">Vai</button></div>
+  <div class="chips" aria-label="Esempi"><button type="button">un'insegna per il mio locale</button><button type="button">una lampada stampata in 3D</button><button type="button">biglietti per il mio evento</button><button type="button">un sito e i social</button></div>
+ </form>
+ <div id="out" aria-live="polite"></div>
+</main>
+<footer id="contatti"><span>OK.mondo</span><a href="https://wa.me/393773621181">WhatsApp +39 377 362 1181</a></footer>
+<script>
+const S=[
+ {nome:"OK.3D Design Lab",desc:"Insegne luminose, lampade e oggetti: luce e profondità",href:"ok3d/",k:["3d","stampa","stampare","stampante","stampato","lampad","oggett","prototip","gadget","pezz","design","portachiav","targa","insegn","neon","led","luminos","scritta","vetrina","negozio","locale","ristorante","pizzeria","bar ","pub"]},
+ {nome:"Biglietti per eventi",desc:"OK.TICKETS: registrazioni e biglietti per serate e festival",href:"https://oktickets.it",ext:1,k:["bigliett","ticket","prenotazion","tavol","registrazion","accredit","serata","festival","evento","eventi","discotec"]},
+ {nome:"Eventi, format e service",desc:"Organizzazione, format e service per eventi",href:"eventi/",cost:1,k:["organizz","format","service","allestiment","audio","luci","concert","matrimon","festa"]},
+ {nome:"Comunicazione e web",desc:"Brand, grafica, social, siti e campagne",href:"comunicazione-web/",cost:1,k:["sito","siti","web","social","instagram","grafica","logo","brand","video","pubblicit","seo","volantin","campagn","promozion","marketing","facebook","tiktok"]}
+];
+const norm=t=>(" "+t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ")+" ");
+const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>';
+const q=document.getElementById("q"),out=document.getElementById("out");
+function match(t){const n=norm(t);return S.map(s=>({s,p:s.k.filter(k=>n.includes(k.length<4?" "+k:k)).length})).filter(x=>x.p>0).sort((a,b)=>b.p-a.p).map(x=>x.s)}
+function show(go){
+ const t=q.value.trim();out.innerHTML="";if(!t)return [];
+ const r=match(t);
+ if(!r.length){out.innerHTML='<div class="none">Non ho capito bene. Scegli la porta più vicina: '+S.map(function(x){return '<a href="'+x.href+'">'+x.nome+'</a>'}).join(' · ')+'.</div>';return r}
+ r.forEach(s=>{const a=document.createElement("a");a.className="res";a.href=s.href;if(s.ext){a.target="_blank";a.rel="noopener"}
+  a.innerHTML="<div><b>"+s.nome+(s.cost?'<em class="st" style="font-style:normal">in costruzione</em>':"")+"</b><span>"+s.desc+"</span></div><span class='go'>Vai "+arrow+"</span>";out.appendChild(a)});
+ return r}
+document.getElementById("f").addEventListener("submit",e=>{e.preventDefault();const r=show();if(r&&r.length&&r.length===1&&!r[0].cost)location.href=r[0].href});
+q.addEventListener("input",()=>show());
+document.querySelectorAll(".chips button").forEach(b=>b.addEventListener("click",()=>{q.value=b.textContent;show();q.focus()}));
+</script>
 </body>
 </html>
