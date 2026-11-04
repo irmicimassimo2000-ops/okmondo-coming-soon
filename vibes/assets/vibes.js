@@ -231,6 +231,7 @@ function ridimensiona() {
   const w = Math.max(200, scena.clientWidth), h = Math.max(160, scena.clientHeight);
   R.renderer.setSize(w, h, false); R.composer.setPixelRatio(Math.min(Math.max(devicePixelRatio || 1, 1) * 1.5, 2)); R.composer.setSize(w, h);   // sovracampionato 1,5x: bordi lisci senza MSAA
   R.cam.aspect = w / h; adatta(); R.cam.updateProjectionMatrix();
+  R.composer.render();   // ridisegna subito: un resize cancella il canvas e lo schermo lampeggerebbe
 }
 function adatta() {   // la camera sta alla distanza in cui l'insegna entra con un po' d'aria, in larghezza e in altezza
   const vf = THREE.MathUtils.degToRad(R.cam.fov), asp = R.cam.aspect;
@@ -271,7 +272,7 @@ function caricaMisura(m, primo) {
     R.gruppo.clear(); R.gruppo.add(o);
     const lw = R.W * 1.5; R.alone.scale.set(lw, lw / 3, 1); R.alone.position.set(0, 0, box.min.z - ctr.z - 0.03);
     adatta(); scena.classList.remove("errore", "carica"); scena.classList.add("pronta");
-    $("[data-fig]").textContent = "Fig. 01 · VIBES " + m + " cm · modello 3D";
+    $("[data-fig]").textContent = "VIBES " + m + " × " + D.misure[m].h + " cm · modello 3D";
   }).catch(() => {
     if (m !== s.misura) return;
     errore("Il modello 3D da " + m + " cm non si carica" + (m !== "110" ? ": la foto è la 110 cm." : ": resta il render."));
