@@ -266,6 +266,7 @@ function caricaMisura(m, primo) {
   if (!primo) scena.classList.add("carica");
   p.then(o => {
     if (m !== s.misura) return;   // nel frattempo ha scelto un'altra misura
+    o.position.set(0, 0, 0); o.updateMatrixWorld(true);   // un modello già caricato ha ancora lo spostamento di prima: si riparte da zero, altrimenti l'insegna si decentra
     const box = new THREE.Box3().setFromObject(o), ctr = box.getCenter(new THREE.Vector3());
     R.W = box.max.x - box.min.x; R.H = box.max.y - box.min.y;
     o.position.set(-ctr.x, -ctr.y, 0);
