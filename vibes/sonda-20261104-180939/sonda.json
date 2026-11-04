@@ -1,0 +1,390 @@
+{
+  "meta": {
+    "target": "http://localhost:8947/",
+    "input": "http://localhost:8947/",
+    "timestamp": "20261104-180939",
+    "viewports": [
+      "375x812",
+      "768x1024",
+      "1440x900"
+    ],
+    "dark": true,
+    "reduced_motion": false,
+    "wait": 2.0
+  },
+  "screenshots": [
+    "sonda-20261104-180939\\375x812_light.png",
+    "sonda-20261104-180939\\375x812_dark.png",
+    "sonda-20261104-180939\\768x1024_light.png",
+    "sonda-20261104-180939\\768x1024_dark.png",
+    "sonda-20261104-180939\\1440x900_light.png",
+    "sonda-20261104-180939\\1440x900_dark.png"
+  ],
+  "overflow": [
+    {
+      "viewport": "375x812",
+      "scrollWidth": 375,
+      "innerWidth": 375,
+      "overflow": false
+    },
+    {
+      "viewport": "768x1024",
+      "scrollWidth": 768,
+      "innerWidth": 768,
+      "overflow": false
+    },
+    {
+      "viewport": "1440x900",
+      "scrollWidth": 1440,
+      "innerWidth": 1440,
+      "overflow": false
+    }
+  ],
+  "metrics": {
+    "visibleElementCount": 120,
+    "typography": {
+      "primaryFamily": "geist",
+      "primaryFlagged": false,
+      "distinctSizeCount": 5,
+      "distinctSizes": [
+        12,
+        15,
+        17,
+        24,
+        40
+      ],
+      "modaSize": 17,
+      "maxSize": 40,
+      "ratioMaxToModa": 2.35
+    },
+    "spacing": {
+      "totalValues": 183,
+      "nonMultipleOf4Count": 23,
+      "nonMultipleOf4Pct": 12.6,
+      "examples": [
+        1,
+        6,
+        2,
+        122
+      ]
+    },
+    "radius": {
+      "distinctCount": 2,
+      "distinctValues": [
+        10,
+        99
+      ],
+      "shadowElementCount": 0,
+      "shadowPct": 0,
+      "shadowDistinctCount": 0
+    },
+    "color": {
+      "distinctTextColors": 4,
+      "distinctBgColors": 4,
+      "gradientCount": 2,
+      "gradients": [
+        {
+          "raw": "radial-gradient(60% 55% at 50% 48%, rgb(26, 24, 22) 0%, rgb(13, 13, 13) 78%)",
+          "stops": [
+            {
+              "hex": "#1a1816",
+              "h": 30,
+              "s": 8.3,
+              "l": 9.4
+            },
+            {
+              "hex": "#0d0d0d",
+              "h": 0,
+              "s": 0,
+              "l": 5.1
+            }
+          ],
+          "flaggedVioletBlue": false
+        },
+        {
+          "raw": "linear-gradient(rgb(13, 13, 13), rgba(0, 0, 0, 0))",
+          "stops": [
+            {
+              "hex": "#0d0d0d",
+              "h": 0,
+              "s": 0,
+              "l": 5.1
+            },
+            {
+              "hex": "#000000",
+              "h": 0,
+              "s": 0,
+              "l": 0
+            }
+          ],
+          "flaggedVioletBlue": false
+        }
+      ],
+      "gradientVioletBlueFlagCount": 0
+    },
+    "emoji": {
+      "count": 0,
+      "examples": []
+    },
+    "contrast": {
+      "checked": 63,
+      "fails": 0,
+      "failPct": 0,
+      "undeterminable": 3,
+      "examples": []
+    },
+    "touchTargets": {
+      "totalChecked": 18,
+      "smallCount": 0,
+      "examples": []
+    },
+    "a11y": {
+      "htmlLang": "it",
+      "h1Count": 1,
+      "headingLevelSkips": 0,
+      "hasMain": true,
+      "hasNav": false,
+      "hasHeader": true,
+      "hasFooter": true,
+      "imgMissingAltCount": 0,
+      "imgTotal": 3,
+      "unnamedButtonsLinksCount": 0,
+      "unnamedExamples": [],
+      "inputsMissingLabelCount": 0
+    },
+    "content": {
+      "loremIpsum": false,
+      "ctaGenericTotal": 0,
+      "ctaGenericByPhrase": {}
+    },
+    "structuralTells": {
+      "uniformGroupCount": 3,
+      "uniformGroupDetails": [
+        {
+          "parentSel": "div.seg",
+          "tag": "button",
+          "count": 5
+        },
+        {
+          "parentSel": "tbody",
+          "tag": "tr",
+          "count": 5
+        },
+        {
+          "parentSel": "ul.fatti",
+          "tag": "li",
+          "count": 3
+        }
+      ],
+      "centerTextPct": 9.1,
+      "centerTextCount": 6,
+      "textBlockTotal": 66,
+      "glassmorphismCount": 0
+    },
+    "motion": {
+      "hasReducedMotionMediaQuery": true,
+      "layoutTransitionCount": 0,
+      "longDurationCount": 0,
+      "outlineNoneCount": 0,
+      "outlineNoneWithoutFocusVisible": false,
+      "outlineNoneExamples": []
+    }
+  },
+  "console_errors": [],
+  "exceptions": [],
+  "failed_requests": [],
+  "checks": [
+    {
+      "check": "Font primario generico",
+      "valore": "geist",
+      "soglia": "non in lista black-list",
+      "esito": "PASS"
+    },
+    {
+      "check": "Numero font-size distinte",
+      "valore": "5",
+      "soglia": "<=7",
+      "esito": "PASS"
+    },
+    {
+      "check": "Spaziature non multiple di 4px",
+      "valore": "12.6% (23/183)",
+      "soglia": "<=15%",
+      "esito": "PASS"
+    },
+    {
+      "check": "Border-radius distinti",
+      "valore": "2",
+      "soglia": "<=4",
+      "esito": "PASS"
+    },
+    {
+      "check": "Elementi con box-shadow",
+      "valore": "0%",
+      "soglia": "<=20%",
+      "esito": "PASS"
+    },
+    {
+      "check": "Gradienti viola-blu (tell AI)",
+      "valore": "0",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "Emoji nei nodi di testo",
+      "valore": "0",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "Contrasto WCAG sotto soglia",
+      "valore": "0/63 (0%)",
+      "soglia": "4.5:1 (3:1 se >=24px o >=18.66px bold)",
+      "esito": "PASS"
+    },
+    {
+      "check": "Bersagli di tocco < 24x24",
+      "valore": "0",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "html[lang] presente",
+      "valore": "si",
+      "soglia": "presente",
+      "esito": "PASS"
+    },
+    {
+      "check": "Numero h1",
+      "valore": "1",
+      "soglia": "==1",
+      "esito": "PASS"
+    },
+    {
+      "check": "Salti nei livelli dei titoli",
+      "valore": "0",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "Landmark main/nav/header/footer",
+      "valore": "main=True nav=False header=True footer=True",
+      "soglia": "main presente",
+      "esito": "PASS"
+    },
+    {
+      "check": "img senza alt",
+      "valore": "0/3",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "Bottoni/link senza nome accessibile",
+      "valore": "0",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "Input senza label associata",
+      "valore": "0",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "Lorem ipsum nel contenuto",
+      "valore": "no",
+      "soglia": "assente",
+      "esito": "PASS"
+    },
+    {
+      "check": "CTA generiche (Submit/Click here/...)",
+      "valore": "0",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "Testo centrato",
+      "valore": "9.1% (6/66)",
+      "soglia": "<=40%",
+      "esito": "PASS"
+    },
+    {
+      "check": "Media query prefers-reduced-motion",
+      "valore": "si",
+      "soglia": "presente",
+      "esito": "PASS"
+    },
+    {
+      "check": "Transizioni su proprieta' di layout",
+      "valore": "0",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "Durate animazione >500ms",
+      "valore": "0",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "outline:none senza :focus-visible",
+      "valore": "no",
+      "soglia": "assente",
+      "esito": "PASS"
+    },
+    {
+      "check": "Overflow orizzontale @ 375x812",
+      "valore": "scrollWidth=375 innerWidth=375",
+      "soglia": "scrollWidth <= innerWidth",
+      "esito": "PASS"
+    },
+    {
+      "check": "Overflow orizzontale @ 768x1024",
+      "valore": "scrollWidth=768 innerWidth=768",
+      "soglia": "scrollWidth <= innerWidth",
+      "esito": "PASS"
+    },
+    {
+      "check": "Overflow orizzontale @ 1440x900",
+      "valore": "scrollWidth=1440 innerWidth=1440",
+      "soglia": "scrollWidth <= innerWidth",
+      "esito": "PASS"
+    },
+    {
+      "check": "Errori console",
+      "valore": "0",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "Eccezioni JS non gestite",
+      "valore": "0",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "Richieste di rete fallite",
+      "valore": "0",
+      "soglia": "0",
+      "esito": "PASS"
+    },
+    {
+      "check": "axe: violazioni critical+serious",
+      "valore": "0 (critical=0 serious=0 moderate=0 minor=0, tot=0)",
+      "soglia": "0 (WARN se solo moderate)",
+      "esito": "PASS"
+    }
+  ],
+  "axe": {
+    "executed": true,
+    "version": "4.13.0",
+    "violationCount": 0,
+    "byImpact": {
+      "critical": 0,
+      "serious": 0,
+      "moderate": 0,
+      "minor": 0
+    },
+    "rules": []
+  }
+}

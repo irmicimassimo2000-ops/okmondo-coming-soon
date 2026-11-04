@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0A0A0A">
+<title>VIBES · Insegna 3D luminosa · OK.3D</title>
+<meta name="description" content="Provala in 3D: lettere scatolate luminose V B E S e fulmine acceso, cinque misure da 80 a 120 cm, telecomandino con tre effetti.">
+<link rel="icon" href="assets/img/ok3d_marchio-disco_rosso.svg" type="image/svg+xml">
+<link rel="preload" href="assets/font/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/vibes.css?v=20261104c">
+<script type="importmap">{ "imports": { "three": "./assets/vendor/three-r185/build/three.module.min.js", "three/addons/": "./assets/vendor/three-r185/jsm/" } }</script>
+</head>
+<body>
+
+<header class="top">
+  <a class="id" href="#top" aria-label="OK.3D"><img src="assets/img/ok3d_marchio-disco_rosso.svg" alt="" width="36" height="36"><b>OK.3D</b></a>
+  <nav class="mono" aria-label="Sezioni"><a href="#prezzi">Prezzi</a><a href="#vicino">Da vicino</a><a href="#parete">Sulla tua parete</a></nav>
+</header>
+
+<main id="top">
+<h1 class="vh">VIBES, insegna 3D luminosa, proposta di OK.3D</h1>
+<!-- ============ LA CONVERSAZIONE: la richiesta, la risposta col pezzo, le scelte ============ -->
+<section class="conv" aria-label="Insegna VIBES in 3D">
+  <div class="conv-in">
+    <div class="colonna-3d">
+      <div class="voce tu"><p class="bolla">Vorrei l'insegna VIBES, con il fulmine acceso.</p></div>
+      <div class="voce ok"><img class="avatar" src="assets/img/ok3d_marchio-disco_rosso.svg" alt="" width="40" height="40"><p class="bolla">Bella. Si può fare.</p></div>
+
+      <section class="stage" data-scena aria-label="Insegna VIBES in 3D: trascina di lato per girarla">
+        <img class="scena-foto" data-foto src="assets/img/vibes-acceso-tre-quarti.webp" width="1800" height="1125" alt="Insegna VIBES accesa in rosso: lettere scatolate nere con il LED visibile dietro la griglia e il fulmine opale illuminato">
+        <canvas class="tela" data-tela tabindex="0" aria-label="Insegna VIBES in 3D. Trascina di lato per girarla; frecce della tastiera per ruotare, più e meno per avvicinarsi, zero per ripartire."></canvas>
+        <div class="icone-palco">
+          <button type="button" class="ico" data-quote aria-pressed="false" aria-label="Mostra le quote in centimetri"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M3 15h14M3 12.5v5M17 12.5v5M6 6h8M10 3.5v5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+          <button type="button" class="ico" data-giorno="0" aria-pressed="true" aria-label="Sala soffusa"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
+          <button type="button" class="ico" data-giorno="1" aria-pressed="false" aria-label="Sala con la luce accesa"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M7.2 14.5c-1.5-1-2.4-2.6-2.4-4.4a5.2 5.2 0 0 1 10.4 0c0 1.8-.9 3.4-2.4 4.4v1.3H7.2zM7.8 18h4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+        <svg class="quote" data-quote-svg aria-hidden="true"></svg>
+        <p class="fig mono" data-fig>VIBES · 110 cm · modello 3D</p>
+        <p class="stato-3d mono" data-stato3d role="status" aria-live="polite"><span class="punti" aria-hidden="true"><i></i><i></i><i></i></span><span data-stato-testo>Sta scrivendo</span></p>
+        <p class="aiuto-gesto mono" data-aiuto aria-hidden="true">Trascina di lato</p>
+      </section>
+
+      <div class="voce ok"><img class="avatar" src="assets/img/ok3d_marchio-disco_rosso.svg" alt="" width="40" height="40"><p class="bolla">È venuto. <span class="num" data-dimensioni>110 × 29 cm, profondità 4 cm.</span></p></div>
+    </div>
+
+    <div class="colonna-comandi">
+      <p class="mono voce-et">Tu · Che misura?</p>
+      <div class="voce tu scelte" role="radiogroup" aria-label="Misura in centimetri" data-misure>
+        <button type="button" class="chip" role="radio" data-misura="80"  aria-checked="false" tabindex="-1">80 cm</button>
+        <button type="button" class="chip" role="radio" data-misura="90"  aria-checked="false" tabindex="-1">90 cm</button>
+        <button type="button" class="chip" role="radio" data-misura="100" aria-checked="false" tabindex="-1">100 cm</button>
+        <button type="button" class="chip" role="radio" data-misura="110" aria-checked="true"  tabindex="0">110 cm</button>
+        <button type="button" class="chip" role="radio" data-misura="120" aria-checked="false" tabindex="-1">120 cm</button>
+      </div>
+
+      <p class="mono voce-et">Tu · E la luce?</p>
+      <div class="voce tu scelte">
+        <button type="button" class="chip chip-sw" role="switch" aria-checked="true" data-acceso><span class="testo-sw">Accesa</span></button>
+        <button type="button" class="chip chip-sw" role="switch" aria-checked="false" data-tele aria-describedby="nota-tele"><span class="testo-sw">Con telecomandino <b>+30 €</b></span></button>
+      </div>
+      <div class="voce ok" data-nota-tele id="nota-tele"><img class="avatar" src="assets/img/ok3d_marchio-disco_rosso.svg" alt="" width="40" height="40"><p class="bolla bolla-s">Senza telecomandino la luce è fissa. Con il telecomandino scegli tre effetti e la velocità, per 30 € in più.</p></div>
+
+      <div class="voce ok tele" data-telecomando hidden role="group" aria-label="Telecomandino: effetti della luce">
+        <img class="avatar" src="assets/img/ok3d_marchio-disco_rosso.svg" alt="" width="40" height="40">
+        <div class="bolla bolla-tele">
+          <div class="testa-tele mono"><span>Telecomandino · effetti</span><span class="spia" data-spia aria-hidden="true"></span></div>
+          <div class="effetti" role="group" aria-label="Effetto">
+            <button type="button" class="chip-o" data-effetto="fisso" aria-pressed="true">Fisso</button>
+            <button type="button" class="chip-o" data-effetto="fade" aria-pressed="false">Fade</button>
+            <button type="button" class="chip-o" data-effetto="flash" aria-pressed="false">Flash</button>
+            <button type="button" class="chip-o" data-effetto="strobe" aria-pressed="false">Strobe</button>
+          </div>
+          <button type="button" class="chip-o rapido" data-rapido aria-pressed="false" hidden>Mostra la velocità massima</button>
+          <p class="nota avviso" data-avviso hidden>Lampeggi rapidi: non guardare se sei sensibile alle luci intermittenti. Sull'insegna vera la velocità è quella del telecomando.</p>
+          <label class="velocita"><span class="mono" id="et-vel">Velocità</span>
+            <input type="range" min="0" max="1" step="0.01" value="0.45" data-velocita aria-labelledby="et-vel">
+            <span class="vel-val mono" data-vel-val>media</span>
+          </label>
+          <p class="nota" data-nota-effetto>Fade: sale e scende. Flash: si accende e si spegne. Strobe: lampi brevi, fino a tre al secondo.</p>
+        </div>
+      </div>
+
+      <div class="voce ok conto">
+        <img class="avatar" src="assets/img/ok3d_marchio-disco_rosso.svg" alt="" width="40" height="40">
+        <div class="bolla bolla-conto">
+          <p class="cosa-conto" data-descrizione>Insegna VIBES 110 cm</p>
+          <p class="prezzo num" data-prezzo>337 €</p>
+          <p class="mono risposta">Ti rispondiamo entro un giorno.</p>
+          <a class="btn-bianco" data-scegli href="#">Richiedi questa insegna</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MISURE E PREZZI ============ -->
+<section class="sec" id="prezzi" aria-labelledby="t-prezzi">
+  <h2 id="t-prezzi">Misure e prezzi</h2>
+  <p class="sub">Tocca una riga per vederla in 3D. Il telecomandino con i tre effetti è un'opzione da 30 €.</p>
+  <div class="tab-scroll">
+  <table class="tp" data-tabella>
+    <thead><tr><th scope="col" class="mono">Misura</th><th scope="col" class="n mono">Insegna</th><th scope="col" class="n mono">Con telecomandino +30 €</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+  <p class="nota-tab">Prezzi indicativi per la sola insegna, con alimentatore, cablaggio e barre di fissaggio. IVA, trasporto e posa: da definire. Misure non ancora confermate dal cliente.</p>
+  <a class="btn" href="assets/doc/VIBES-preventivo-indicativo.pdf" data-pdf download>Scarica il preventivo con tutte le misure (PDF)</a>
+</section>
+
+<!-- ============ DA VICINO ============ -->
+<section class="sec scura" id="vicino" aria-labelledby="t-vicino">
+  <div class="sec-in">
+  <h2 id="t-vicino">Da vicino</h2>
+  <div class="voce ok"><img class="avatar" src="assets/img/ok3d_marchio-disco_bianco.svg" alt="" width="40" height="40"><p class="bolla">È venuto.</p></div>
+  <div class="ditt">
+    <figure><img loading="lazy" src="assets/img/vibes-acceso-fronte.webp" width="1800" height="1125" alt="Insegna VIBES accesa vista di fronte"><figcaption class="mono">Di fronte</figcaption></figure>
+    <figure><img loading="lazy" src="assets/img/vibes-acceso-basso.webp" width="1800" height="1125" alt="Insegna VIBES accesa vista dal basso a sinistra"><figcaption class="mono">Da sotto, 4 cm di profondità</figcaption></figure>
+  </div>
+  <ul class="fatti">
+    <li><b>Lettere separate</b><span>V, B, E, S sono quattro casse nere, ognuna con il suo LED e la sua griglia.</span></li>
+    <li><b>Il fulmine</b><span>Un frontale opale acceso da una strip LED sul bordo: è la parte più luminosa.</span></li>
+    <li><b>Fissaggio</b><span>Due barre sul muro, centrate: le lettere si agganciano senza viti a vista.</span></li>
+  </ul>
+  <p class="nota-tab">Le immagini sono render del modello 3D, non fotografie del prodotto finito.</p>
+  </div>
+</section>
+
+<!-- ============ PARETE ============ -->
+<section class="sec" id="parete" aria-labelledby="t-parete">
+  <h2 id="t-parete">Sulla tua parete</h2>
+  <div class="voce tu"><p class="bolla">Come starebbe sul nostro muro?</p></div>
+  <div class="voce ok"><img class="avatar" src="assets/img/ok3d_marchio-disco_rosso.svg" alt="" width="40" height="40"><p class="bolla">Mandaci la foto, con una porta o la console nell'inquadratura. Ti rimandiamo la simulazione con la misura giusta.</p></div>
+  <a class="btn" data-foto-parete href="#">Manda la foto su WhatsApp</a>
+</section>
+
+<section class="sec fine" id="scegli" data-cta aria-labelledby="t-scegli">
+  <div class="campo-rosso">
+    <h2 id="t-scegli">Hai scelto? Scrivici.</h2>
+    <p class="riepilogo"><span data-descrizione></span>: <b data-prezzo></b></p>
+    <div class="azioni">
+      <a class="btn-bianco" data-scegli href="#">Richiedi questa insegna</a>
+      <button type="button" class="btn-bianco o" data-condividi>Manda al socio</button>
+    </div>
+    <p class="stato-cond mono" data-stato-cond role="status" aria-live="polite"></p>
+  </div>
+</section>
+</main>
+
+<footer><span>OK.3D Design Lab · okmondo.com</span><span>Proposta per Vibes Gargano · prezzi indicativi, da confermare</span></footer>
+
+<aside class="barra-fissa" data-barra aria-label="La tua scelta">
+  <div class="testo-barra"><div class="cosa" data-descrizione></div></div>
+  <a class="pillola" data-scegli href="#"><b class="num" data-prezzo>337 €</b><span class="mono">Richiedi</span></a>
+</aside>
+
+<script src="assets/dati.js?v=20261104c"></script>
+<script type="module" src="assets/vibes.js?v=20261104c"></script>
+</body>
+</html>
