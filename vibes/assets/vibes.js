@@ -19,7 +19,7 @@ const EFFETTI = ["fisso", "fade", "flash", "strobe"];
 /* ---------------- stato (vive nell'URL) ---------------- */
 const q = new URLSearchParams(location.search);
 const s = {
-  misura: MISURE.includes(q.get("misura")) ? q.get("misura") : "110",
+  misura: MISURE.includes(q.get("misura")) ? q.get("misura") : "120",
   tele: q.get("tele") === "1",
   effetto: EFFETTI.includes(q.get("effetto")) ? q.get("effetto") : "fisso",
   vel: q.has("vel") ? Math.min(1, Math.max(0, +q.get("vel"))) : 0.45,
@@ -276,7 +276,7 @@ function caricaMisura(m, primo) {
     $("[data-fig]").textContent = "VIBES " + m + " × " + D.misure[m].h + " cm · modello 3D";
   }).catch(() => {
     if (m !== s.misura) return;
-    errore("Il modello 3D da " + m + " cm non si carica" + (m !== "110" ? ": la foto è la 110 cm." : ": resta il render."));
+    errore("Il modello 3D da " + m + " cm non si carica" + ": resta il render.");
   });
 }
 function cambiaMisura(m) { s.misura = m; caricaMisura(m); }
