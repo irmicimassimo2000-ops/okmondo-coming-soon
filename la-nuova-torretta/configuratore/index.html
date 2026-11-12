@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A0A0A">
+<meta name="robots" content="noindex">
+<title>Configuratore · La Nuova Torretta · OK.3D</title>
+<link rel="icon" href="ok3d_marchio-disco_rosso.svg" type="image/svg+xml">
+<link rel="preload" href="font/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="base6.css">
+<style>
+/* A5 «Creatore» (A3 + strati del lotto), A3 giro 2: pannello 280 px (era 348), dock 76 (era 92), tessere a 2 colonne, spiegazione del prezzo nella fascia d'azione. A2, giro 1: Anteprima grande, marchio e strumenti SOPRA l'immagine (nessuna fascia), una sola fascia d'azione (prezzo + invio),
+   dock delle categorie (colonna a sinistra su desktop, riga in basso su telefono), pannello della categoria attiva. */
+html, body { height: 100%; overflow: hidden; }
+.app { height: 100dvh; display: grid; grid-template-columns: 76px 280px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 76px;
+  grid-template-areas: "dock panel stage" "dock panel buy"; }
+.dock { grid-area: dock; display: flex; flex-direction: column; gap: var(--s1); padding: var(--s3) var(--s2); border-right: 1px solid var(--linea); overflow-y: auto; }
+.dock button { position: relative; display: grid; gap: var(--s1); justify-items: center; padding: var(--s3) 0 var(--s2); border-radius: var(--rd2); color: var(--g); transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
+.dock button:hover { color: var(--w); background: var(--n2); }
+.dock button[aria-pressed="true"] { color: var(--w); background: var(--n2); box-shadow: inset 0 0 0 1px var(--linea); }
+.dock .lk { position: absolute; top: var(--s2); right: var(--s2); color: var(--w); }
+.dock .lk svg { width: 12px; height: 12px; }
+.panel { grid-area: panel; overflow-y: auto; padding: var(--s4) var(--s4) var(--s6); border-right: 1px solid var(--linea); }
+.panel header { display: flex; align-items: center; justify-content: space-between; min-height: var(--tap); margin-bottom: var(--s4); }
+.panel h2 { font-size: var(--t22); font-weight: 700; letter-spacing: -.03em; }
+.panel .hd-ico { display: flex; gap: var(--s1); }
+.panel .close { display: none; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+.grid.due { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 899px) { .grid:not(.due) { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.cols { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.cols button { position: relative; width: var(--tap); height: var(--tap); border-radius: 50%; }
+.cols .sw { display: block; width: var(--tap); height: var(--tap); border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+.cols button[aria-checked="true"] .sw { box-shadow: 0 0 0 2px var(--n), 0 0 0 4px var(--w); }
+.cols .todo { top: -2px; right: -2px; width: 16px; height: 16px; background: var(--n); border-radius: 50%; }
+.nota { margin-top: var(--s4); color: var(--g); }
+
+.buy { grid-area: buy; display: flex; align-items: center; gap: var(--s4); padding: 0 var(--s5); border-top: 1px solid var(--linea); }
+.buy .btn { margin-left: auto; }
+.pnota { flex: 1 1 0; min-width: 0; color: var(--g); }
+.pnota:empty { display: none; }
+
+@media (max-width: 899px) {
+  .app { display: flex; flex-direction: column; }
+  .stage { order: 1; flex: 1 1 0; min-height: 45dvh; }
+  .buy { order: 2; flex: none; flex-wrap: wrap; min-height: 60px; padding: var(--s2) var(--s4); gap: var(--s1) var(--s3); }
+  .pnota { order: -1; flex: 1 0 100%; }
+  .panel { order: 3; flex: none; max-height: 0; padding: 0 var(--s4); overflow: hidden; border: 0; border-top: 1px solid var(--linea); transition: max-height var(--dur-p) var(--ease), padding var(--dur-p) var(--ease); }
+  .panel.open { max-height: calc(55dvh - 118px - var(--nh, 0px) - env(safe-area-inset-bottom)); overflow-y: auto; padding: var(--s1) var(--s4) var(--s3); }
+  .panel header { position: sticky; top: 0; z-index: 2; background: var(--n); margin-bottom: var(--s1); }
+  .panel .close { display: grid; }
+  .dock { order: 4; flex: none; flex-direction: row; gap: 0; padding: 0 var(--s1) env(safe-area-inset-bottom); border: 0; border-top: 1px solid var(--linea); overflow: visible; }
+  .dock button { flex: 1 1 0; min-width: 0; padding: var(--s2) 0 var(--s1); min-height: 56px; }
+  .dock .lk { right: var(--s1); top: var(--s1); }
+  .tess { min-height: 76px; padding: var(--s2) var(--s2) var(--s2); }
+  .tess .mini { height: 32px; }
+  .grid.comp .tess { min-height: 54px; padding: var(--s1); gap: 0; }
+  .grid.comp .tess .mini { height: 22px; }
+  .grid.comp .tess .mini svg { height: 22px; width: auto; margin: 0 auto; }
+  .marchio b { font-size: 17px; }
+}
+.esig { font-weight: 600; letter-spacing: -.02em; white-space: nowrap; }
+@media (max-width: 899px) { .esig { order: -3; flex: 1 0 100%; font-size: 15px; } .app[data-open="true"] .esig { display: none; } }
+</style></head>
+<body>
+<main class="app" id="app" data-phase="loading">
+  <h1 class="vh">Configuratore insegna La Nuova Torretta, OK.3D</h1>
+  <nav class="dock" id="dock" aria-label="Categorie"></nav>
+  <section class="panel" id="panel" role="region" aria-label="Scatola"></section>
+  <div class="stage" id="stage" data-phase="loading">
+    <img class="bgwall" src="strati_a4/wall_sera.webp" alt="">
+    <div class="sq" id="sq" role="img" aria-busy="true" aria-label="Anteprima dell'insegna La Nuova Torretta"></div>
+    <div class="sq-stato" id="stato" role="status" data-p="loading"><p class="skel-txt">Carico l’anteprima</p></div>
+    <div class="marchio"><img src="ok3d_marchio-disco_rosso.svg" alt="" width="32" height="32"><b>OK.3D</b></div>
+    <div class="tools" role="toolbar" aria-label="Strumenti">
+      <button class="ico" id="undo" aria-label="Annulla" title="Annulla"></button>
+      <button class="ico" id="redo" aria-label="Ripristina" title="Ripristina"></button>
+      <button class="ico" id="reset" aria-label="Ricomincia" title="Ricomincia"></button>
+      <button class="ico" id="dice" aria-label="Scelta a caso" title="Scelta a caso, rispetta i lucchetti"></button>
+      <button class="ico" id="copy" aria-label="Copia la scelta" title="Copia la scelta"></button>
+    </div>
+    <div class="sq-nota" id="nota" role="status"></div>
+    <button class="zoom" id="zoom" aria-pressed="false" hidden><span id="zoomIco"></span><span id="zoomTxt">Ingrandisci il bordo</span></button>
+  </div>
+  <div class="buy">
+    <p class="esig" id="esig">Come vuoi che si veda la tua insegna?</p>
+    <div class="prezzo"><b id="eur" class="num" role="status">da 450 €</b><small id="sub" class="mono">100 cm · stima</small></div>
+    <p class="pnota mono" id="pnota"></p>
+    <button class="btn pieno" id="wa"><span id="waIco"></span>Scrivi a OK.3D</button>
+  </div>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<script src="core6.js"></script>
+<script>
+'use strict';
+const C = Cfg, $ = id => document.getElementById(id);
+const locks = new Set(); let cur = 'costr', open = false, zoomed = false;
+const phone = () => matchMedia('(max-width: 899px)').matches;
+['undo', 'redo', 'reset', 'dice', 'copy'].forEach(k => $(k).innerHTML = C.ICON[k]); $('waIco').innerHTML = C.ICON.send; $('zoomIco').innerHTML = C.ICON.zoom;
+const lockIco = '<span class="lk" aria-hidden="true">' + C.ICON.lock + '</span>';
+$('dock').innerHTML = C.CAT.map(c => '<button data-k="' + c.k + '" aria-pressed="false" aria-controls="panel" aria-label="' + c.t + '">' + C.ICON[c.k] + '<span class="mono">' + c.t + '</span></button>').join('');
+
+/* aggiorna i nodi senza ricrearli: il focus, la transizione e l'annuncio restano dove sono */
+function morph(a, b) {
+  [...a.attributes].forEach(x => { if (!b.hasAttribute(x.name)) a.removeAttribute(x.name); });
+  [...b.attributes].forEach(x => { if (a.getAttribute(x.name) !== x.value) a.setAttribute(x.name, x.value); });
+  const ca = [...a.childNodes], cb = [...b.childNodes];
+  if (ca.length !== cb.length || ca.some((n, i) => n.nodeType !== cb[i].nodeType || (n.nodeType === 1 && n.tagName !== cb[i].tagName))) { a.innerHTML = b.innerHTML; return; }
+  ca.forEach((n, i) => { if (n.nodeType === 3) { if (n.nodeValue !== cb[i].nodeValue) n.nodeValue = cb[i].nodeValue; } else if (!n.isEqualNode(cb[i])) morph(n, cb[i]); });
+}
+function patch(host, html) {
+  const t = document.createElement('template'); t.innerHTML = html;
+  const ca = [...host.children], cb = [...t.content.children];
+  if (ca.length !== cb.length || ca.some((n, i) => n.tagName !== cb[i].tagName || n.className !== cb[i].className)) { host.innerHTML = html; return; }
+  ca.forEach((n, i) => { if (!n.isEqualNode(cb[i])) morph(n, cb[i]); });
+}
+
+function tess(cat, o, s) {
+  const st = C.status(cat, o.v, s), sel = s[cat] === o.v;
+  const mini = cat === 'vista' ? C.ICON[o.v === 'sera' ? 'moon' : 'sun'] : (C.THUMB[cat] || {})[o.v] || '';
+  const nr = (NOREND[cat] || {})[o.v] && !sel, sub = nr ? NOREND[cat][o.v] : C.delta(cat, o.v, s);
+  return '<button class="tess" role="radio" data-c="' + cat + '" data-v="' + o.v + '" aria-checked="' + sel + '" tabindex="' + (sel ? 0 : -1) + '"' + (st === 'off' || nr ? ' aria-disabled="true"' : '') +
+    (st === 'dafare' ? ' title="Non abbiamo ancora l’immagine"' : '') + '>' +
+    (st === 'dafare' ? '<span class="todo" aria-hidden="true">' + C.ICON.todo + '</span>' : '') + '<span class="mini">' + mini + '</span><span><span class="nome">' + o.t + '</span>' +
+    (sub ? '<span class="sub mono num">' + sub + '</span>' : '') + (st === 'dafare' ? '<span class="vh">, immagine non ancora disponibile</span>' : '') + '</span></button>';
+}
+const NOTE = {
+  costr: () => 'Lettere e casa dentro la scatola, davanti un fronte trasparente. Il pannello unico lo prepariamo noi.',
+  luce: () => 'Con le lettere accese il prezzo parte «da»: lo confermiamo noi.',
+  fondo: s => 'Erba +100 €, mattoncino +70 €.' + (s.w === '120' ? ' A 120 cm l’erba la confermiamo noi.' : ''),
+  stile: () => 'Il bordo liscio è già nel prezzo; per gli altri lo confermiamo noi.',
+  w: () => 'Cambia misura e prezzo; l’immagine resta quella da 100 cm.'
+};
+const Q = { costr: 'Che insegna vuoi?', luce: 'Come vuoi che si accenda?', fondo: 'Cosa c’è dietro le lettere?', stile: 'Che bordo vuoi?', col: 'Di che colore il bordo?', w: 'Quanto grande?', vista: 'Di sera o di giorno?' };
+const NOREND = { costr: { pannello: 'Te lo mostriamo noi' }, stile: { archetti: 'In preparazione' } };
+function render(s) {
+  const c = C.CAT.find(x => x.k === cur), pan = s.costr === 'pannello', grp = cat => C.OPT[cat].map(o => tess(cat, o, s)).join('');
+  const rg = (cls, t) => '<div class="' + cls + '" role="radiogroup" aria-label="' + t + '">';
+  let h = '';
+  if (cur === 'fondo') h = rg('grid', 'Fondo') + grp('fondo') + '</div>';
+  else if (cur === 'stile') h = rg('grid comp', 'Bordo') + grp('stile') + '</div>';
+  else if (cur === 'col') h = rg('cols', 'Colore del bordo') + C.OPT.col.map(o => {
+    const sel = s.col === o.v;
+    return '<button role="radio" data-c="col" data-v="' + o.v + '" aria-checked="' + sel + '" tabindex="' + (sel ? 0 : -1) + '"' + (pan ? ' aria-disabled="true"' : '') + ' aria-label="' + o.t + '"><span class="sw" style="background:' + o.hex + '"></span></button>';
+  }).join('') + '</div><p class="nota mono">' + C.label('col', s.col) + ' · la tinta esatta te la confermiamo noi</p>';
+  else h = rg('grid due', c.t) + grp(cur) + '</div>';
+  if (NOTE[cur]) h += '<p class="nota mono">' + NOTE[cur](s) + '</p>';
+  const off = pan && ['luce', 'fondo', 'stile', 'col'].includes(cur);
+  $('panel').setAttribute('aria-label', c.t);
+  patch($('panel'), '<header><h2>' + (Q[cur] || c.t) + '</h2><div class="hd-ico"><button class="ico" id="lock" aria-pressed="' + locks.has(cur) + '" aria-label="Blocca nel casuale" title="Blocca nel casuale">' +
+    C.ICON[locks.has(cur) ? 'lock' : 'unlock'] + '</button><button class="ico close" id="close" aria-label="Chiudi">' + C.ICON.close + '</button></div></header>' + h +
+    (off ? '<p class="nota mono">Con il pannello unico non si sceglie.</p>' : ''));
+  document.querySelectorAll('#dock button').forEach(b => {
+    b.setAttribute('aria-pressed', String(b.dataset.k === cur && (!phone() || open)));
+    const had = b.querySelector('.lk'); if (had && !locks.has(b.dataset.k)) had.remove(); if (!had && locks.has(b.dataset.k)) b.insertAdjacentHTML('beforeend', lockIco);
+  });
+  $('panel').classList.toggle('open', open); $('app').dataset.open = String(open);
+}
+const ZOOMABLE = ['corda', 'pietra'];
+function zoomUI(s) {
+  const e = C.eff(s), can = phone() && s.costr === 'scatolata' && ZOOMABLE.includes(e.stile);
+  if (!can) zoomed = false;
+  $('zoom').hidden = !can || C.phase === 'error'; $('zoom').setAttribute('aria-pressed', String(zoomed)); $('zoomTxt').textContent = zoomed ? 'Torna all’insegna intera' : 'Ingrandisci il bordo';
+  $('stage').classList.toggle('zoomed', zoomed);
+}
+const STATO = {
+  loading: '<p class="skel-txt">Carico l’anteprima</p>',
+  error: '<p>Non riesco a caricare l’anteprima. Puoi comunque scriverci la tua scelta.</p><button class="btn" id="retry">Riprova</button>',
+  switching: '<p>Aggiorno l’anteprima…</p>'
+};
+C.onPhase(p => {
+  $('app').dataset.phase = p; $('stage').dataset.phase = p;
+  const st = $('stato'); if (st.dataset.p !== p) { st.dataset.p = p; st.innerHTML = STATO[p] || ''; }
+  $('sq').setAttribute('aria-busy', String(p !== 'ready'));
+  const err = p === 'error';
+  if (C.state) { priceUI(C.state); zoomUI(C.state); }
+});
+function priceUI(s) {
+  const pt = C.priceText(s), err = C.phase === 'error';
+  $('eur').textContent = pt.main; $('pnota').textContent = pt.note;
+  $('sub').textContent = err ? C.eff(s).w + ' cm · anteprima non caricata' : C.eff(s).w + ' cm · stima';
+  $('app').style.setProperty('--nh', pt.note && phone() ? ($('pnota').offsetHeight + 4) + 'px' : '0px');
+}
+C.on(s => {
+  render(s);
+  $('sq').setAttribute('aria-label', 'Anteprima dell’insegna La Nuova Torretta: ' + C.describe(s) + (s.costr === 'pannello' ? '. Si vede la scatola a vetrina: il pannello unico te lo mostriamo noi' : ''));
+  priceUI(s); zoomUI(s);
+  diceLabel(s);
+  $('undo').disabled = !C.canUndo; $('redo').disabled = !C.canRedo;
+});
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-c]'); if (t && t.getAttribute('aria-disabled') !== 'true') { C.set(t.dataset.c, t.dataset.v); return; }
+  const r = e.target.closest('#dock button'); if (r) { if (phone() && open && cur === r.dataset.k) open = false; else { cur = r.dataset.k; open = true; } render(C.state); zoomUI(C.state); return; }
+  if (e.target.closest('#close')) { open = false; render(C.state); return; }
+  const l = e.target.closest('#lock'); if (l) { locks.has(cur) ? locks.delete(cur) : locks.add(cur); render(C.state); return; }
+  if (e.target.closest('#retry')) { C.retry(); return; }
+  if (e.target.closest('#zoom')) { zoomed = !zoomed; zoomUI(C.state); return; }
+});
+/* radiogroup: le frecce spostano e scelgono; Tab entra sul selezionato (tabindex a rotazione) */
+document.addEventListener('keydown', e => {
+  const r = e.target.closest && e.target.closest('[role="radio"]'); if (!r || !/^Arrow(Left|Right|Up|Down)$/.test(e.key)) return;
+  const g = r.closest('[role="radiogroup"]'), all = [...g.querySelectorAll('[role="radio"]')];
+  if (!all.length) return; e.preventDefault();
+  const i = all.indexOf(r), n = all[(i + (/Right|Down/.test(e.key) ? 1 : -1) + all.length) % all.length];
+  if (n.getAttribute('aria-disabled') !== 'true') C.set(n.dataset.c, n.dataset.v); n.focus();
+});
+const toast = m => { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2200); };
+$('undo').onclick = () => C.undo(); $('redo').onclick = () => C.redo(); $('reset').onclick = () => C.reset();
+function diceLabel() { $('dice').setAttribute('aria-label', 'Scelta a caso'); $('dice').title = 'Scelta a caso, rispetta i lucchetti'; }
+$('dice').onclick = () => {
+  const r = C.random(locks);
+  if (!r) { toast('Con questi blocchi non resta nulla da mischiare'); return; }
+  toast('Pescata a caso');
+};
+$('copy').onclick = async () => { toast(await C.copy() ? 'Scelta copiata' : 'Copia non riuscita'); };
+$('wa').onclick = () => { if (!$('wa').disabled) C.openWA(); };
+C.mountPreview($('sq'));
+addEventListener('resize', () => { render(C.state); zoomUI(C.state); priceUI(C.state); });
+</script></body></html>

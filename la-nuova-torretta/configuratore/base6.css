@@ -1,0 +1,117 @@
+/* Token · direzione A «Creatore», giro 1 · estetica OK.3D «Conversazione» (Geist, nero #0A0A0A, rosso #E20612 solo per l'azione)
+   Superfici a riposo: due (--n pagina, --n2 tessera). --n3 solo per hover e pressione. Corpi: mono 12 · sans 14/600 · sans 22/700 (+ la scritta del marchio). */
+@font-face { font-family: "Geist"; src: url("font/geist-latin.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url("font/geist-mono-latin.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+:root {
+  color-scheme: dark;
+  --n: #0A0A0A; --n2: #151515; --n3: #222; --w: #fff; --g: #a7a29d; --r: #E20612;
+  --linea: rgba(255,255,255,.14); --velo: rgba(10,10,10,.76);
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px;
+  --rd1: 8px; --rd2: 16px; --rdp: 99px;
+  --tap: 44px;
+  --dur: 160ms; --dur-f: 120ms; --dur-p: 200ms; --ease: cubic-bezier(.21, 1, .36, 1);
+  --t12: 12px; --t14: 14px; --t22: 22px;
+}
+@media (prefers-reduced-motion: reduce) { :root { --dur: 0ms; --dur-f: 0ms; --dur-p: 0ms; } .sq-stato, [data-phase="switching"] [aria-checked="true"] { animation: none !important; } }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: var(--n); color: var(--w); font: 400 var(--t14)/1.4 "Geist", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+svg { display: block; }
+:focus-visible { outline: 2px solid var(--w); outline-offset: 2px; }
+.mono { font-family: "Geist Mono", ui-monospace, monospace; font-size: var(--t12); font-weight: 400; }
+.num { font-variant-numeric: tabular-nums lining-nums; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* ---- anteprima a strati: il quadrato è ritagliato sul riquadro ---- */
+.stage { position: relative; overflow: hidden; container-type: size; background: #3a2f20; isolation: isolate; }
+.stage .bgwall { position: absolute; inset: -10%; width: 120%; height: 120%; object-fit: cover; filter: blur(28px) saturate(1.05); opacity: .95; }
+.sq {
+  --S: min(calc(100cqw / .90), calc(100cqh / .72));
+  position: absolute; width: var(--S); height: var(--S);
+  left: calc(50cqw - .52 * var(--S)); top: calc(50cqh - .52 * var(--S));
+  isolation: isolate; background: #000;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent), linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent), linear-gradient(to right, transparent, #000 5%, #000 95%, transparent); mask-composite: intersect;
+}
+.sq > img, .sq > .grp, .sq .tint { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sq > .grp { isolation: isolate; }
+.sq .grp img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sq .tint { mix-blend-mode: multiply; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; background: var(--tint, #888); }
+.sq .rf { transform: translate(-.09%, .06%); }
+.sq .mul { mix-blend-mode: multiply; } .sq .plus { mix-blend-mode: plus-lighter; }
+.sq .f { transition: opacity var(--dur-f) linear; }
+.sq .off { opacity: 0; pointer-events: none; }
+/* un solo avviso sull'immagine: dice che cosa è stato sostituito */
+.sq-nota { position: absolute; left: var(--s3); top: calc(var(--tap) + var(--s5) + var(--s1)); z-index: 3; max-width: calc(100% - 2 * var(--s3)); padding: var(--s2) var(--s3); border-radius: var(--rd2);
+  background: var(--velo); color: var(--w); font: 400 var(--t12)/1.4 "Geist Mono", monospace; opacity: 0; transform: translateY(4px); transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); pointer-events: none; }
+.sq-nota.on { opacity: 1; transform: none; }
+.marchio, .tools { position: absolute; z-index: 3; top: var(--s3); background: var(--velo); border-radius: var(--rdp); }
+.marchio { left: var(--s3); display: inline-flex; align-items: center; gap: var(--s2); padding: var(--s1) var(--s4) var(--s1) var(--s1); color: inherit; text-decoration: none; }
+.marchio img { width: 32px; height: 32px; }
+.marchio b { font-size: 19px; font-weight: 700; letter-spacing: -.03em; }
+.tools { right: var(--s3); display: flex; padding: var(--s1); }
+
+/* ---- tessere ---- */
+.tess { position: relative; display: grid; grid-template-rows: auto 1fr; align-content: start; gap: var(--s1); padding: var(--s3) var(--s2) var(--s2); min-height: 88px; border-radius: var(--rd2); background: var(--n2); color: var(--g);
+  text-align: center; transition: background var(--dur) var(--ease), color var(--dur) var(--ease), transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+.tess:hover { background: var(--n3); color: var(--w); }
+.tess:active { transform: scale(.97); }
+.tess[aria-checked="true"] { color: var(--w); box-shadow: inset 0 0 0 2px var(--w); }
+.tess[aria-disabled="true"] { cursor: not-allowed; }
+.tess[aria-disabled="true"] .mini, .tess[aria-disabled="true"] .nome { opacity: .5; }
+.tess .mini { display: grid; place-items: center; height: 40px; color: inherit; }
+.tess .nome { font-weight: 600; font-size: var(--t14); letter-spacing: -.015em; color: var(--w); }
+.tess .sub { display: block; color: var(--g); }
+.todo { position: absolute; top: var(--s2); right: var(--s2); color: var(--g); display: grid; place-items: center; }
+.todo svg { width: 14px; height: 14px; }
+
+/* ---- pulsanti ---- */
+.ico { width: var(--tap); height: var(--tap); border-radius: 50%; display: grid; place-items: center; color: var(--w); background: transparent; transition: background var(--dur) var(--ease), transform var(--dur) var(--ease), opacity var(--dur), box-shadow var(--dur); }
+.ico:hover { background: var(--n3); } .ico:active { transform: scale(.94); }
+.ico[disabled] { opacity: .32; cursor: default; }
+.ico[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--w); }
+.btn { min-height: var(--tap); padding: 0 var(--s5); border-radius: var(--rdp); font-weight: 600; font-size: var(--t14); letter-spacing: -.01em; display: inline-flex; align-items: center; justify-content: center; gap: var(--s2); transition: transform var(--dur) var(--ease), background var(--dur); white-space: nowrap; }
+.btn:active { transform: scale(.97); }
+.btn.pieno { background: var(--r); color: var(--w); }
+.btn.pieno:hover { background: #f0202c; }
+.prezzo { display: grid; line-height: 1.1; min-width: 0; }
+.prezzo b { font-size: var(--t22); font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+.prezzo small { color: var(--g); }
+.toast { position: fixed; left: 50%; top: var(--s3); transform: translate(-50%, -12px); opacity: 0; z-index: 50; background: var(--w); color: var(--n); padding: var(--s3) var(--s5); border-radius: var(--rdp); font-weight: 600; font-size: var(--t14);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); pointer-events: none; max-width: calc(100% - 2 * var(--s4)); text-align: center; }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* A4: speculare separato (canvas) al posto della tinta multiply, solo se ?spec */
+.sq .grp canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: none; }
+.sq .grp.spec canvas { display: block; }
+.sq .grp.spec img, .sq .grp.spec .tint { display: none; }
+
+/* ---- A5: stati dell'anteprima ---- */
+.stage[data-phase="loading"] .sq, .stage[data-phase="error"] .sq { visibility: hidden; }   /* niente quadrato nero, niente immagine vecchia sotto un errore */
+.sq-stato { position: absolute; z-index: 2; display: none; place-items: center; text-align: center; color: var(--w); font: 400 var(--t14)/1.4 "Geist", sans-serif; }
+.sq-stato p { margin: 0; }
+.stage[data-phase="loading"] .sq-stato, .stage[data-phase="error"] .sq-stato { display: grid; gap: var(--s3); align-content: center; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(78cqw, 560px); aspect-ratio: 5 / 3; border-radius: var(--rd2); padding: var(--s4); }
+.stage[data-phase="loading"] .sq-stato { background: linear-gradient(100deg, var(--n2) 30%, var(--n3) 50%, var(--n2) 70%) 0 0 / 300% 100%; animation: skel 1.4s linear infinite; box-shadow: inset 0 0 0 1px var(--linea); }
+.stage[data-phase="error"] .sq-stato { background: var(--n2); box-shadow: inset 0 0 0 1px var(--linea); }
+.skel-txt { font: 400 var(--t12)/1.4 "Geist Mono", monospace; color: var(--g); }
+.stage[data-phase="switching"] .sq-stato { display: block; left: 50%; bottom: var(--s4); transform: translateX(-50%); padding: var(--s2) var(--s4); border-radius: var(--rdp); background: var(--velo); font: 400 var(--t12)/1.4 "Geist Mono", monospace; white-space: nowrap; }
+.stage[data-phase="switching"] .sq { filter: saturate(.7) brightness(.85); }
+@keyframes skel { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@keyframes pend { 50% { opacity: .55; } }
+[data-phase="switching"] .tess[aria-checked="true"], [data-phase="switching"] .cols button[aria-checked="true"] { animation: pend 1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { [data-phase="switching"] .tess[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--g); } }
+.stage[data-phase="error"] .btn { background: var(--w); color: var(--n); }
+.btn[disabled] { opacity: .4; cursor: not-allowed; }
+.btn[disabled]:active { transform: none; }
+
+/* ---- A5: ingrandimento del bordo (solo telefono, corda e pietra) ---- */
+.zoom { position: absolute; z-index: 3; right: var(--s3); bottom: var(--s3); display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--tap); padding: 0 var(--s4) 0 var(--s3); border-radius: var(--rdp); background: var(--velo); color: var(--w); font: 600 var(--t14)/1 "Geist", sans-serif; }
+.zoom[hidden] { display: none; }
+.zoom svg { width: 20px; height: 20px; }
+.zoom[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--w); }
+.sq { transition: transform var(--dur-p) var(--ease); transform-origin: var(--zo, 20% 31%); }
+.stage.zoomed .sq { transform: scale(2); }
+
+/* A5: giorno + nessun fondo: l'ombra-fantasma delle lettere sul muro (fedele al render) si attenua, lo strato che la porta passa a .8 (MAE contro verita v9: 3,04 -> 4,81, soglia giorno 5) */
+.sq[data-vis="giorno"] > [data-layer^="fondo_none_"]:not(.off) { opacity: .8; }
