@@ -171,9 +171,9 @@ function render(){
   // prezzo
   const p=price(), pr=$('#price');
   const out=extras(p);
-  if(p.prezzo!=null){ pr.innerHTML='<div class="big">'+p.prezzo+' €</div><div class="sub">Prezzo indicativo · senza posa · IVA non applicata</div>'+(out.length?'<ul><li>'+out.join('</li><li>')+'</li></ul>':''); $('#bp').textContent=p.prezzo+' € indicativo'; $('#bs').textContent=(out.length?'+ voci da quotare · ':'')+'senza posa · IVA non applicata'; }
+  if(p.prezzo!=null){ pr.innerHTML='<div class="big">'+p.prezzo+' €</div><div class="sub">Senza posa · IVA non applicata</div>'+(out.length?'<ul><li>'+out.join('</li><li>')+'</li></ul>':''); $('#bp').textContent=p.prezzo+' €'; $('#bs').textContent=(out.length?'+ voci da quotare · ':'')+'senza posa · IVA non applicata'; }
   else { pr.innerHTML='<div class="big">Da quotare</div><div class="sub">Il costo dei materiali di questa scelta lo confermiamo noi su WhatsApp.</div>'; $('#bp').textContent='Prezzo da quotare'; $('#bs').textContent='senza posa · IVA non applicata'; }
-  $('#wa').href='https://wa.me/'+NUM+'?text='+encodeURIComponent('Ciao, ho scelto: '+summary()+(p.prezzo!=null?' · '+p.prezzo+' € indicativo':''));
+  $('#wa').href='https://wa.me/'+NUM+'?text='+encodeURIComponent('Ciao, ho scelto: '+summary()+(p.prezzo!=null?' · '+p.prezzo+' €':''));
 }
 function quote(){
   const p=price(), d=new Date(), ds=d.toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
@@ -183,7 +183,7 @@ function quote(){
   $('#sheet').innerHTML='<p class="k">OK.3D · preventivo indicativo</p><h3>La Nuova Torretta</h3><p>'+ds+'</p>'+
    '<p class="k">Oggetto</p><p>Insegna appesa da 100 cm di larghezza: <b>'+CFG.title+'</b></p>'+
    '<p class="k">La tua scelta</p><ul>'+sc.map(x=>'<li>'+x+'</li>').join('')+'</ul>'+
-   '<p class="k">Prezzo</p>'+(p.prezzo!=null?'<div class="tot">'+p.prezzo+' €</div><p>indicativo · senza posa · IVA non applicata</p>'+(extra.length?'<ul>'+extra.map(x=>'<li>'+x+'</li>').join('')+'</ul>':''):'<div class="tot">Da quotare</div><p>Il costo dei materiali di questa scelta viene confermato prima del preventivo definitivo.</p>')+
+   '<p class="k">Prezzo</p>'+(p.prezzo!=null?'<div class="tot">'+p.prezzo+' €</div><p>senza posa · IVA non applicata</p>'+(extra.length?'<ul>'+extra.map(x=>'<li>'+x+'</li>').join('')+'</ul>':''):'<div class="tot">Da quotare</div><p>Il costo dei materiali di questa scelta viene confermato prima del preventivo definitivo.</p>')+
    '<p class="k">Compreso</p><p>Insegna da 100 cm di larghezza, con luce calda, alimentazione elettrica e i due anelli di aggancio.</p>'+
    '<p class="k">Non compreso</p><p>Catene e viti (nelle immagini sono indicative), posa, tenuta all\'acqua da definire. Altre misure su richiesta.</p>'+
    '<p class="k">Contatti</p><p>OK.3D · WhatsApp +39 377 362 1181</p><p class="k">Nota</p><p>Questo è un preventivo indicativo e non vincolante. Il preventivo ufficiale viene emesso dopo la conferma della scelta.</p>'+
