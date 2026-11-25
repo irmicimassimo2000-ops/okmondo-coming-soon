@@ -213,7 +213,7 @@ function tenuta() {
     palco.classList.remove('attivo');
     const c = $('chiusura');
     c.classList.add('visibile');
-    requestAnimationFrame(() => requestAnimationFrame(() => { c.classList.add('pronta'); $('rileggi').focus({ preventScroll: true }); }));
+    requestAnimationFrame(() => requestAnimationFrame(() => { c.classList.add('pronta'); $('prenota').focus({ preventScroll: true }); }));
     volFondo(0, 3);
     annuncia(idx);
     return;
