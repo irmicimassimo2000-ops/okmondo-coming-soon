@@ -35,7 +35,7 @@ const CLIP = [
       '- Centrali di Medaglione di Cotechino Artigianale: servito su soffice letto di lenticchie stufate agli aromi'] },
   { id: 'p7', voce: 'f7', voceA: 2.020, testo: ['Capitolo sesto · La dolcezza', 'Restava un’ultima pagina, e profumava di festa.', '- Dolci lievitati della tradizione natalizia'] },
   { id: 'p8', voce: 'f8', voceA: 2.017, testo: ['Il finale non è ancora scritto. Si scrive a mezzanotte, a tavola.'] },
-  { id: 'fine', voce: null, voceA: 0, testo: ['31 dicembre · Feudo della Selva, Foggia'] },
+  { id: 'fine', voce: null, voceA: 0, testo: ['31 dicembre · Feudo della Selva, Foggia', 'Vino bianco e rosso illimitato, prosecco illimitato, bevande illimitate, guardaroba gratuito, band live + performer, dj set post cena incluso', '80 €'] },
 ];
 const N = CLIP.length;                 // 10
 const url = (i) => `clip/${CLIP[i].id}.mp4`;
