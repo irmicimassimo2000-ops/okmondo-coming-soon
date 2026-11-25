@@ -1,0 +1,207 @@
+/* La Tavola dell'Ultima Notte · app-film.
+   Il film 3D e' il libro; l'interfaccia e' quasi assente. Valori solo da token.
+   Colori: tela cobalto, carta crema, inchiostro dal libro; rame campionato dai fermo immagine (titolo in rilievo). */
+
+:root {
+  /* colore per ruolo */
+  --notte: #05080f;            /* fondo fuori dal film (nero-blu) */
+  --tela: #1e4469;             /* tela cobalto della copertina */
+  --tela-fonda: #0f2a47;       /* tela nell'ombra (vignetta) */
+  --carta: #eedabc;            /* carta crema: testo corrente */
+  --carta-muta: rgb(238 218 188 / .62);
+  --inchiostro: #0d265a;       /* blu dei titoli sulla carta */
+  --rame: #c9803f;             /* lamina di rame (campionata sul titolo in rilievo) */
+  --rame-vivo: #e29a52;        /* rame acceso dalla fiamma: focus e stato attivo */
+  --rame-velo: rgb(201 128 63 / .14);
+  --pericolo: #e8a08a;         /* avviso d'errore: terracotta chiara, mai rosso saturo */
+
+  /* spazio 4/8 */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --s8: 32px; --s12: 48px; --s16: 64px;
+
+  /* tipo: scala fissa, 5 passi */
+  --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, "Times New Roman", serif;
+  --t-display: clamp(40px, 13vw, 64px);
+  --t-lead: 26px;
+  --t-body: 18px;
+  --t-small: 15px;
+  --t-caps: 13px;
+
+  --radius: 2px;
+  --ease: cubic-bezier(.22, .61, .36, 1);
+  --d-fast: 120ms;
+  --d-mid: 320ms;
+  --d-slow: 900ms;
+
+  --tocco: 48px;               /* bersaglio minimo */
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--notte);
+  color: var(--carta);
+  font-family: var(--serif);
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sr {
+  position: absolute !important;
+  width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--rame-vivo); outline-offset: 4px; border-radius: var(--radius); }
+
+/* ---------- palco: 9:16 centrato su desktop, tutto schermo su telefono ---------- */
+.palco {
+  position: relative;
+  width: min(100vw, calc(100vh * 9 / 16));
+  height: 100vh;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #000;
+  touch-action: manipulation;
+  user-select: none; -webkit-user-select: none;
+}
+@supports (height: 100dvh) {
+  .palco { height: 100dvh; width: min(100vw, calc(100dvh * 9 / 16)); }
+}
+
+.film, .film video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+}
+.film video { object-fit: cover; opacity: 0; background: #000; }
+.film video.davanti { opacity: 1; z-index: 2; }
+.film video.sotto { opacity: 1; z-index: 1; }
+
+/* ---------- barra alta: tacche + comandi ---------- */
+.alta {
+  position: absolute; z-index: 10; top: 0; left: 0; right: 0;
+  padding: calc(env(safe-area-inset-top, 0px) + var(--s3)) calc(env(safe-area-inset-right, 0px) + var(--s4)) var(--s8) calc(env(safe-area-inset-left, 0px) + var(--s4));
+  background: linear-gradient(to bottom, rgb(0 0 0 / .62), transparent);
+  pointer-events: none;
+  opacity: 0; transition: opacity var(--d-slow) var(--ease);
+}
+.palco.attivo .alta { opacity: 1; }
+.tacche { display: grid; grid-template-columns: repeat(10, 1fr); gap: var(--s1); margin: 0 0 var(--s1); }
+.tacche span { height: 2px; background: var(--carta-muta); opacity: .35; transition: opacity var(--d-mid) var(--ease), background var(--d-mid) var(--ease); }
+.tacche span.fatta { opacity: .9; background: var(--rame); }
+.tacche span.ora { opacity: 1; background: var(--carta); }
+.comandi { display: flex; justify-content: space-between; pointer-events: none; }
+.cmd {
+  pointer-events: auto;
+  min-height: var(--tocco); min-width: var(--tocco);
+  padding: 0 var(--s2);
+  font-size: var(--t-caps); letter-spacing: .16em; text-transform: uppercase;
+  color: var(--carta); opacity: .8;
+  transition: opacity var(--d-fast) var(--ease), color var(--d-fast) var(--ease);
+}
+.cmd:hover { opacity: 1; color: var(--rame-vivo); }
+.cmd:active { opacity: 1; color: var(--rame-vivo); transform: translateY(1px); }
+.cmd[disabled] { opacity: .25; cursor: default; }
+
+/* ---------- basso: invito a toccare ---------- */
+.invito {
+  position: absolute; z-index: 10; left: 0; right: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--s12));
+  text-align: center; font-style: italic; font-size: var(--t-body);
+  color: var(--carta); text-shadow: 0 1px 14px #000, 0 0 3px #000;
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--d-slow) var(--ease);
+}
+.invito.visibile { opacity: .95; }
+@keyframes respiro { 50% { opacity: .55; } }
+
+/* ---------- avvisi: audio bloccato, caricamento, errore ---------- */
+.avviso {
+  position: absolute; z-index: 12; left: var(--s4); right: var(--s4);
+  top: calc(env(safe-area-inset-top, 0px) + var(--s16));
+  display: none; gap: var(--s3); align-items: center; justify-content: space-between;
+  padding: var(--s3) var(--s4);
+  background: rgb(0 0 0 / .78); border: 1px solid var(--rame);
+  border-radius: var(--radius); font-size: var(--t-small);
+}
+.avviso.visibile { display: flex; }
+.avviso button { color: var(--rame-vivo); text-transform: uppercase; letter-spacing: .14em; font-size: var(--t-caps); min-height: var(--tocco); }
+
+.velo {
+  position: absolute; inset: 0; z-index: 14;
+  display: none; flex-direction: column; align-items: center; justify-content: center; gap: var(--s6);
+  padding: var(--s8); text-align: center;
+  background: rgb(0 0 0 / .82);
+  font-size: var(--t-lead); font-style: italic;
+}
+.velo.visibile { display: flex; }
+.velo .piccolo { font-size: var(--t-small); font-style: normal; color: var(--carta-muta); }
+.velo.carico .puntino { width: 10px; height: 10px; border-radius: 50%; background: var(--rame-vivo); box-shadow: 0 0 24px 8px rgb(226 154 82 / .45); animation: respiro 1.6s ease-in-out infinite; }
+
+/* ---------- voce di menu: solo parole, la principale e' la piu' grande (Florence, GRIS) ---------- */
+.riga {
+  display: flex; align-items: center; gap: var(--s4); min-height: var(--tocco);
+  font-size: var(--t-lead); letter-spacing: .04em; color: var(--carta); font-style: normal;
+  transition: transform var(--d-mid) var(--ease), color var(--d-fast) var(--ease);
+}
+.riga::before, .riga::after { content: ""; flex: 1; height: 1px; background: var(--rame); opacity: .55; transition: opacity var(--d-mid) var(--ease); }
+.riga:hover { color: var(--rame-vivo); }
+.riga:hover::before, .riga:hover::after, .riga:focus-visible::before, .riga:focus-visible::after { opacity: 1; }
+.riga:active { transform: scale(.97); }
+.riga[aria-busy="true"] { opacity: .6; }
+.riga.tenue { font-size: var(--t-small); font-style: italic; color: var(--carta-muta); }
+.riga.tenue::before, .riga.tenue::after { opacity: .2; }
+.silenzio {
+  min-height: var(--tocco); padding: 0 var(--s4);
+  font-size: var(--t-small); font-style: italic; color: var(--carta-muta);
+  text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px;
+  transition: color var(--d-fast) var(--ease);
+}
+.silenzio:hover { color: var(--carta); }
+.con-audio { margin: 0; font-size: var(--t-small); font-style: italic; color: var(--carta-muta); }
+.menu { position: absolute; z-index: 2; display: flex; flex-direction: column; align-items: stretch; gap: var(--s1); }
+
+/* ---------- INGRESSO: tre direzioni ---------- */
+.ing { position: absolute; inset: 0; z-index: 20; display: none; overflow: hidden; }
+[data-ingresso="a"] .ing-a { display: block; }
+.ing.esce { pointer-events: none; }
+.ing .fondo { position: absolute; left: 0; width: 100%; object-fit: cover; }
+
+/* A · il libro chiuso al buio: prima il titolo sul libro, poi «Leggi» */
+.ing-a { background: #000; }
+.ing-a .fondo { top: 0; height: 100%; filter: brightness(.66) saturate(.9); }
+.ing-a::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 85% 55% at 50% 40%, transparent 0, rgb(0 0 0 / .5) 100%); }
+.ing-a .menu { left: var(--s8); right: var(--s8); bottom: calc(env(safe-area-inset-bottom, 0px) + var(--s12)); align-items: center; }
+.ing-a .menu .riga { width: 100%; }
+.ing-a .fondo, .ing-a::after, .ing-a .menu { transition: opacity var(--d-slow) var(--ease); }
+.ing-a.esce .fondo, .ing-a.esce::after { opacity: 0; }
+.ing-a.esce .menu { opacity: 0; transition-duration: var(--d-mid); }
+
+/* B · la copertina vera a tutto schermo, voci di menu a destra; all'uscita la camera entra nel libro */
+
+/* C · buio, la sola fiamma, la frase d'invito e il titolo in rame */
+
+/* ---------- CHIUSURA ---------- */
+.chiusura {
+  position: absolute; inset: 0; z-index: 15; display: none; flex-direction: column; align-items: center; justify-content: center; gap: var(--s6);
+  padding: var(--s8); text-align: center; background: rgb(0 0 0 / 0);
+  opacity: 0; transition: opacity var(--d-slow) var(--ease);
+}
+.chiusura.visibile { display: flex; }
+.chiusura.pronta { opacity: 1; }
+.chiusura p { margin: 0; font-size: var(--t-lead); line-height: 1.4; color: var(--carta); }
+.chiusura .ultima { font-size: var(--t-body); font-style: italic; color: var(--carta-muta); max-width: 18em; text-wrap: balance; }
+.chiusura .luogo span { display: block; white-space: nowrap; }
+.chiusura .filo { width: var(--s16); height: 1px; background: var(--rame); opacity: .7; }
+.chiusura .riga, .velo .riga { width: min(240px, 100%); }
+
+/* ---------- reduced motion: via le animazioni d'interfaccia, il video resta ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .alta, .tacche span, .invito, .riga, .cmd, .ing .fondo, .ing::after, .ing .menu, .ing .testo-c, .chiusura { transition: none !important; }
+  .velo.carico .puntino { animation: none !important; }
+}

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Tavola dell’Ultima Notte · DreamLand Capodanno</title>
+<meta name="description" content="Il menù del Gran Cenone di San Silvestro, Feudo della Selva, Foggia, raccontato come un libro di fiabe che si sfoglia toccando lo schermo.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#05080f">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="palco" id="palco">
+
+  <div class="film" aria-hidden="true">
+    <video id="v0" muted playsinline preload="auto" disablepictureinpicture disableremoteplayback></video>
+    <video id="v1" muted playsinline preload="auto" disablepictureinpicture disableremoteplayback></video>
+  </div>
+
+  <!-- vista per tecnologie assistive: il testo di ogni pagina, aggiornato a ogni giro di foglio -->
+  <div class="sr" id="testo" aria-live="polite" aria-atomic="true"></div>
+
+  <header class="alta">
+    <div class="tacche" id="tacche" role="progressbar" aria-label="Avanzamento del libro" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1"></div>
+    <div class="comandi">
+      <button type="button" class="cmd" id="indietro" aria-label="Pagina precedente">‹ Indietro</button>
+      <button type="button" class="cmd" id="audio" aria-pressed="true" aria-label="Voce accesa. Tocca per il silenzio">Voce</button>
+    </div>
+  </header>
+
+  <p class="invito" id="invito" aria-hidden="true">Tocca per girare pagina</p>
+
+  <div class="avviso" id="avviso-audio" role="status">
+    <span>L’audio è bloccato dal browser.</span>
+    <button type="button" id="attiva-audio">Attiva</button>
+  </div>
+
+  <div class="velo carico" id="velo-carico" role="status">
+    <span class="puntino"></span>
+    <span>Accendo la candela…</span>
+  </div>
+  <div class="velo" id="velo-errore" role="alert">
+    <span>Questa pagina non si carica.</span>
+    <span class="piccolo">Controlla la connessione e riprova.</span>
+    <button type="button" class="riga" id="riprova">Riprova</button>
+  </div>
+
+  <section class="chiusura" id="chiusura" aria-label="Fine del libro">
+    <p class="ultima">Il finale non è ancora scritto. Si scrive a mezzanotte, a tavola.</p>
+    <span class="filo" aria-hidden="true"></span>
+    <p class="luogo"><span>31 dicembre</span><span>Feudo della Selva, Foggia</span></p>
+    <button type="button" class="riga" id="rileggi">Rileggi</button>
+  </section>
+
+  <!-- INGRESSO · «il libro al buio» (scelta di Massimo, 25/11/2026) -->
+  <section class="ing ing-a" id="ing-a" aria-label="Ingresso">
+    <img class="fondo" src="img/b0.jpg" alt="" width="1080" height="1920">
+    <h1 class="sr">La Tavola dell’Ultima Notte · Menù del Gran Cenone di San Silvestro</h1>
+    <div class="menu">
+      <button type="button" class="riga leggi">Leggi</button>
+      <p class="con-audio">Con audio · <button type="button" class="silenzio">entra in silenzio</button></p>
+    </div>
+  </section>
+
+</main>
+<noscript><p style="position:fixed;inset:auto 16px 16px;margin:0;font-style:italic">Questo libro si sfoglia con JavaScript acceso.</p></noscript>
+<script src="app.js"></script>
+</body>
+</html>
